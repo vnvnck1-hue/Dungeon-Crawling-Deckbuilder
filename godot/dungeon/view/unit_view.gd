@@ -21,6 +21,7 @@ var unit_id := 0
 var kind := ""
 var team := "ally"
 var visual: Node3D            # EnemyOutline·Readability 가 읽는 이름
+var jolt: Node3D              # visual 의 부모. 맞았을 때 밀려났다 돌아오는 넉백 오프셋(이동·돌진 트윈과 겹치지 않게 따로 둔다)
 var body: Node3D
 var rig: Node
 var model: Node3D
@@ -68,7 +69,10 @@ func setup(kind_: String, team_: String, id: int, face_dir: Vector3) -> void:
 	body = made.body
 	rig = made.anim
 	model = body.get_child(0)
-	add_child(visual)
+	jolt = Node3D.new()
+	jolt.name = "Jolt"
+	add_child(jolt)
+	jolt.add_child(visual)
 	visual.scale = Vector3.ONE * base_scale()
 	hp_offset = float(def.get("hp_h", 1.75 * visual.scale.x * (1.12 if model_id == "orc_common" else 1.0) + 0.15))
 	for n in visual.find_children("Mouth", "Node3D", true, false):
@@ -304,9 +308,24 @@ func attack(style: String, toward: Vector3) -> float:
 			return rig.action(style)
 
 
-func hurt() -> void:
+## 피격 타격감. strength: 0.6(약한 피해) ~ 1.6(큰 피해·처치). from: 때린 쪽 위치(그 반대로 밀려난다, INF 면 뒤로).
+## 움찔(RigAnim flinch) + 자세 얼림(히트스탑) + 하얗게 번쩍(hit_flash 셰이더) + 납작 스쿼시(Fx.flash) + 넉백·튕김.
+## 화면 흔들림·전체 시간 멈춤은 main.gd 가 같이 건다.
+func hurt(strength := 1.0, from := Vector3.INF) -> void:
 	rig.flinch()
-	Fx.flash(visual, 1.0)
+	rig.freeze(0.05 + 0.05 * strength)
+	Fx.flash(visual, 1.0 + 0.8 * strength)
+	# 넉백: 때린 쪽 반대로 밀려났다가 스프링처럼 돌아온다. 큰 피해는 살짝 떠오른다.
+	var away: Vector3 = (global_position - from) if from.is_finite() else -facing
+	away.y = 0.0
+	away = away.normalized() if away.length() > 0.01 else -facing
+	var push: float = 0.22 + 0.2 * strength
+	var hop: float = 0.1 * maxf(strength - 0.9, 0.0)
+	var tw := create_tween()
+	tw.tween_property(jolt, "position", away * push + Vector3(0, hop, 0), 0.05).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(jolt, "position", Vector3.ZERO, 0.3).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	# 발밑 눈가루
+	Fx.snow_kick(global_position, -away, 2 if strength < 1.2 else 4, 0.8 + 0.4 * strength)
 
 
 func die() -> void:
@@ -336,6 +355,7 @@ func revive() -> void:
 	_ring.visible = true
 	visual.rotation.x = 0.0
 	visual.position.y = 0.0
+	jolt.position = Vector3.ZERO
 	visual.visible = true
 	visual.scale = Vector3.ONE * base_scale()
 	Fx.summon(global_position, Color(1.0, 0.82, 0.45))

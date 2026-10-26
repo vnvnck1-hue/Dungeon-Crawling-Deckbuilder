@@ -41,8 +41,10 @@ const SPOT_LAYER := 20                    # 딤드 강조 때 어둠 위에 다�
 const CAM_FOV := 34.0
 const CAM_PITCH := 52.0
 const CAM_YAW := 0.0
-const CAM_HEIGHT := 15.2                  # 초점 거리에서 보이는 세로 폭(m)
+const CAM_HEIGHT := 15.2                  # 초점 거리에서 보이는 세로 폭(m) — 행군·타이틀
+const CAM_HEIGHT_BATTLE := 13.2           # 전투: 더 당겨서 캐릭터가 화면에 크게 들어온다(맨 뒷줄 적·보스 체력 막대가 잘리지 않는 선)
 const CAM_FOCUS_OFFSET := Vector3(0.6, 0, 2.3)
+const CAM_FOCUS_OFFSET_BATTLE := Vector3(0.6, 0, 1.0)   # 전투 초점(손패가 아래를 덮으므로 격자를 조금 위로 올린다)
 const AMBIENT_COLOR := Color(0.65, 0.69, 0.93)
 const MOON_COLOR := Color(0.94, 0.92, 1.0)
 const MOON_ROT := Vector3(-64.0, 145.0, 0.0)
@@ -82,6 +84,10 @@ var entry_path: Array = []
 var focus := Vector3.ZERO
 var _focus_target := Vector3.ZERO
 var _follow_speed := 3.0
+## 카메라 줌: 초점 거리에서 보이는 세로 폭(m). 행군 때는 CAM_HEIGHT, 전투 때는 CAM_HEIGHT_BATTLE 로 당겨 캐릭터가 크게 보인다.
+var cam_height := CAM_HEIGHT
+var _cam_height_target := CAM_HEIGHT
+var _zoom_speed := 2.0
 var _shake_t := 0.0
 var _shake_amp := 0.0
 var _rng := RandomNumberGenerator.new()
@@ -214,7 +220,7 @@ func pos_cell(room_i: int, p: Vector3) -> Vector2i:
 
 
 func room_focus(i: int) -> Vector3:
-	return rooms[i].center + CAM_FOCUS_OFFSET
+	return rooms[i].center + CAM_FOCUS_OFFSET_BATTLE
 
 
 ## 화면 좌표 → 지면(y=0) 위의 점. 못 맞히면 INF.
@@ -249,8 +255,17 @@ func focus_on(p: Vector3, instant := false, speed := 3.0) -> void:
 		_place_camera()
 
 
+## 줌: 보이는 세로 폭(m)을 바꾼다. instant 면 바로, 아니면 speed 로 부드럽게.
+func set_zoom(height: float, instant := false, speed := 2.0) -> void:
+	_cam_height_target = height
+	_zoom_speed = speed
+	if instant:
+		cam_height = height
+		_place_camera()
+
+
 func _place_camera() -> void:
-	var dist := CAM_HEIGHT * 0.5 / tan(deg_to_rad(CAM_FOV) * 0.5)
+	var dist := cam_height * 0.5 / tan(deg_to_rad(CAM_FOV) * 0.5)
 	camera.position = focus + camera.transform.basis.z * dist
 	if snow != null:
 		snow.position = focus + Vector3(0, 13, -4)
@@ -275,6 +290,7 @@ func shake(amount: float, duration: float) -> void:
 
 func _process(delta: float) -> void:
 	focus = focus.lerp(_focus_target, 1.0 - exp(-delta * _follow_speed))
+	cam_height = lerpf(cam_height, _cam_height_target, 1.0 - exp(-delta * _zoom_speed))
 	_place_camera()
 	_update_occlusion(delta)
 	_sync_spot_camera()

@@ -12,11 +12,22 @@
 | 동작 | 방법 |
 |---|---|
 | 카드 쓰기 | 카드를 위로 끌어 적·칸에 놓기 **또는** 카드를 눌러 고른 뒤 적·칸 누르기(집으면 주인과 대상 적만 밝아진다) |
-| 즉시 카드(불굴의 포효) | 한 번 더 누르거나 전장 위에 놓기 |
+| 즉시 카드(불굴의 포효·철벽 등) | 한 번 더 누르거나 전장 위에 놓기 |
 | 취소 | 오른쪽 클릭 · Esc |
 | 턴 종료 | [턴 종료] 버튼 · Space(모든 행동력을 쓰면 자동) |
+| 레벨업 카드 고르기 | 떠오른 세 장 중 하나 누르기 |
+| 전체 화면 | 처음 실행하면 테두리 없는 전체 화면. **F11** 로 창 모드 전환(`--windowed` 로 실행하면 이번만 창 모드) |
 
-적 머리 위 글자는 다음 적 턴에 할 행동(공격 n · 전진 · 포효 · 빙결)이다. 적을 마우스로 가리키면 아래에 정보가 뜬다.
+적 머리 위 글자는 다음 적 턴에 할 행동(공격 n · 포효 · 빙결)이다. 적은 이동하지 않고 어디서든 바로 친다. 적을 마우스로 가리키면 아래에 정보가 뜬다.
+
+## 규칙 요약 (2026-10-27)
+
+- 모든 캐릭터는 **매 아군 턴 행동력 3**으로 시작한다. 카드 비용은 1·2·3.
+- **손패 5장.** 방에 들어서면 살아 있는 캐릭터의 덱을 모두 섞어 5장 뽑고, 턴마다 5장이 될 때까지 다시 뽑는다. 쓴 카드는 버림패로, 뽑을 패가 비면 버림패를 섞는다.
+- 아군·적 모두 **이동 없음.** 근접은 대상 앞까지 돌진해 치고 돌아온다.
+- **경험치·레벨.** 적이 쓰러지면 살아 있는 아군 모두 그 적의 경험치를 얻고, 직접 처치한 캐릭터는 +3. 레벨업하면 그 캐릭터의 새 카드 셋 중 하나를 골라 덱에 섞어 넣는다(바로 뽑을 패에도 들어간다).
+- 피격: 움찔·넉백·하얗게 번쩍·납작 스쿼시 + 히트스탑 + 화면 흔들림(피해가 클수록 세게).
+- 자세한 수치는 [docs/card-concept-v01.md](docs/card-concept-v01.md), 바꾸려면 `godot/dungeon/data/defs.gd`.
 
 ## 구조
 
@@ -29,7 +40,7 @@ godot/
     view/unit_view.gd      3D 유닛(마녀산장 캐릭터 모델 + RigAnim + 소품)
     view/hand.gd           손패(마녀산장 card_view 연출 + CardFace 글자 굽기)
     view/card_vfx.gd       카드·적 행동 연출(Fx·번개 창·서리 룬·리본 꼬리·효과음)
-    view/hud.gd            체력 막대·적 의도·캐릭터 패널·배너·원정대 선택·승패
+    view/hud.gd            체력 막대·적 의도·캐릭터 패널(레벨·경험치)·배너·원정대 선택·레벨업 카드 고르기·승패
     shaders/               던전 지면(마녀산장 지면 셰이더 파생) · 격자 오버레이
     main.gd                흐름(선택 → 행군 → 전투 → 자동 이동 → 승패)·입력
     tools/verify_*.gd      헤드리스 검증 · capture.gd 렌더 캡처
@@ -40,12 +51,12 @@ godot/
 
 ## 검증(헤드리스 우선)
 
-`godot/` 폴더에서(`G` = `../../마녀산장/witchs-lodge/.tools/Godot-4.7.2.exe`):
+`godot/` 폴더에서(`G` = `../../마녀산장/.tools/Godot-4.7.2.exe`). 새로 받은 저장소라면 먼저 `$G --headless --path . --import` 로 에셋을 임포트한다.
 
 ```text
-$G --headless --path . --script res://dungeon/tools/verify_battle.gd   # 전투 규칙 34항목 + 8방 자동 진행
-$G --headless --path . --script res://dungeon/tools/verify_flow.gd     # 메인 장면 흐름: 행군→전투→뛰어 이동(시간 측정)→중간 보스→승리
-$G --headless --path . --script res://dungeon/tools/verify_input.gd    # 마우스 입력(끌기·누르기·딤드 강조·돌진·취소·자동 턴·한 부채꼴)
+$G --headless --path . --script res://dungeon/tools/verify_battle.gd   # 전투 규칙 49항목(덱·손패·경험치·레벨업 카드 포함) + 8방 자동 진행
+$G --headless --path . --script res://dungeon/tools/verify_flow.gd     # 메인 장면 흐름: 행군→전투→뛰어 이동→중간 보스→승리, 레벨업 고르기·줌·히트스탑
+$G --headless --path . --script res://dungeon/tools/verify_input.gd    # 마우스 입력(끌기·누르기·딤드 강조·돌진·취소·넉백·턴 종료·한 부채꼴)
 $G --path . --script res://dungeon/tools/capture.gd                    # 렌더 캡처(셰이더·배치 확인용) → screenshots/capture/
 ```
 

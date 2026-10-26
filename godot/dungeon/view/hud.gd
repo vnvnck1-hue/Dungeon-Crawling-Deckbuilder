@@ -1,6 +1,6 @@
 extends Control
-## 화면 위 글자·막대: 유닛 머리 위 체력·방어·상태·적 의도, 손패 위 캐릭터 패널(체력·행동력), 방 이름·턴, 턴 종료 버튼,
-## 가운데 배너, 원정대 선택 화면, 승패 화면. 표시 전용 — 게임 상태는 main.gd 가 넣어 준다.
+## 화면 위 글자·막대: 유닛 머리 위 체력·방어·상태·적 의도, 손패 위 캐릭터 패널(체력·행동력·레벨·경험치), 방 이름·턴, 턴 종료 버튼,
+## 가운데 배너, 원정대 선택 화면, 레벨업 카드 고르기, 승패 화면. 표시 전용 — 게임 상태는 main.gd 가 넣어 준다.
 
 const CardFace := preload("res://scripts/ui/card_face.gd")
 const D := preload("res://dungeon/data/defs.gd")
@@ -9,6 +9,7 @@ const Sfx := preload("res://scripts/audio/sfx.gd")
 signal end_turn_pressed
 signal start_pressed(heroes: Array)
 signal restart_pressed
+signal card_chosen(card_id: String)
 
 const INK := Color(0.08, 0.04, 0.13)
 const CREAM := Color(1.0, 0.94, 0.8)
@@ -16,9 +17,10 @@ const GOLD := Color(1.0, 0.82, 0.42)
 const ALLY_HP := Color(0.55, 0.92, 0.45)
 const ENEMY_HP := Color(0.95, 0.3, 0.32)
 const BLOCK := Color(0.45, 0.78, 1.0)
+const XP := Color(0.75, 0.55, 1.0)
 
 var bars: Dictionary = {}          # unit id → {root, fill, back, hp, block, status, intent}
-var panels: Dictionary = {}        # hero kind → {root, name, hp, fill, pips, move}
+var panels: Dictionary = {}        # hero kind → {root, name, hp, pips, move, xp_fill, xp_text, style}
 var top_label: Label
 var turn_label: Label
 var hint_label: Label
@@ -26,6 +28,8 @@ var end_button: Button
 var banner: Label
 var _select_root: Control
 var _result_root: Control
+var _level_root: Control
+var _level_buttons: Array = []     # 레벨업 선택지 버튼(검증 도구가 pick_option 으로 누른다)
 var _picked: Array = []
 
 
@@ -175,7 +179,6 @@ func _intent_text(it: Dictionary) -> String:
 	match String(it.get("action", "")):
 		"attack": return "공격 %d" % int(it.amount)
 		"roar": return "%s! 전원 %d" % [String(it.get("name", "포효")), int(it.amount)]
-		"move": return "전진"
 		"frozen": return "빙결"
 		"idle": return "대기"
 	return ""
@@ -198,7 +201,7 @@ func build_panels(heroes: Array) -> void:
 		sb.set_border_width_all(2)
 		sb.set_corner_radius_all(10)
 		bg.add_theme_stylebox_override("panel", sb)
-		bg.size = Vector2(196, 50)
+		bg.size = Vector2(196, 64)
 		bg.position = Vector2(-98, 0)
 		bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		root.add_child(bg)
@@ -207,6 +210,22 @@ func build_panels(heroes: Array) -> void:
 		name_l.text = String(D.HEROES[h].name)
 		var hp := _label(14, CREAM, root)
 		hp.position = Vector2(-90, 28)
+		# 경험치 막대(아래 띠) + "Lv n · 경험치 x/y"
+		var xp_back := ColorRect.new()
+		xp_back.color = Color(0.06, 0.03, 0.1, 0.9)
+		xp_back.size = Vector2(180, 6)
+		xp_back.position = Vector2(-90, 55)
+		xp_back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		root.add_child(xp_back)
+		var xp_fill := ColorRect.new()
+		xp_fill.color = XP
+		xp_fill.size = Vector2(0, 4)
+		xp_fill.position = Vector2(-89, 56)
+		xp_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		root.add_child(xp_fill)
+		var xp_text := _label(12, XP.lightened(0.2), root)
+		xp_text.position = Vector2(-90, 40)
+		xp_text.size = Vector2(180, 14)
 		var pips: Array = []
 		for i in D.AP_MAX:
 			var pip := Panel.new()
@@ -222,7 +241,7 @@ func build_panels(heroes: Array) -> void:
 			pips.append(ps)
 		var move := _label(13, Color(0.75, 0.9, 1.0), root)
 		move.position = Vector2(20, 28)
-		panels[h] = {"root": root, "hp": hp, "pips": pips, "move": move, "style": sb}
+		panels[h] = {"root": root, "name": name_l, "hp": hp, "pips": pips, "move": move, "xp_fill": xp_fill, "xp_text": xp_text, "style": sb}
 
 
 ## centers: hand.group_centers(). u: Unit 또는 null(쓰러짐)
@@ -231,12 +250,15 @@ func update_panel(h: String, u, center_x: float, ap_cap: int) -> void:
 		return
 	var p: Dictionary = panels[h]
 	var vs := get_viewport_rect().size
-	p.root.position = Vector2(center_x, vs.y - 252.0)
+	p.root.position = Vector2(center_x, vs.y - 266.0)
 	p.root.visible = center_x > -1000.0
 	if u == null:
 		return
 	p.root.modulate = Color(0.55, 0.5, 0.6) if u.dead else Color.WHITE
+	p.name.text = "%s  Lv%d" % [String(D.HEROES[h].name), u.level]
 	p.hp.text = "체력 %d/%d" % [u.hp, u.max_hp] + (("  방어 %d" % u.block) if u.block > 0 else "")
+	p.xp_fill.size.x = 178.0 * clampf(float(u.xp) / float(u.xp_next()), 0.0, 1.0)
+	p.xp_text.text = "경험치 %d/%d" % [u.xp, u.xp_next()]
 	for i in p.pips.size():
 		var ps: StyleBoxFlat = p.pips[i]
 		if i < u.ap:
@@ -382,6 +404,100 @@ func _refresh_start() -> void:
 
 func selecting() -> bool:
 	return _select_root != null
+
+
+# ───────────────────────── 레벨업 카드 고르기 ─────────────────────────
+
+## 레벨업: 그 캐릭터의 새 카드 셋 중 하나를 고른다. 고르면 card_chosen(card_id). face_of: hand.face(카드 id)
+func show_level_up(h: String, level: int, options: Array, face_of: Callable) -> void:
+	_level_root = Control.new()
+	_level_root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# 손패(형제 노드)보다 위에 그려지도록 같은 CanvasLayer 의 맨 뒤에 붙인다
+	var top: Node = get_parent() if get_parent() != null else self
+	top.add_child(_level_root)
+	var dim := ColorRect.new()
+	dim.color = Color(0.05, 0.03, 0.1, 0.0)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_level_root.add_child(dim)
+	create_tween().tween_property(dim, "color:a", 0.66, 0.3)
+	var vs := get_viewport_rect().size
+	var col: Color = D.HEROES[h].color
+	var title := _label(46, col.lightened(0.3), _level_root)
+	title.text = "%s 레벨 %d!" % [String(D.HEROES[h].name), level]
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.size = Vector2(vs.x, 60)
+	title.position = Vector2(0, vs.y * 0.07)
+	var sub := _label(20, GOLD, _level_root)
+	sub.text = "덱에 섞어 넣을 카드를 하나 고르세요"
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.size = Vector2(vs.x, 30)
+	sub.position = Vector2(0, vs.y * 0.07 + 58)
+	var w := 200.0
+	var gap := 48.0
+	var n := options.size()
+	var x0 := vs.x * 0.5 - (w * n + gap * (n - 1)) * 0.5
+	_level_buttons.clear()
+	for i in n:
+		var cid: String = options[i]
+		var card := Button.new()
+		card.focus_mode = Control.FOCUS_NONE
+		card.size = Vector2(w, w * 1.5 + 24)
+		card.position = Vector2(x0 + i * (w + gap), vs.y * 0.21)
+		card.pivot_offset = card.size * 0.5
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.12, 0.07, 0.2, 0.92)
+		sb.set_corner_radius_all(16)
+		sb.set_border_width_all(4)
+		sb.border_color = Color(0.4, 0.36, 0.5)
+		var sb_hover := sb.duplicate()
+		sb_hover.border_color = col
+		sb_hover.bg_color = Color(0.18, 0.1, 0.28, 0.95)
+		card.add_theme_stylebox_override("normal", sb)
+		card.add_theme_stylebox_override("hover", sb_hover)
+		card.add_theme_stylebox_override("pressed", sb_hover)
+		_level_root.add_child(card)
+		_level_buttons.append(card)
+		var art := TextureRect.new()
+		art.texture = face_of.call(cid)
+		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		art.size = Vector2(w - 24, (w - 24) * 1.5)
+		art.position = Vector2(12, 12)
+		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		card.add_child(art)
+		# 등장: 아래에서 떠오르며 커진다
+		card.modulate.a = 0.0
+		card.scale = Vector2(0.8, 0.8)
+		var tw := create_tween()
+		tw.tween_interval(0.08 * i)
+		tw.tween_property(card, "modulate:a", 1.0, 0.2)
+		tw.parallel().tween_property(card, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		card.mouse_entered.connect(func() -> void:
+			Sfx.play(self, "card_hover")
+			create_tween().tween_property(card, "scale", Vector2(1.08, 1.08), 0.12))
+		card.mouse_exited.connect(func() -> void:
+			create_tween().tween_property(card, "scale", Vector2.ONE, 0.12))
+		card.pressed.connect(func() -> void:
+			if _level_root == null:
+				return
+			Sfx.play(self, "card_pickup")
+			var root := _level_root
+			_level_root = null
+			var out := create_tween()
+			out.tween_property(root, "modulate:a", 0.0, 0.22)
+			out.tween_callback(root.queue_free)
+			card_chosen.emit(cid))
+	Sfx.play_or(self, "relic_get", "victory")
+
+
+func choosing_card() -> bool:
+	return _level_root != null
+
+
+## 검증·캡처 도구용: i 번째 선택지를 누른다.
+func pick_option(i: int) -> void:
+	if _level_root != null and i < _level_buttons.size():
+		_level_buttons[i].pressed.emit()
 
 
 # ───────────────────────── 승패 ─────────────────────────

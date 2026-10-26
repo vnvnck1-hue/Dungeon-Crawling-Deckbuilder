@@ -1,6 +1,7 @@
 extends Control
-## 손패(화면 아래). 캐릭터마다 3장씩 묶어 부채꼴로 놓는다. 카드 한 장의 연출은 마녀산장 card_view.gd 그대로
+## 손패(화면 아래). 캐릭터별로 묶어 한 부채꼴로 놓는다(최대 HAND_SIZE 장). 카드 한 장의 연출은 마녀산장 card_view.gd 그대로
 ## (스프링·휨·올림 그림자·뽑기 회전·보여 주고 타오르기·재 입자). 글자는 CardFace 로 원화 위에 굽는다(BM 을지로체).
+## 카드는 battle.hand 의 키("카드id#번호", 같은 카드가 여럿일 수 있다)로 다룬다. 앞면 텍스처는 카드 id 로 한 번만 굽는다.
 ## 입력 판정은 main.gd 가 card_at() 으로 묻고, 이 노드는 배치·상태 표시만 맡는다.
 
 const CardView := preload("res://scripts/ui/card_view.gd")
@@ -27,6 +28,7 @@ var over_board := false
 var order: Array = []            # 화면 왼쪽부터 카드 id
 var playable: Dictionary = {}    # card_id → bool(행동력·대상 충족)
 var discard_count := 0
+var draw_count := 0
 var fx: Control                  # card_fx.gd(입자 폭발)
 var _faces: Dictionary = {}      # card_id → AtlasTexture(글자 구운 앞면)
 var focus := ""                  # 겨누는 카드의 주인(그 캐릭터 카드만 밝게)
@@ -63,8 +65,8 @@ func _build_pile() -> void:
 	_pile_label.add_theme_color_override("font_color", Color(1.0, 0.93, 0.78))
 	_pile_label.add_theme_color_override("font_outline_color", Color(0.08, 0.04, 0.12))
 	_pile_label.add_theme_constant_override("outline_size", 6)
-	_pile_label.position = Vector2(-6, CARD_SIZE.y * 0.5 + 4)
-	_pile_label.size = Vector2(CARD_SIZE.x * 0.5 + 12, 24)
+	_pile_label.position = Vector2(-50, CARD_SIZE.y * 0.5 + 4)
+	_pile_label.size = Vector2(CARD_SIZE.x * 0.5 + 100, 24)
 	_pile_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_pile.add_child(_pile_label)
 	_update_pile()
@@ -78,16 +80,24 @@ func pile_center() -> Vector2:
 	return _pile.position + CARD_SIZE * 0.25
 
 
+## 뽑을 패·버림패 장수(battle 의 더미 크기). main 이 화면을 갱신할 때 넣어 준다.
+func set_piles(draw_n: int, discard_n: int) -> void:
+	draw_count = draw_n
+	discard_count = discard_n
+	_update_pile()
+
+
 func _update_pile() -> void:
-	_pile_label.text = "버림패 %d" % discard_count
-	_pile.modulate.a = 1.0 if discard_count > 0 else 0.45
+	_pile_label.text = "뽑을 패 %d · 버림패 %d" % [draw_count, discard_count]
+	_pile.modulate.a = 1.0 if draw_count + discard_count > 0 else 0.45
 
 
 # ───────────────────────── 앞면 굽기 ─────────────────────────
 
 ## 카드 앞면 텍스처(글자 구운 AtlasTexture). 마녀산장 card_catalog._face 와 같은 방식: 처음엔 빈 그림, 구워지면 그림이 바뀐다.
-func face(card_id: String) -> Texture2D:
-	var card := D.card(card_id)
+func face(card_key: String) -> Texture2D:
+	var card := D.card(card_key)
+	var card_id := D.base_id(card_key)
 	return _face_for(card_id, "res://assets/cards/%s.png" % card.art,
 		{"id": card_id, "name": card.name, "category": card.category, "printed_rules": card.rules}, String(D.HEROES[card.hero].name))
 
@@ -134,9 +144,9 @@ func _bake(target: AtlasTexture, entry: Dictionary, badge: String, art: Texture2
 
 # ───────────────────────── 카드 넣고 빼기 ─────────────────────────
 
-## 이번 턴 손패를 채운다: 버림패 더미에서 카드가 핑그르 돌며 날아든다(card_view "draw").
-func deal(card_ids: Array) -> void:
-	order = card_ids.duplicate()
+## 손패를 battle.hand 와 맞춘다: 새로 뽑은 카드는 더미에서 핑그르 돌며 날아든다(card_view "draw"). 이미 있는 카드는 그대로.
+func deal(card_keys: Array) -> void:
+	order = card_keys.duplicate()
 	var start := pile_center()
 	var i := 0
 	for id in order:
@@ -152,8 +162,6 @@ func deal(card_ids: Array) -> void:
 				v.visible = true
 				v.flourish("draw")
 				Sfx.play(self, "card_draw"))
-	discard_count = 0
-	_update_pile()
 	_layout()
 
 
@@ -219,8 +227,6 @@ func consume(card_id: String) -> void:
 	v.t_fade = 1.0
 	var vs := get_viewport_rect().size
 	v.start_dissolve(func() -> void:
-		discard_count += 1
-		_update_pile()
 		v.queue_free(), Vector2(vs.x * 0.8, vs.y * 0.36), SHOW_SCALE)
 	dying.append(v)
 	Sfx.play(self, "card_play")
@@ -229,15 +235,22 @@ func consume(card_id: String) -> void:
 
 
 ## 주인이 쓰러진 카드: 손패에서 사라진다(재처럼 흩어짐).
-func drop(card_id: String) -> void:
-	if not views.has(card_id):
+func drop(card_key: String) -> void:
+	if not views.has(card_key):
 		return
-	var v: Control = views[card_id]
-	views.erase(card_id)
-	order.erase(card_id)
+	var v: Control = views[card_key]
+	views.erase(card_key)
+	order.erase(card_key)
 	v.start_dissolve(func() -> void: v.queue_free())
 	dying.append(v)
 	_layout()
+
+
+## 그 캐릭터의 카드를 모두 손패에서 떨어뜨린다(쓰러졌을 때).
+func drop_hero(h: String) -> void:
+	for key in views.keys():
+		if String(D.card(key).hero) == h:
+			drop(key)
 
 
 func clear_all() -> void:

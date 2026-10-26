@@ -12,6 +12,9 @@ const CardVfx := preload("res://dungeon/view/card_vfx.gd")
 const SoundBank := preload("res://scripts/audio/sound_bank.gd")
 const Fx := preload("res://scripts/visual/fx.gd")
 const Sfx := preload("res://scripts/audio/sfx.gd")
+const WindowMode := preload("res://scripts/visual/window_mode.gd")   # 마녀산장 화면 모드: 처음엔 테두리 없는 전체 화면, F11 전환
+
+const HITSTOP_SCALE := 0.04      # 히트스탑 동안의 시간 배율
 
 const C_TARGETABLE := Color(1.0, 0.86, 0.45, 0.45)
 const C_AREA := Color(1.0, 0.38, 0.28, 0.95)
@@ -40,11 +43,15 @@ var _music: Array = []          # AudioStreamPlayer 두 개(교차 페이드)
 var _music_event := ""
 var _hover_enemy := 0
 var _spot_key := ""             # 지금 강조 중인 카드(바뀔 때만 다시 건다)
+var _hitstop_end := 0           # 히트스탑이 끝나는 실제 시각(msec)
+var _hitstop_on := false
+var _hitstop_base := 1.0        # 히트스탑 전 시간 배율(검증 도구는 4배속으로 돈다)
 
 
 func _ready() -> void:
 	sounds = SoundBank.new()
 	add_child(sounds)
+	add_child(WindowMode.new())
 	world = ForestWorld.new()
 	world.name = "World"
 	add_child(world)
@@ -108,6 +115,7 @@ func _restart() -> void:
 		world.clear_cells(i)
 		world.set_board_reveal(i, 0.0)
 	world.focus_on(world.entry_path[2] + ForestWorld.CAM_FOCUS_OFFSET, true)
+	world.set_zoom(ForestWorld.CAM_HEIGHT, true)
 	hud.set_battle_ui(false)
 	mode = "select"
 	_play_music("bgm_field")
@@ -142,6 +150,7 @@ func _march(path: Array) -> void:
 	hud.set_battle_ui(false)
 	hud.hint("")
 	_play_music("bgm_field")
+	world.set_zoom(ForestWorld.CAM_HEIGHT, false, 1.6)
 	var allies := battle.allies(true)
 	var left := [allies.size()]
 	for k in allies.size():
@@ -163,6 +172,7 @@ func _begin_room() -> void:
 	mode = "battle"
 	hud.set_room(room, D.ROOMS.size(), String(D.ROOMS[room].name))
 	world.focus_on(world.room_focus(room), false, 2.4)
+	world.set_zoom(ForestWorld.CAM_HEIGHT_BATTLE, false, 1.8)
 	var this_room := room
 	var tw := create_tween()
 	tw.tween_method(func(x: float) -> void: world.set_board_reveal(this_room, x), 0.0, 1.0, 0.9)
@@ -191,7 +201,7 @@ func _player_turn() -> void:
 	for u in battle.allies():
 		disp[u.id] = _snapshot(u)
 	hud.set_battle_ui(true)
-	hud.set_turn("아군 턴 %d  ·  행동력 %d" % [battle.turn, mini(D.AP_MAX, battle.turn)])
+	hud.set_turn("아군 턴 %d  ·  행동력 %d" % [battle.turn, D.AP_MAX])
 	hud.show_banner("아군 턴", Color(1.0, 0.9, 0.6), 0.5)
 	hand.deal(battle.hand)
 	_refresh()
@@ -217,6 +227,11 @@ func _after_events() -> void:
 		if u != null:
 			disp[id] = _snapshot(u)
 	_refresh()
+	# 레벨업한 캐릭터가 있으면 순서대로 새 카드를 고른다(고르는 동안 전투는 멈춘다). 전멸했으면 건너뛴다
+	while not battle.pending_levelups.is_empty():
+		var who = battle.unit(battle.pending_levelups.pop_front())
+		if battle.phase != "defeat":
+			await _offer_level_up(who)
 	match battle.phase:
 		"clear":
 			_room_cleared()
@@ -228,6 +243,28 @@ func _after_events() -> void:
 			if battle.total_ap() == 0:
 				await get_tree().create_timer(0.35).timeout
 				_on_end_turn()
+
+
+## 레벨업: 그 캐릭터의 pool 에서 셋을 보여 주고, 고른 카드를 덱에 섞어 넣는다.
+func _offer_level_up(u) -> void:
+	if u == null:
+		return
+	busy = true
+	_cancel()
+	var options: Array = battle.level_options(u)
+	if options.is_empty():
+		busy = false
+		return
+	if views.has(u.id):
+		Fx.celebrate(views[u.id].global_position, D.HEROES[u.kind].color, 1.4)
+	hud.show_level_up(u.kind, u.level, options, hand.face)
+	var chosen: String = await hud.card_chosen
+	battle.add_card(u, chosen)
+	Sfx.play_or(self, "card_shuffle", "card_draw")
+	hud.show_banner("%s 덱에 [%s] 추가" % [u.name(), String(D.card(chosen).name)], D.HEROES[u.kind].color.lightened(0.3), 0.8)
+	await get_tree().create_timer(0.3).timeout
+	busy = false
+	_refresh()
 
 
 func _room_cleared() -> void:
@@ -331,8 +368,12 @@ func _play_cast(e: Dictionary, group: Array) -> void:
 			for x in per[uid]:
 				if x.type == "block":
 					_apply_unit(uid, [x])
+	var ally_views: Array = []
+	for u in battle.allies(true):
+		if per.has(u.id) and views.has(u.id):
+			ally_views.append(views[u.id])
 	world.clear_cells(room)
-	await vfx.play_card(String(e.card), caster, center, targets, cells, hit, block_fx)
+	await vfx.play_card(String(e.card), caster, center, targets, cells, hit, block_fx, ally_views)
 	# 연출이 부르지 않은 나머지(시전자 상태 등)
 	for uid in per:
 		if not done.has(uid):
@@ -351,11 +392,6 @@ func _play_enemy(e: Dictionary, group: Array) -> void:
 	var per := _by_unit(group)
 	world.focus_on(world.room_focus(room) + (v.global_position - world.rooms[room].center) * 0.12, false, 2.0)
 	match String(e.action):
-		"move":
-			for g in group:
-				if g.type == "move":
-					v.walk([world.cell_pos(room, g.to)], 2.6)
-					await v.arrived
 		"attack", "roar":
 			var target: Node3D = views.get(e.get("target", -1))
 			var allies: Array = []
@@ -387,9 +423,30 @@ func _apply_unit(uid: int, list: Array) -> void:
 				if x.amount > 0:
 					Fx.damage_number(world, v.chest() + Vector3(0, 0.6, 0), x.amount,
 						Color(1.0, 0.95, 0.55) if v.team == "enemy" else Color(1.0, 0.5, 0.45))
-					v.hurt()
+					# 타격감: 피해가 클수록(최대 체력 대비) 세게 — 움찔·넉백·번쩍(unit_view) + 히트스탑·화면 흔들림(여기)
+					var ratio: float = float(x.amount) / maxf(float(d.get("max_hp", 20)), 1.0)
+					var strength: float = clampf(0.6 + ratio * 2.2 + (0.4 if x.hp <= 0 else 0.0), 0.6, 1.6)
+					var src: Node3D = views.get(int(x.get("src", 0)))
+					v.hurt(strength, src.global_position if src != null and is_instance_valid(src) else Vector3.INF)
+					_hitstop(0.04 + 0.06 * strength)
+					world.shake(0.05 + 0.14 * strength, 0.18 + 0.1 * strength)
 				if x.blocked > 0:
 					Fx.float_text(world, v.chest() + Vector3(0.4, 1.0, 0), "막음 %d" % x.blocked, Color(0.55, 0.82, 1.0))
+					if x.amount <= 0:
+						Fx.hit(v.chest(), Color(0.45, 0.78, 1.0))
+						v.rig.flinch()
+			"heal":
+				d["hp"] = x.hp
+				if x.amount > 0:
+					Fx.float_text(world, v.chest() + Vector3(0, 1.0, 0), "+%d" % x.amount, Color(0.6, 1.0, 0.65))
+					Fx.heal(v.global_position)
+			"xp":
+				Fx.float_text(world, v.chest() + Vector3(-0.5, 1.3, 0), "+%d 경험치" % x.amount,
+					Color(0.9, 0.75, 1.0) if x.get("killer", false) else Color(0.75, 0.6, 0.95))
+			"level_up":
+				Sfx.play_or(self, "relic_get", "victory")
+				Fx.celebrate(v.global_position, D.HEROES[v.kind].color, 1.2)
+				Fx.float_text(world, v.chest() + Vector3(0, 1.8, 0), "레벨 %d!" % x.level, D.HEROES[v.kind].color.lightened(0.3))
 			"block":
 				d["block"] = x.total
 				Fx.float_text(world, v.chest() + Vector3(0, 1.0, 0), "방어 +%d" % x.amount, Color(0.55, 0.82, 1.0))
@@ -415,10 +472,24 @@ func _apply_unit(uid: int, list: Array) -> void:
 					views.erase(uid)
 					disp.erase(uid)
 				else:
-					for c in D.HEROES[v.kind].cards:
-						hand.drop(c)
+					hand.drop_hero(v.kind)
 	if disp.has(uid):
 		disp[uid] = d
+
+
+## 히트스탑: 맞는 순간 모든 움직임이 잠깐 멈춘다(실제 시간 sec). 겹치면 더 긴 쪽까지.
+func _hitstop(sec: float) -> void:
+	if not _hitstop_on:
+		_hitstop_on = true
+		_hitstop_base = Engine.time_scale
+		Engine.time_scale = _hitstop_base * HITSTOP_SCALE
+	_hitstop_end = maxi(_hitstop_end, Time.get_ticks_msec() + int(sec * 1000.0))
+
+
+func _tick_hitstop() -> void:
+	if _hitstop_on and Time.get_ticks_msec() >= _hitstop_end:
+		_hitstop_on = false
+		Engine.time_scale = _hitstop_base
 
 
 # ───────────────────────── 화면 갱신 ─────────────────────────
@@ -430,6 +501,7 @@ func _refresh() -> void:
 	for c in battle.hand:
 		pl[c] = battle.playable(c)
 	hand.playable = pl
+	hand.set_piles(battle.draw_pile.size(), battle.discard.size())
 	for u in battle.allies(true):
 		if views.has(u.id):
 			views[u.id].set_spent(u.ap == 0)
@@ -437,6 +509,7 @@ func _refresh() -> void:
 
 
 func _process(_delta: float) -> void:
+	_tick_hitstop()
 	hand.set_pile_visible(mode == "battle")
 	if battle == null:
 		return
@@ -459,7 +532,7 @@ func _process(_delta: float) -> void:
 	var centers: Dictionary = hand.group_centers()
 	for h in hud.panels:
 		var u = battle.hero(h)
-		hud.update_panel(h, u, float(centers.get(h, -5000.0)) if mode == "battle" else -5000.0, mini(D.AP_MAX, battle.turn))
+		hud.update_panel(h, u, float(centers.get(h, -5000.0)) if mode == "battle" else -5000.0, D.AP_MAX)
 	if mode == "walk":
 		var sum := Vector3.ZERO
 		var n := 0
@@ -550,7 +623,7 @@ func _cell_under(p: Vector2) -> Vector2i:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if mode != "battle" or battle == null:
+	if mode != "battle" or battle == null or hud.choosing_card():
 		return
 	if event is InputEventMouseMotion:
 		_on_motion(event.position)

@@ -32,6 +32,27 @@ func _ready_turn() -> bool:
 	return main.mode == "battle" and main.battle.phase == "player" and not main.busy
 
 
+func _key(id: String) -> String:
+	for k in main.battle.hand:
+		if D.base_id(k) == id:
+			return k
+	return ""
+
+
+## 손패를 정해진 카드로 바꿔 넣는다(캡처용).
+func _force_hand(ids: Array) -> void:
+	var b = main.battle
+	b.draw_pile.append_array(b.hand)
+	b.hand.clear()
+	var n := 900
+	for id in ids:
+		b.hand.append("%s#%d" % [id, n])
+		n += 1
+	main.hand.clear_all()
+	main.hand.deal(b.hand)
+	main._refresh()
+
+
 func _play_any() -> void:
 	var b = main.battle
 	for c in b.hand.duplicate():
@@ -56,6 +77,16 @@ func _process(delta: float) -> bool:
 		quit(1)
 		return true
 	var b = main.battle
+	if main.hud.choosing_card():
+		if not memo.has("levelup_shot"):
+			memo["levelup_shot"] = true
+			wait = 0.8    # 선택지가 떠오르는 연출이 끝난 뒤 찍는다
+			return false
+		if not memo.has("levelup_taken"):
+			memo["levelup_taken"] = true
+			_shot("09_level_up")
+		main.hud.pick_option(0)
+		return false
 	match step:
 		0:
 			wait = 2.0
@@ -71,6 +102,7 @@ func _process(delta: float) -> bool:
 			step = 3
 		3:
 			if _ready_turn():
+				_force_hand(["slash", "magic_bolt", "aimed_shot", "frost_rune", "war_cry"])
 				wait = 1.6
 				step = 4
 		4:
@@ -78,8 +110,9 @@ func _process(delta: float) -> bool:
 			# 전사 베기를 집어 먼 적 위로 끌어 올린 상태(딤드 강조)
 			var far = b.enemies()[b.enemies().size() - 1]
 			memo["far"] = far.cell
-			main.hand.start_drag("slash")
-			main.target_card = "slash"
+			memo["slash"] = _key("slash")
+			main.hand.start_drag(memo.slash)
+			main.target_card = memo.slash
 			main.hand.drag_pos = main.world.camera.unproject_position(main.world.cell_pos(main.room, far.cell)) + Vector2(0, -40)
 			main.hand.over_board = true
 			main.hover_cell = far.cell
@@ -89,7 +122,7 @@ func _process(delta: float) -> bool:
 		5:
 			_shot("03_spotlight")
 			main.hand.end_drag(false)
-			main._cast("slash", memo.far)
+			main._cast(memo.slash, memo.far)
 			wait = 0.2
 			step = 6
 		6:
