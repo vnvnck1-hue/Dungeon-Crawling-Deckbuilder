@@ -1,0 +1,262 @@
+[gd_resource type="VisualShader" format=3]
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_x1vbc"]
+parameter_name = "color_edge"
+default_value_enabled = true
+default_value = Color(0.62, 0.3, 1, 1)
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_jkucr"]
+resource_name = "Helix strands"
+size = Vector2(520, 360)
+expression = "
+float x = uv_in.x;
+float y = (uv_in.y - 0.5) * 2.0;
+float behind = (head - x) * len;           // 창머리에서 뒤로 몇 m
+float drawn = step(0.0, behind);
+// 창머리 근처가 가장 굵고 뒤로 갈수록 가늘다(최소 0.35)
+float taper = clamp(1.0 - behind / 5.0, 0.35, 1.0) * smoothstep(0.0, 0.6, x * len);
+// 각진 타서 사라짐: 꼬리(시작점)부터, 칸 단위로 끊긴다
+float cell = floor(x * len * 3.0);
+float n = lt_hash(vec2(cell, seed));
+float alive = step(burn * 1.15, x * 0.75 + n * 0.25 + 0.001);
+core = 0.0;
+band = 0.0;
+edge = 0.0;
+for (int k = 0; k < 2; k++) {
+	// 삼각파 = 꺾인 나선(사인 대신 직선 마디)
+	float tri = abs(fract(x * len * 0.32 + float(k) * 0.5 + seed * 0.1) - 0.5) * 4.0 - 1.0;
+	float off = tri * 0.7 * taper;
+	float d = abs(y - off);
+	float w = 0.14 * taper;
+	float aa = fwidth(d) * 1.2;
+	edge = max(edge, 1.0 - smoothstep(w * 1.7 - aa, w * 1.7, d));
+	band = max(band, 1.0 - smoothstep(w - aa, w, d));
+	core = max(core, 1.0 - smoothstep(w * 0.4 - aa, w * 0.4, d));
+}
+// 가운데 심
+float d0 = abs(y);
+float aa0 = fwidth(d0) * 1.2;
+float w0 = 0.06 * taper;
+edge = max(edge, 1.0 - smoothstep(w0 * 2.2 - aa0, w0 * 2.2, d0));
+band = max(band, 1.0 - smoothstep(w0 * 1.4 - aa0, w0 * 1.4, d0));
+core = max(core, 1.0 - smoothstep(w0 - aa0, w0, d0));
+float m = drawn * alive;
+core *= m;
+band *= m;
+edge *= m;
+// 타는 경계의 불씨(각진 칸)
+spark = 0.0;
+"
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_eelqu"]
+resource_name = "Helix color"
+size = Vector2(520, 360)
+expression = "
+color = c_edge.rgb * (edge - band) * 0.95 + c_band.rgb * (band - core) * 1.0 + c_core.rgb * core * 1.05;
+alpha = clamp(edge + spark, 0.0, 1.0);
+"
+
+[sub_resource type="VisualShaderNodeGlobalExpression" id="VisualShaderNodeGlobalExpression_hcaug"]
+resource_name = "Lightning noise / zigzag"
+expression = "
+float lt_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float lt_hash1(float x) {
+	return lt_hash(vec2(x, x * 0.37 + 1.3));
+}
+float lt_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(lt_hash(i), lt_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(lt_hash(i + vec2(0.0, 1.0)), lt_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// 선형 보간 1D 노이즈 — 꺾인 직선 마디(번개의 지그재그)
+float lt_zig(float x, float s) {
+	float i = floor(x);
+	float f = fract(x);
+	return mix(lt_hash1(i + s * 13.1), lt_hash1(i + 1.0 + s * 13.1), f);
+}
+// 세 옥타브 지그재그(-0.5~0.5 근처)
+float lt_path(float x, float s) {
+	return (lt_zig(x * 5.0, s) - 0.5) * 0.62 + (lt_zig(x * 15.0, s + 3.0) - 0.5) * 0.24 + (lt_zig(x * 41.0, s + 7.0) - 0.5) * 0.09;
+}
+// 셀 경계까지 거리(F2-F1) — 방전선
+float lt_cell(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(lt_hash(i + g), lt_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_nkv17"]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_hnlh6"]
+parameter_name = "head"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_oerpt"]
+parameter_name = "burn"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_uogc1"]
+parameter_name = "len"
+default_value_enabled = true
+default_value = 8.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_fjvtk"]
+parameter_name = "seed"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_sd8p8"]
+parameter_name = "color_core"
+default_value_enabled = true
+default_value = Color(1, 1, 0.94, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_v1hnl"]
+parameter_name = "color_band"
+default_value_enabled = true
+default_value = Color(1, 0.76, 0.22, 1)
+
+[resource]
+resource_name = "Lightning / thunder spear / angular helix trail"
+modes/blend = 1
+modes/depth_draw = 2
+modes/cull = 2
+flags/unshaded = true
+flags/shadows_disabled = true
+flags/fog_disabled = true
+nodes/fragment/0/position = Vector2(900, 0)
+nodes/fragment/2/node = SubResource("VisualShaderNodeGlobalExpression_hcaug")
+nodes/fragment/2/position = Vector2(-1500, -500)
+nodes/fragment/2/size = Vector2(0, 0)
+nodes/fragment/2/input_ports = ""
+nodes/fragment/2/output_ports = ""
+nodes/fragment/2/expression = "
+float lt_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float lt_hash1(float x) {
+	return lt_hash(vec2(x, x * 0.37 + 1.3));
+}
+float lt_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(lt_hash(i), lt_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(lt_hash(i + vec2(0.0, 1.0)), lt_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// 선형 보간 1D 노이즈 — 꺾인 직선 마디(번개의 지그재그)
+float lt_zig(float x, float s) {
+	float i = floor(x);
+	float f = fract(x);
+	return mix(lt_hash1(i + s * 13.1), lt_hash1(i + 1.0 + s * 13.1), f);
+}
+// 세 옥타브 지그재그(-0.5~0.5 근처)
+float lt_path(float x, float s) {
+	return (lt_zig(x * 5.0, s) - 0.5) * 0.62 + (lt_zig(x * 15.0, s + 3.0) - 0.5) * 0.24 + (lt_zig(x * 41.0, s + 7.0) - 0.5) * 0.09;
+}
+// 셀 경계까지 거리(F2-F1) — 방전선
+float lt_cell(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(lt_hash(i + g), lt_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+nodes/fragment/3/node = SubResource("VisualShaderNodeInput_nkv17")
+nodes/fragment/3/position = Vector2(-1200, -300)
+nodes/fragment/4/node = SubResource("VisualShaderNodeFloatParameter_hnlh6")
+nodes/fragment/4/position = Vector2(-1200, -190)
+nodes/fragment/5/node = SubResource("VisualShaderNodeFloatParameter_oerpt")
+nodes/fragment/5/position = Vector2(-1200, -80)
+nodes/fragment/6/node = SubResource("VisualShaderNodeFloatParameter_uogc1")
+nodes/fragment/6/position = Vector2(-1200, 30)
+nodes/fragment/7/node = SubResource("VisualShaderNodeFloatParameter_fjvtk")
+nodes/fragment/7/position = Vector2(-1200, 140)
+nodes/fragment/8/node = SubResource("VisualShaderNodeColorParameter_sd8p8")
+nodes/fragment/8/position = Vector2(-1200, 250)
+nodes/fragment/9/node = SubResource("VisualShaderNodeColorParameter_v1hnl")
+nodes/fragment/9/position = Vector2(-1200, 360)
+nodes/fragment/10/node = SubResource("VisualShaderNodeColorParameter_x1vbc")
+nodes/fragment/10/position = Vector2(-1200, 470)
+nodes/fragment/11/node = SubResource("VisualShaderNodeExpression_jkucr")
+nodes/fragment/11/position = Vector2(-500, -200)
+nodes/fragment/11/size = Vector2(520, 360)
+nodes/fragment/11/input_ports = "0,3,uv_in;1,0,head;2,0,burn;3,0,len;4,0,seed;"
+nodes/fragment/11/output_ports = "0,0,core;1,0,band;2,0,edge;3,0,spark;"
+nodes/fragment/11/expression = "
+float x = uv_in.x;
+float y = (uv_in.y - 0.5) * 2.0;
+float behind = (head - x) * len;           // 창머리에서 뒤로 몇 m
+float drawn = step(0.0, behind);
+// 창머리 근처가 가장 굵고 뒤로 갈수록 가늘다(최소 0.35)
+float taper = clamp(1.0 - behind / 5.0, 0.35, 1.0) * smoothstep(0.0, 0.6, x * len);
+// 각진 타서 사라짐: 꼬리(시작점)부터, 칸 단위로 끊긴다
+float cell = floor(x * len * 3.0);
+float n = lt_hash(vec2(cell, seed));
+float alive = step(burn * 1.15, x * 0.75 + n * 0.25 + 0.001);
+core = 0.0;
+band = 0.0;
+edge = 0.0;
+for (int k = 0; k < 2; k++) {
+	// 삼각파 = 꺾인 나선(사인 대신 직선 마디)
+	float tri = abs(fract(x * len * 0.32 + float(k) * 0.5 + seed * 0.1) - 0.5) * 4.0 - 1.0;
+	float off = tri * 0.7 * taper;
+	float d = abs(y - off);
+	float w = 0.14 * taper;
+	float aa = fwidth(d) * 1.2;
+	edge = max(edge, 1.0 - smoothstep(w * 1.7 - aa, w * 1.7, d));
+	band = max(band, 1.0 - smoothstep(w - aa, w, d));
+	core = max(core, 1.0 - smoothstep(w * 0.4 - aa, w * 0.4, d));
+}
+// 가운데 심
+float d0 = abs(y);
+float aa0 = fwidth(d0) * 1.2;
+float w0 = 0.06 * taper;
+edge = max(edge, 1.0 - smoothstep(w0 * 2.2 - aa0, w0 * 2.2, d0));
+band = max(band, 1.0 - smoothstep(w0 * 1.4 - aa0, w0 * 1.4, d0));
+core = max(core, 1.0 - smoothstep(w0 - aa0, w0, d0));
+float m = drawn * alive;
+core *= m;
+band *= m;
+edge *= m;
+// 타는 경계의 불씨(각진 칸)
+spark = 0.0;
+"
+nodes/fragment/12/node = SubResource("VisualShaderNodeExpression_eelqu")
+nodes/fragment/12/position = Vector2(0, -60)
+nodes/fragment/12/size = Vector2(520, 360)
+nodes/fragment/12/input_ports = "0,0,core;1,0,band;2,0,edge;3,0,spark;4,5,c_core;5,5,c_band;6,5,c_edge;"
+nodes/fragment/12/output_ports = "0,4,color;1,0,alpha;"
+nodes/fragment/12/expression = "
+color = c_edge.rgb * (edge - band) * 0.95 + c_band.rgb * (band - core) * 1.0 + c_core.rgb * core * 1.05;
+alpha = clamp(edge + spark, 0.0, 1.0);
+"
+nodes/fragment/connections = PackedInt32Array(3, 0, 11, 0, 4, 0, 11, 1, 5, 0, 11, 2, 6, 0, 11, 3, 7, 0, 11, 4, 11, 0, 12, 0, 11, 1, 12, 1, 11, 2, 12, 2, 11, 3, 12, 3, 8, 0, 12, 4, 9, 0, 12, 5, 10, 0, 12, 6, 12, 0, 0, 0, 12, 1, 0, 1)

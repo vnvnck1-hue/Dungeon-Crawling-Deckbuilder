@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/nature/berry_shrub.glb" id="1"]
+[ext_resource type="Material" path="res://assets/nature/materials/nature_wind_undergrowth.tres" id="2"]
+
+[node name="BerryShrub" type="Node3D"]
+metadata/nature_id = "berry_shrub"
+metadata/label = "숲 베리 관목"
+
+[node name="Model" parent="." instance=ExtResource("1")]
+
+[node name="berry_shrub" parent="Model" index="0"]
+material_override = ExtResource("2")
+
+[editable path="Model"]

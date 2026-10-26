@@ -1,0 +1,162 @@
+{
+  "groups": {
+    "arm_l": {
+      "parent": "torso",
+      "parts": [
+        6.0
+      ],
+      "pivot": [
+        0.162,
+        0.445,
+        0.069
+      ],
+      "size": [
+        0.285,
+        0.272,
+        0.159
+      ],
+      "triangles": 452
+    },
+    "arm_r": {
+      "parent": "torso",
+      "parts": [
+        5.0
+      ],
+      "pivot": [
+        -0.162,
+        0.445,
+        0.069
+      ],
+      "size": [
+        0.285,
+        0.272,
+        0.159
+      ],
+      "triangles": 452
+    },
+    "backpack": {
+      "parent": "torso",
+      "parts": [
+        1.0,
+        8.0,
+        15.0,
+        16.0,
+        18.0,
+        25.0,
+        27.0,
+        28.0,
+        29.0,
+        30.0,
+        31.0,
+        32.0,
+        33.0
+      ],
+      "pivot": [
+        0.022,
+        0.625,
+        -0.078
+      ],
+      "size": [
+        0.629,
+        0.422,
+        0.223
+      ],
+      "triangles": 924
+    },
+    "head": {
+      "parent": "torso",
+      "parts": [
+        7.0,
+        10.0,
+        11.0,
+        13.0,
+        21.0,
+        23.0,
+        24.0,
+        26.0,
+        34.0,
+        35.0
+      ],
+      "pivot": [
+        0.0,
+        0.507,
+        0.017
+      ],
+      "size": [
+        0.983,
+        0.493,
+        0.567
+      ],
+      "triangles": 2292
+    },
+    "leg_l": {
+      "parent": "",
+      "parts": [
+        3.0
+      ],
+      "pivot": [
+        0.103,
+        0.3,
+        0.073
+      ],
+      "size": [
+        0.286,
+        0.3,
+        0.308
+      ],
+      "triangles": 549
+    },
+    "leg_r": {
+      "parent": "",
+      "parts": [
+        4.0
+      ],
+      "pivot": [
+        -0.123,
+        0.3,
+        0.073
+      ],
+      "size": [
+        0.247,
+        0.3,
+        0.308
+      ],
+      "triangles": 534
+    },
+    "torso": {
+      "parent": "",
+      "parts": [
+        2.0,
+        9.0,
+        12.0,
+        14.0,
+        17.0,
+        19.0,
+        22.0,
+        36.0
+      ],
+      "pivot": [
+        0.0,
+        0.198,
+        0.063
+      ],
+      "size": [
+        0.505,
+        0.364,
+        0.375
+      ],
+      "triangles": 1100
+    }
+  },
+  "height_m": 1.0,
+  "id": "goblin_nib",
+  "scale_from_source": 1.00048851978505,
+  "scene": "res://scenes/characters/goblin_nib.tscn",
+  "source": "art_sources/characters/goblin_nib/nib_tripo_segmented_packuv.glb",
+  "source_parts": 35,
+  "texture": [
+    1024,
+    1024
+  ],
+  "triangles": 6303
+}

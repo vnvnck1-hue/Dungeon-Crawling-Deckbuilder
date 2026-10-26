@@ -1,0 +1,199 @@
+[gd_resource type="VisualShader" format=3]
+
+[sub_resource type="VisualShaderNodeGlobalExpression" id="VisualShaderNodeGlobalExpression_fvfwj"]
+resource_name = "Frost noise / cells / segment"
+expression = "
+float fr_hash(vec2 p) {
+	p = fract(p * vec2(123.34, 456.21));
+	p += dot(p, p + 45.32);
+	return fract(p.x * p.y);
+}
+float fr_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(fr_hash(i), fr_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(fr_hash(i + vec2(0.0, 1.0)), fr_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float fr_fbm(vec2 p) {
+	float v = 0.0;
+	float a = 0.5;
+	for (int k = 0; k < 4; k++) {
+		v += a * fr_noise(p);
+		p = p * 2.03 + vec2(1.7, 9.2);
+		a *= 0.5;
+	}
+	return v;
+}
+// 결정 세포: x = 가장 가까운 점까지 거리, y = 경계까지 거리(F2-F1), z = 세포 고유값
+vec3 fr_cells(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	float id = 0.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(fr_hash(i + g), fr_hash(i + g + 19.7));
+			float d = length(g + o - f);
+			if (d < d1) {
+				d2 = d1;
+				d1 = d;
+				id = fr_hash(i + g + 3.1);
+			} else if (d < d2) {
+				d2 = d;
+			}
+		}
+	}
+	return vec3(d1, d2 - d1, id);
+}
+float fr_seg(vec2 p, vec2 a, vec2 b) {
+	vec2 pa = p - a;
+	vec2 ba = b - a;
+	float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+	return length(pa - ba * h);
+}
+"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_1r230"]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_lyf1s"]
+parameter_name = "wave"
+default_value_enabled = true
+default_value = 0.5
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_dkxr3"]
+parameter_name = "energy"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_pym67"]
+parameter_name = "seed"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_d01p0"]
+parameter_name = "color"
+default_value_enabled = true
+default_value = Color(0.55, 0.85, 1, 1)
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_g0hnk"]
+resource_name = "Toothed shock front"
+size = Vector2(520, 360)
+expression = "
+vec2 p = (uv_in - vec2(0.5)) * 2.0;
+float r = length(p);
+float a = atan(p.y, p.x);
+// 톱니 모양 결정 앞머리
+float tooth = abs(fract(a * 28.0 / 6.2831853 + seed) - 0.5) * 2.0;
+float tooth2 = abs(fract(a * 11.0 / 6.2831853 + seed * 2.0) - 0.5) * 2.0;
+float edge = wave * (1.0 + 0.045 * tooth + 0.03 * tooth2);
+float thick = mix(0.22, 0.04, wave);
+float d = edge - r;
+float band = smoothstep(0.0, 0.012, d) * (1.0 - smoothstep(0.0, thick, d));
+float lead = 1.0 - smoothstep(0.0, 0.018, abs(d));
+float streak = 0.55 + 0.45 * fr_noise(vec2(a * 9.0, r * 7.0 - wave * 9.0));
+alpha = clamp(band * streak * 0.85 + lead, 0.0, 1.0) * energy * (1.0 - smoothstep(0.92, 1.0, r));
+color = mix(c.rgb, vec3(1.0), lead * 0.75);
+"
+
+[resource]
+resource_name = "Frost rune / crystal shock ring"
+modes/blend = 1
+modes/depth_draw = 2
+modes/cull = 2
+flags/unshaded = true
+flags/shadows_disabled = true
+flags/fog_disabled = true
+nodes/fragment/0/position = Vector2(900, 0)
+nodes/fragment/2/node = SubResource("VisualShaderNodeGlobalExpression_fvfwj")
+nodes/fragment/2/position = Vector2(-1500, -500)
+nodes/fragment/2/size = Vector2(0, 0)
+nodes/fragment/2/input_ports = ""
+nodes/fragment/2/output_ports = ""
+nodes/fragment/2/expression = "
+float fr_hash(vec2 p) {
+	p = fract(p * vec2(123.34, 456.21));
+	p += dot(p, p + 45.32);
+	return fract(p.x * p.y);
+}
+float fr_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(fr_hash(i), fr_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(fr_hash(i + vec2(0.0, 1.0)), fr_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float fr_fbm(vec2 p) {
+	float v = 0.0;
+	float a = 0.5;
+	for (int k = 0; k < 4; k++) {
+		v += a * fr_noise(p);
+		p = p * 2.03 + vec2(1.7, 9.2);
+		a *= 0.5;
+	}
+	return v;
+}
+// 결정 세포: x = 가장 가까운 점까지 거리, y = 경계까지 거리(F2-F1), z = 세포 고유값
+vec3 fr_cells(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	float id = 0.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(fr_hash(i + g), fr_hash(i + g + 19.7));
+			float d = length(g + o - f);
+			if (d < d1) {
+				d2 = d1;
+				d1 = d;
+				id = fr_hash(i + g + 3.1);
+			} else if (d < d2) {
+				d2 = d;
+			}
+		}
+	}
+	return vec3(d1, d2 - d1, id);
+}
+float fr_seg(vec2 p, vec2 a, vec2 b) {
+	vec2 pa = p - a;
+	vec2 ba = b - a;
+	float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+	return length(pa - ba * h);
+}
+"
+nodes/fragment/3/node = SubResource("VisualShaderNodeInput_1r230")
+nodes/fragment/3/position = Vector2(-1200, -300)
+nodes/fragment/4/node = SubResource("VisualShaderNodeFloatParameter_lyf1s")
+nodes/fragment/4/position = Vector2(-1200, -190)
+nodes/fragment/5/node = SubResource("VisualShaderNodeFloatParameter_dkxr3")
+nodes/fragment/5/position = Vector2(-1200, -80)
+nodes/fragment/6/node = SubResource("VisualShaderNodeFloatParameter_pym67")
+nodes/fragment/6/position = Vector2(-1200, 30)
+nodes/fragment/7/node = SubResource("VisualShaderNodeColorParameter_d01p0")
+nodes/fragment/7/position = Vector2(-1200, 140)
+nodes/fragment/8/node = SubResource("VisualShaderNodeExpression_g0hnk")
+nodes/fragment/8/position = Vector2(-400, -200)
+nodes/fragment/8/size = Vector2(520, 360)
+nodes/fragment/8/input_ports = "0,3,uv_in;1,0,wave;2,0,energy;3,0,seed;4,5,c;"
+nodes/fragment/8/output_ports = "0,4,color;1,0,alpha;"
+nodes/fragment/8/expression = "
+vec2 p = (uv_in - vec2(0.5)) * 2.0;
+float r = length(p);
+float a = atan(p.y, p.x);
+// 톱니 모양 결정 앞머리
+float tooth = abs(fract(a * 28.0 / 6.2831853 + seed) - 0.5) * 2.0;
+float tooth2 = abs(fract(a * 11.0 / 6.2831853 + seed * 2.0) - 0.5) * 2.0;
+float edge = wave * (1.0 + 0.045 * tooth + 0.03 * tooth2);
+float thick = mix(0.22, 0.04, wave);
+float d = edge - r;
+float band = smoothstep(0.0, 0.012, d) * (1.0 - smoothstep(0.0, thick, d));
+float lead = 1.0 - smoothstep(0.0, 0.018, abs(d));
+float streak = 0.55 + 0.45 * fr_noise(vec2(a * 9.0, r * 7.0 - wave * 9.0));
+alpha = clamp(band * streak * 0.85 + lead, 0.0, 1.0) * energy * (1.0 - smoothstep(0.92, 1.0, r));
+color = mix(c.rgb, vec3(1.0), lead * 0.75);
+"
+nodes/fragment/connections = PackedInt32Array(3, 0, 8, 0, 4, 0, 8, 1, 5, 0, 8, 2, 6, 0, 8, 3, 7, 0, 8, 4, 8, 0, 0, 0, 8, 1, 0, 1)

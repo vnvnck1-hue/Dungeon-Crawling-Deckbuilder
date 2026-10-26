@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/nature_prop.gdshader" id="1_m04xt"]
+
+[resource]
+resource_name = "Nature vertex painted toon"
+render_priority = 0
+shader = ExtResource("1_m04xt")

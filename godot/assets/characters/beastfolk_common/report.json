@@ -1,0 +1,141 @@
+{
+  "groups": {
+    "arm_l": {
+      "parent": "torso",
+      "parts": [
+        4.0
+      ],
+      "pivot": [
+        0.125,
+        0.375,
+        0.1
+      ],
+      "size": [
+        0.254,
+        0.227,
+        0.162
+      ],
+      "triangles": 300
+    },
+    "arm_r": {
+      "parent": "torso",
+      "parts": [
+        5.0
+      ],
+      "pivot": [
+        -0.173,
+        0.368,
+        0.1
+      ],
+      "size": [
+        0.256,
+        0.226,
+        0.162
+      ],
+      "triangles": 296
+    },
+    "head": {
+      "parent": "torso",
+      "parts": [
+        0.0,
+        3.0,
+        9.0,
+        10.0,
+        12.0
+      ],
+      "pivot": [
+        0.0,
+        0.45,
+        0.02
+      ],
+      "size": [
+        0.678,
+        0.549,
+        0.553
+      ],
+      "triangles": 1459
+    },
+    "leg_l": {
+      "parent": "",
+      "parts": [
+        6.0
+      ],
+      "pivot": [
+        0.104,
+        0.136,
+        0.111
+      ],
+      "size": [
+        0.21,
+        0.126,
+        0.261
+      ],
+      "triangles": 217
+    },
+    "leg_r": {
+      "parent": "",
+      "parts": [
+        8.0
+      ],
+      "pivot": [
+        -0.14,
+        0.136,
+        0.111
+      ],
+      "size": [
+        0.208,
+        0.126,
+        0.262
+      ],
+      "triangles": 223
+    },
+    "tail": {
+      "parent": "torso",
+      "parts": [
+        7.0
+      ],
+      "pivot": [
+        0.02,
+        0.22,
+        -0.09
+      ],
+      "size": [
+        0.419,
+        0.28,
+        0.375
+      ],
+      "triangles": 189
+    },
+    "torso": {
+      "parent": "",
+      "parts": [
+        1.0,
+        2.0,
+        11.0,
+        13.0
+      ],
+      "pivot": [
+        0.003,
+        0.122,
+        0.035
+      ],
+      "size": [
+        0.543,
+        0.38,
+        0.442
+      ],
+      "triangles": 1041
+    }
+  },
+  "height_m": 1.0,
+  "id": "beastfolk_common",
+  "scale_from_source": 1.00048851978505,
+  "scene": "res://scenes/characters/beastfolk_common.tscn",
+  "source": "art_sources/characters/beastfolk_common/beastfolk_common_tripo_segmented_packuv.glb",
+  "source_parts": 14,
+  "texture": [
+    1024,
+    1024
+  ],
+  "triangles": 3725
+}

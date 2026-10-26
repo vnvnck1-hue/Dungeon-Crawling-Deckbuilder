@@ -1,0 +1,213 @@
+[gd_resource type="VisualShader" format=3]
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_qe004"]
+resource_name = "Lance head"
+size = Vector2(520, 360)
+expression = "
+// uv.x = 뒤(0) → 창끝(1), uv.y = 가로
+float x = uv_in.x;
+float y = (uv_in.y - 0.5) * 2.0;
+// 창날 옆모습: 뒤로 길게 가늘어지다 0.72 에서 가장 넓고 창끝에서 뾰족
+float h = x < 0.72 ? mix(0.03, 0.5, pow(x / 0.72, 1.8)) : 0.5 * (1.0 - (x - 0.72) / 0.28);
+// 옆 미늘 두 쌍(뒤로 젖힌 삼각형)
+for (int i = 0; i < 2; i++) {
+	float bx = 0.42 - float(i) * 0.16;
+	float t = (x - bx) / 0.12;
+	float barb = (t > 0.0 && t < 1.0) ? (0.26 - float(i) * 0.06) * t : 0.0;
+	h = max(h, barb);
+}
+float q = abs(y) / max(h, 0.001);
+float aa = fwidth(q) * 1.2;
+float edge = 1.0 - smoothstep(1.0 - aa, 1.0, q);
+float band = 1.0 - smoothstep(0.68 - aa, 0.68, q);
+float core = 1.0 - smoothstep(0.32 - aa, 0.32, q);
+// 가운데 능선(셀 음영의 반사띠)
+float ridge = (1.0 - smoothstep(0.05, 0.08, abs(y))) * step(0.2, x) * edge;
+// 창날 뒤 꽁무니 불꽃(쏜 직후 크게)
+float tail = exp(-abs(y) * 14.0) * smoothstep(0.0, 0.25, x) * (1.0 - step(0.3, x)) * (0.4 + flare);
+vec3 col = c_edge.rgb * (edge - band) * 1.0 + c_band.rgb * (band - core) * 1.1 + c_core.rgb * (core + ridge) * 1.15 + c_band.rgb * tail * 0.8;
+color = col;
+alpha = clamp(edge + tail * 0.6, 0.0, 1.0) * fade;
+"
+
+[sub_resource type="VisualShaderNodeGlobalExpression" id="VisualShaderNodeGlobalExpression_7imin"]
+resource_name = "Lightning noise / zigzag"
+expression = "
+float lt_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float lt_hash1(float x) {
+	return lt_hash(vec2(x, x * 0.37 + 1.3));
+}
+float lt_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(lt_hash(i), lt_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(lt_hash(i + vec2(0.0, 1.0)), lt_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// 선형 보간 1D 노이즈 — 꺾인 직선 마디(번개의 지그재그)
+float lt_zig(float x, float s) {
+	float i = floor(x);
+	float f = fract(x);
+	return mix(lt_hash1(i + s * 13.1), lt_hash1(i + 1.0 + s * 13.1), f);
+}
+// 세 옥타브 지그재그(-0.5~0.5 근처)
+float lt_path(float x, float s) {
+	return (lt_zig(x * 5.0, s) - 0.5) * 0.62 + (lt_zig(x * 15.0, s + 3.0) - 0.5) * 0.24 + (lt_zig(x * 41.0, s + 7.0) - 0.5) * 0.09;
+}
+// 셀 경계까지 거리(F2-F1) — 방전선
+float lt_cell(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(lt_hash(i + g), lt_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_ovwsl"]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_3fn7m"]
+parameter_name = "flare"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_772xv"]
+parameter_name = "fade"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_0bhcr"]
+parameter_name = "seed"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_jaxtr"]
+parameter_name = "color_core"
+default_value_enabled = true
+default_value = Color(1, 1, 0.94, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_7smt8"]
+parameter_name = "color_band"
+default_value_enabled = true
+default_value = Color(1, 0.76, 0.22, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_ha3g5"]
+parameter_name = "color_edge"
+default_value_enabled = true
+default_value = Color(0.62, 0.3, 1, 1)
+
+[resource]
+resource_name = "Lightning / thunder spear / cel lance head"
+modes/blend = 1
+modes/depth_draw = 2
+modes/cull = 2
+flags/unshaded = true
+flags/shadows_disabled = true
+flags/fog_disabled = true
+nodes/fragment/0/position = Vector2(900, 0)
+nodes/fragment/2/node = SubResource("VisualShaderNodeGlobalExpression_7imin")
+nodes/fragment/2/position = Vector2(-1500, -500)
+nodes/fragment/2/size = Vector2(0, 0)
+nodes/fragment/2/input_ports = ""
+nodes/fragment/2/output_ports = ""
+nodes/fragment/2/expression = "
+float lt_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float lt_hash1(float x) {
+	return lt_hash(vec2(x, x * 0.37 + 1.3));
+}
+float lt_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(lt_hash(i), lt_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(lt_hash(i + vec2(0.0, 1.0)), lt_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// 선형 보간 1D 노이즈 — 꺾인 직선 마디(번개의 지그재그)
+float lt_zig(float x, float s) {
+	float i = floor(x);
+	float f = fract(x);
+	return mix(lt_hash1(i + s * 13.1), lt_hash1(i + 1.0 + s * 13.1), f);
+}
+// 세 옥타브 지그재그(-0.5~0.5 근처)
+float lt_path(float x, float s) {
+	return (lt_zig(x * 5.0, s) - 0.5) * 0.62 + (lt_zig(x * 15.0, s + 3.0) - 0.5) * 0.24 + (lt_zig(x * 41.0, s + 7.0) - 0.5) * 0.09;
+}
+// 셀 경계까지 거리(F2-F1) — 방전선
+float lt_cell(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(lt_hash(i + g), lt_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+nodes/fragment/3/node = SubResource("VisualShaderNodeInput_ovwsl")
+nodes/fragment/3/position = Vector2(-1200, -300)
+nodes/fragment/4/node = SubResource("VisualShaderNodeFloatParameter_3fn7m")
+nodes/fragment/4/position = Vector2(-1200, -190)
+nodes/fragment/5/node = SubResource("VisualShaderNodeFloatParameter_772xv")
+nodes/fragment/5/position = Vector2(-1200, -80)
+nodes/fragment/6/node = SubResource("VisualShaderNodeFloatParameter_0bhcr")
+nodes/fragment/6/position = Vector2(-1200, 30)
+nodes/fragment/7/node = SubResource("VisualShaderNodeColorParameter_jaxtr")
+nodes/fragment/7/position = Vector2(-1200, 140)
+nodes/fragment/8/node = SubResource("VisualShaderNodeColorParameter_7smt8")
+nodes/fragment/8/position = Vector2(-1200, 250)
+nodes/fragment/9/node = SubResource("VisualShaderNodeColorParameter_ha3g5")
+nodes/fragment/9/position = Vector2(-1200, 360)
+nodes/fragment/10/node = SubResource("VisualShaderNodeExpression_qe004")
+nodes/fragment/10/position = Vector2(-400, -200)
+nodes/fragment/10/size = Vector2(520, 360)
+nodes/fragment/10/input_ports = "0,3,uv_in;1,0,flare;2,0,fade;3,0,seed;4,5,c_core;5,5,c_band;6,5,c_edge;"
+nodes/fragment/10/output_ports = "0,4,color;1,0,alpha;"
+nodes/fragment/10/expression = "
+// uv.x = 뒤(0) → 창끝(1), uv.y = 가로
+float x = uv_in.x;
+float y = (uv_in.y - 0.5) * 2.0;
+// 창날 옆모습: 뒤로 길게 가늘어지다 0.72 에서 가장 넓고 창끝에서 뾰족
+float h = x < 0.72 ? mix(0.03, 0.5, pow(x / 0.72, 1.8)) : 0.5 * (1.0 - (x - 0.72) / 0.28);
+// 옆 미늘 두 쌍(뒤로 젖힌 삼각형)
+for (int i = 0; i < 2; i++) {
+	float bx = 0.42 - float(i) * 0.16;
+	float t = (x - bx) / 0.12;
+	float barb = (t > 0.0 && t < 1.0) ? (0.26 - float(i) * 0.06) * t : 0.0;
+	h = max(h, barb);
+}
+float q = abs(y) / max(h, 0.001);
+float aa = fwidth(q) * 1.2;
+float edge = 1.0 - smoothstep(1.0 - aa, 1.0, q);
+float band = 1.0 - smoothstep(0.68 - aa, 0.68, q);
+float core = 1.0 - smoothstep(0.32 - aa, 0.32, q);
+// 가운데 능선(셀 음영의 반사띠)
+float ridge = (1.0 - smoothstep(0.05, 0.08, abs(y))) * step(0.2, x) * edge;
+// 창날 뒤 꽁무니 불꽃(쏜 직후 크게)
+float tail = exp(-abs(y) * 14.0) * smoothstep(0.0, 0.25, x) * (1.0 - step(0.3, x)) * (0.4 + flare);
+vec3 col = c_edge.rgb * (edge - band) * 1.0 + c_band.rgb * (band - core) * 1.1 + c_core.rgb * (core + ridge) * 1.15 + c_band.rgb * tail * 0.8;
+color = col;
+alpha = clamp(edge + tail * 0.6, 0.0, 1.0) * fade;
+"
+nodes/fragment/connections = PackedInt32Array(3, 0, 10, 0, 4, 0, 10, 1, 5, 0, 10, 2, 6, 0, 10, 3, 7, 0, 10, 4, 8, 0, 10, 5, 9, 0, 10, 6, 10, 0, 0, 0, 10, 1, 0, 1)

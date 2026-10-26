@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bo6rldjs5r13p" path="res://assets/vines/user_tangled_roots.glb" id="1"]
+[ext_resource type="Material" path="res://assets/vines/materials/user_tangled_roots_paint.tres" id="2"]
+
+[node name="UserTangledRoots" type="Node3D"]
+metadata/nature_id = "user_tangled_roots"
+metadata/label = "엉킨 고목 뿌리 · 사용자 모델"
+
+[node name="Model" parent="." instance=ExtResource("1")]
+
+[node name="tripo_node_3930182e-dca6-42c3-ae27-cb6cb6b6f81d" parent="Model" index="0"]
+material_override = ExtResource("2")
+
+[editable path="Model"]

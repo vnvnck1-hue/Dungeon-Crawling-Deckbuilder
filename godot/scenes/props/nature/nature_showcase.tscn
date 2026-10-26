@@ -1,0 +1,110 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/props/nature/cluster_spire_grove.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/props/nature/cluster_ledge_forest.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/props/nature/cluster_ancient_log.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/props/nature/cluster_snow_spire.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/props/nature/cluster_snow_ledge.tscn" id="5"]
+
+[sub_resource type="Environment" id="Environment"]
+background_mode = 1
+background_color = Color(0.105, 0.14, 0.20, 1)
+ambient_light_source = 3
+ambient_light_color = Color(0.70, 0.79, 0.94, 1)
+ambient_light_energy = 0.55
+reflected_light_source = 2
+ssao_enabled = true
+ssao_radius = 0.6
+ssao_intensity = 1.0
+
+[sub_resource type="StandardMaterial3D" id="GroundMat"]
+albedo_color = Color(0.19, 0.23, 0.25, 1)
+roughness = 1.0
+
+[sub_resource type="PlaneMesh" id="Ground"]
+material = SubResource("GroundMat")
+size = Vector2(32, 24)
+
+[sub_resource type="StandardMaterial3D" id="MossMat"]
+albedo_color = Color(0.26, 0.32, 0.23, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="SnowMat"]
+albedo_color = Color(0.68, 0.70, 0.81, 1)
+roughness = 1.0
+
+[sub_resource type="CylinderMesh" id="Patch"]
+top_radius = 2.3
+bottom_radius = 2.35
+height = 0.07
+radial_segments = 13
+
+[node name="NatureShowcase" type="Node3D"]
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment")
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.10, 0)
+mesh = SubResource("Ground")
+
+[node name="Key" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-58,-35,0)
+light_color = Color(1.0,0.94,0.82,1)
+light_energy = 1.1
+shadow_enabled = true
+directional_shadow_max_distance = 45.0
+light_angular_distance = 2.5
+
+[node name="Camera" type="Camera3D" parent="."]
+position = Vector3(11.1,18.6,22.6)
+rotation_degrees = Vector3(-38,26,0)
+projection = 1
+size = 24.0
+current = true
+far = 70.0
+
+[node name="SpireGrove" parent="." instance=ExtResource("1")]
+position = Vector3(-6,0,-3.1)
+
+[node name="LedgeForest" parent="." instance=ExtResource("2")]
+position = Vector3(0,0,-3.1)
+
+[node name="AncientLog" parent="." instance=ExtResource("3")]
+position = Vector3(6,0,-3.1)
+
+[node name="WinterSpire" parent="." instance=ExtResource("4")]
+position = Vector3(-3.5,0,3.6)
+
+[node name="WinterLedge" parent="." instance=ExtResource("5")]
+position = Vector3(3.5,0,3.6)
+
+[node name="MossPatch1" type="MeshInstance3D" parent="."]
+position = Vector3(-6,-0.04,-3.1)
+scale = Vector3(1.05,1,0.80)
+mesh = SubResource("Patch")
+material_override = SubResource("MossMat")
+
+[node name="MossPatch2" type="MeshInstance3D" parent="."]
+position = Vector3(0,-0.04,-3.1)
+scale = Vector3(1.15,1,0.80)
+mesh = SubResource("Patch")
+material_override = SubResource("MossMat")
+
+[node name="MossPatch3" type="MeshInstance3D" parent="."]
+position = Vector3(6,-0.04,-3.1)
+scale = Vector3(1.1,1,0.8)
+mesh = SubResource("Patch")
+material_override = SubResource("MossMat")
+
+[node name="SnowPatch1" type="MeshInstance3D" parent="."]
+position = Vector3(-3.5,-0.04,3.6)
+scale = Vector3(1.05,1,0.80)
+mesh = SubResource("Patch")
+material_override = SubResource("SnowMat")
+
+[node name="SnowPatch2" type="MeshInstance3D" parent="."]
+position = Vector3(3.5,-0.04,3.6)
+scale = Vector3(1.15,1,0.80)
+mesh = SubResource("Patch")
+material_override = SubResource("SnowMat")

@@ -1,0 +1,180 @@
+[gd_resource type="VisualShader" format=3]
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_4tk6s"]
+parameter_name = "color"
+default_value_enabled = true
+default_value = Color(0.7, 0.35, 1, 1)
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_nqkvv"]
+resource_name = "Rising rage flames"
+size = Vector2(520, 360)
+expression = "
+// uv.x = 둘레, uv.y = 높이(0 바닥 → 1 꼭대기)
+float h = uv_in.y;
+float n1 = ww_fbm(vec2(uv_in.x * 8.0 + seed, h * 2.0 - clock * 3.2));
+float n2 = ww_noise(vec2(uv_in.x * 19.0 + seed * 3.0, h * 4.0 - clock * 5.0));
+float tongue = smoothstep(0.42, 0.75, n1 + (1.0 - h) * 0.45 - h * 0.25);
+float lick = smoothstep(0.6, 0.9, n2) * (1.0 - h);
+float top = 1.0 - smoothstep(rise - 0.3, rise, h);
+float side = 1.0 - abs(dot(normalize(n), normalize(v)));
+alpha = clamp((tongue * 0.8 + lick * 0.5) * (0.35 + 0.65 * side) * top * fade, 0.0, 1.0);
+color = mix(c.rgb, vec3(1.0, 0.85, 1.0), lick * 0.7 + (1.0 - h) * 0.15) * 1.4;
+"
+
+[sub_resource type="VisualShaderNodeGlobalExpression" id="VisualShaderNodeGlobalExpression_lt607"]
+resource_name = "Werewolf noise / cracks"
+expression = "
+float ww_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float ww_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(ww_hash(i), ww_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(ww_hash(i + vec2(0.0, 1.0)), ww_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float ww_fbm(vec2 p) {
+	float v = 0.0;
+	float a = 0.5;
+	for (int k = 0; k < 4; k++) {
+		v += a * ww_noise(p);
+		p = p * 2.07 + vec2(3.1, 7.7);
+		a *= 0.5;
+	}
+	return v;
+}
+// 가장자리까지 거리(F2-F1) — 균열 선
+float ww_crack(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(ww_hash(i + g), ww_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_hcxkm"]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_ya2hi"]
+input_name = "time"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_aesca"]
+input_name = "normal"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_7dk87"]
+input_name = "view"
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_ohce3"]
+parameter_name = "rise"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_qi3la"]
+parameter_name = "fade"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_brt5r"]
+parameter_name = "seed"
+default_value_enabled = true
+
+[resource]
+resource_name = "Werewolf / rage wisps / rising violet flames"
+modes/blend = 1
+modes/depth_draw = 2
+modes/cull = 2
+flags/unshaded = true
+flags/shadows_disabled = true
+flags/fog_disabled = true
+nodes/fragment/0/position = Vector2(900, 0)
+nodes/fragment/2/node = SubResource("VisualShaderNodeGlobalExpression_lt607")
+nodes/fragment/2/position = Vector2(-1500, -500)
+nodes/fragment/2/size = Vector2(0, 0)
+nodes/fragment/2/input_ports = ""
+nodes/fragment/2/output_ports = ""
+nodes/fragment/2/expression = "
+float ww_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float ww_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(ww_hash(i), ww_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(ww_hash(i + vec2(0.0, 1.0)), ww_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float ww_fbm(vec2 p) {
+	float v = 0.0;
+	float a = 0.5;
+	for (int k = 0; k < 4; k++) {
+		v += a * ww_noise(p);
+		p = p * 2.07 + vec2(3.1, 7.7);
+		a *= 0.5;
+	}
+	return v;
+}
+// 가장자리까지 거리(F2-F1) — 균열 선
+float ww_crack(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(ww_hash(i + g), ww_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+nodes/fragment/3/node = SubResource("VisualShaderNodeInput_hcxkm")
+nodes/fragment/3/position = Vector2(-1200, -300)
+nodes/fragment/4/node = SubResource("VisualShaderNodeInput_ya2hi")
+nodes/fragment/4/position = Vector2(-1200, -190)
+nodes/fragment/5/node = SubResource("VisualShaderNodeInput_aesca")
+nodes/fragment/5/position = Vector2(-1200, -80)
+nodes/fragment/6/node = SubResource("VisualShaderNodeInput_7dk87")
+nodes/fragment/6/position = Vector2(-1200, 30)
+nodes/fragment/7/node = SubResource("VisualShaderNodeFloatParameter_ohce3")
+nodes/fragment/7/position = Vector2(-1200, 140)
+nodes/fragment/8/node = SubResource("VisualShaderNodeFloatParameter_qi3la")
+nodes/fragment/8/position = Vector2(-1200, 250)
+nodes/fragment/9/node = SubResource("VisualShaderNodeFloatParameter_brt5r")
+nodes/fragment/9/position = Vector2(-1200, 360)
+nodes/fragment/10/node = SubResource("VisualShaderNodeColorParameter_4tk6s")
+nodes/fragment/10/position = Vector2(-1200, 470)
+nodes/fragment/11/node = SubResource("VisualShaderNodeExpression_nqkvv")
+nodes/fragment/11/position = Vector2(-400, -200)
+nodes/fragment/11/size = Vector2(520, 360)
+nodes/fragment/11/input_ports = "0,3,uv_in;1,0,clock;2,4,n;3,4,v;4,0,rise;5,0,fade;6,0,seed;7,5,c;"
+nodes/fragment/11/output_ports = "0,4,color;1,0,alpha;"
+nodes/fragment/11/expression = "
+// uv.x = 둘레, uv.y = 높이(0 바닥 → 1 꼭대기)
+float h = uv_in.y;
+float n1 = ww_fbm(vec2(uv_in.x * 8.0 + seed, h * 2.0 - clock * 3.2));
+float n2 = ww_noise(vec2(uv_in.x * 19.0 + seed * 3.0, h * 4.0 - clock * 5.0));
+float tongue = smoothstep(0.42, 0.75, n1 + (1.0 - h) * 0.45 - h * 0.25);
+float lick = smoothstep(0.6, 0.9, n2) * (1.0 - h);
+float top = 1.0 - smoothstep(rise - 0.3, rise, h);
+float side = 1.0 - abs(dot(normalize(n), normalize(v)));
+alpha = clamp((tongue * 0.8 + lick * 0.5) * (0.35 + 0.65 * side) * top * fade, 0.0, 1.0);
+color = mix(c.rgb, vec3(1.0, 0.85, 1.0), lick * 0.7 + (1.0 - h) * 0.15) * 1.4;
+"
+nodes/fragment/connections = PackedInt32Array(3, 0, 11, 0, 4, 0, 11, 1, 5, 0, 11, 2, 6, 0, 11, 3, 7, 0, 11, 4, 8, 0, 11, 5, 9, 0, 11, 6, 10, 0, 11, 7, 11, 0, 0, 0, 11, 1, 0, 1)

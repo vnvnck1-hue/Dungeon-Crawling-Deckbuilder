@@ -1,0 +1,132 @@
+{
+  "groups": {
+    "arm_l": {
+      "parent": "torso",
+      "parts": [
+        5.0
+      ],
+      "pivot": [
+        0.161,
+        0.391,
+        0.04
+      ],
+      "size": [
+        0.22,
+        0.213,
+        0.145
+      ],
+      "triangles": 263
+    },
+    "arm_r": {
+      "parent": "torso",
+      "parts": [
+        4.0
+      ],
+      "pivot": [
+        -0.161,
+        0.391,
+        0.04
+      ],
+      "size": [
+        0.22,
+        0.213,
+        0.145
+      ],
+      "triangles": 265
+    },
+    "head": {
+      "parent": "torso",
+      "parts": [
+        0.0,
+        9.0,
+        10.0
+      ],
+      "pivot": [
+        0.0,
+        0.488,
+        0.0
+      ],
+      "size": [
+        0.567,
+        0.512,
+        0.551
+      ],
+      "triangles": 1567
+    },
+    "leg_l": {
+      "parent": "",
+      "parts": [
+        2.0,
+        11.0,
+        20.0
+      ],
+      "pivot": [
+        0.119,
+        0.244,
+        0.037
+      ],
+      "size": [
+        0.231,
+        0.244,
+        0.253
+      ],
+      "triangles": 394
+    },
+    "leg_r": {
+      "parent": "",
+      "parts": [
+        3.0,
+        7.0
+      ],
+      "pivot": [
+        -0.112,
+        0.244,
+        0.037
+      ],
+      "size": [
+        0.246,
+        0.244,
+        0.253
+      ],
+      "triangles": 399
+    },
+    "torso": {
+      "parent": "",
+      "parts": [
+        1.0,
+        6.0,
+        8.0,
+        12.0,
+        13.0,
+        14.0,
+        15.0,
+        16.0,
+        17.0,
+        18.0,
+        22.0
+      ],
+      "pivot": [
+        0.0,
+        0.117,
+        -0.025
+      ],
+      "size": [
+        0.545,
+        0.437,
+        0.417
+      ],
+      "triangles": 1054
+    }
+  },
+  "height_m": 1.0,
+  "id": "human_common",
+  "scale_from_source": 1.00048851978505,
+  "scene": "res://scenes/characters/human_common.tscn",
+  "source": "art_sources/characters/human_common/human_common_tripo_segmented_packuv.glb",
+  "source_parts": 21,
+  "texture": [
+    1024,
+    1024
+  ],
+  "triangles": 3942
+}

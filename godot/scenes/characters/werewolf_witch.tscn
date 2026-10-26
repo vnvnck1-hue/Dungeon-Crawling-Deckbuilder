@@ -1,0 +1,79 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://assets/characters/werewolf_witch/werewolf_witch_torso.res" id="1_pdcjk"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/werewolf_witch/werewolf_witch_head.res" id="2_7ud27"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/werewolf_witch/werewolf_witch_arm_r.res" id="3_25xia"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/werewolf_witch/werewolf_witch_fore_r.res" id="4_kx1re"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/werewolf_witch/werewolf_witch_arm_l.res" id="5_unlo4"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/werewolf_witch/werewolf_witch_fore_l.res" id="6_pybbk"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/werewolf_witch/werewolf_witch_tail.res" id="7_stlmp"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/werewolf_witch/werewolf_witch_leg_r.res" id="8_6frhu"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/werewolf_witch/werewolf_witch_leg_l.res" id="9_jkv15"]
+
+[node name="WerewolfWitch" type="Node3D" unique_id=1059057168]
+metadata/character_id = "werewolf_witch"
+metadata/label = "보름달 늑대인간(마녀 변신)"
+metadata/tripo_task = "d6e0aa91-5774-47ed-ba2b-9eeb0fe63665"
+
+[node name="Torso" type="Node3D" parent="." unique_id=1519972534]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.33, -0.02)
+metadata/part_group = "torso"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso" unique_id=342617065]
+mesh = ExtResource("1_pdcjk")
+
+[node name="Head" type="Node3D" parent="Torso" unique_id=1317235422]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.30999997, 0)
+metadata/part_group = "head"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/Head" unique_id=1273587706]
+mesh = ExtResource("2_7ud27")
+
+[node name="ArmR" type="Node3D" parent="Torso" unique_id=1581047086]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2190776, 0.3552896, 0.004279431)
+metadata/part_group = "arm_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmR" unique_id=2080829408]
+mesh = ExtResource("3_25xia")
+
+[node name="ForeR" type="Node3D" parent="Torso/ArmR" unique_id=1994746615]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.16037737, -0.124149024, 0.051362656)
+metadata/part_group = "fore_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmR/ForeR" unique_id=1564663030]
+mesh = ExtResource("4_kx1re")
+
+[node name="ArmL" type="Node3D" parent="Torso" unique_id=526380439]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.17490526, 0.36489376, -0.009700354)
+metadata/part_group = "arm_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmL" unique_id=1154937429]
+mesh = ExtResource("5_unlo4")
+
+[node name="ForeL" type="Node3D" parent="Torso/ArmL" unique_id=1064656063]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.21608283, -0.14982039, 0.09608686)
+metadata/part_group = "fore_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmL/ForeL" unique_id=966007655]
+mesh = ExtResource("6_pybbk")
+
+[node name="Tail" type="Node3D" parent="Torso" unique_id=1445616210]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.00999999, -0.14)
+metadata/part_group = "tail"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/Tail" unique_id=1241632865]
+mesh = ExtResource("7_stlmp")
+
+[node name="LegR" type="Node3D" parent="." unique_id=713326645]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15, 0.33, -0.04)
+metadata/part_group = "leg_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="LegR" unique_id=956482301]
+mesh = ExtResource("8_6frhu")
+
+[node name="LegL" type="Node3D" parent="." unique_id=2085379892]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15, 0.34, -0.05)
+metadata/part_group = "leg_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="LegL" unique_id=1243636218]
+mesh = ExtResource("9_jkv15")

@@ -1,0 +1,283 @@
+[gd_resource type="VisualShader" format=3]
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_l004k"]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_gwl62"]
+input_name = "time"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_r2iis"]
+input_name = "normal"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_ggigy"]
+input_name = "view"
+
+[sub_resource type="VisualShaderNodeGlobalExpression" id="VisualShaderNodeGlobalExpression_xs0gt"]
+resource_name = "Web helpers"
+expression = "
+float nvw_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float nvw_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(nvw_hash(i), nvw_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(nvw_hash(i + vec2(0.0, 1.0)), nvw_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// 보로노이: x = 가장 가까운 점까지, y = 두 번째와의 차(칸 안쪽일수록 큼), zw = 칸 id
+vec4 nvw_cells(vec2 p) {
+	vec2 g = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	vec2 id = vec2(0.0);
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 o = vec2(float(x), float(y));
+			vec2 q = o + vec2(nvw_hash(g + o), nvw_hash(g + o + 17.3)) * 0.8 + 0.1 - f;
+			float d = length(q);
+			if (d < d1) { d2 = d1; d1 = d; id = g + o; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return vec4(d1, d2 - d1, id);
+}
+// 충격파 하나: 거리/속도만큼 늦게 닿아 감쇠 진동한다. s.xyz = 발생 위치, s.w = 경과 초.
+float nvw_shock(vec3 wp, vec4 s, float amp) {
+	if (amp <= 0.0) return 0.0;
+	float d = length(wp.xz - s.xz);
+	float tt = s.w - d / 16.0;
+	if (tt <= 0.0) return 0.0;
+	return amp * exp(-tt * 2.0) * sin(tt * 12.0) * exp(-d * 0.035);
+}
+"
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_ky8pr"]
+parameter_name = "core"
+default_value_enabled = true
+default_value = Color(0.82, 1, 0.98, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_d67le"]
+parameter_name = "deep"
+default_value_enabled = true
+default_value = Color(0.2, 0.46, 0.58, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_p7ieo"]
+parameter_name = "rim_color"
+default_value_enabled = true
+default_value = Color(0.85, 0.95, 1, 1)
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_0bjjq"]
+parameter_name = "seed"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_h381f"]
+resource_name = "Jelly ice egg"
+size = Vector2(560, 380)
+expression = "
+// 가운데(정면)는 속이 비치는 밝은 서리빛, 둘레로 갈수록 깊은 청록, 맨 가장자리는 희게 빛난다.
+float facing = clamp(dot(normalize(n), normalize(view)), 0.0, 1.0);
+float fres = pow(1.0 - facing, 2.4);
+vec3 c = mix(deep, core, pow(facing, 1.3));
+// 속의 그림자(자라는 새끼): 아래쪽 가운데가 흐리게 어둡다
+float shade = smoothstep(0.55, 0.95, facing) * smoothstep(0.2, 0.6, 1.0 - uv_in.y) * (0.5 + 0.5 * nvw_noise(uv_in * vec2(6.0, 4.0) + seed));
+c *= 1.0 - shade * 0.35;
+// 떠다니는 기포: 작은 고리
+vec4 b = nvw_cells(uv_in * vec2(14.0, 8.0) + vec2(seed, t * 0.04));
+float bubble = (1.0 - smoothstep(0.0, 0.14, b.x)) * step(0.8, nvw_hash(b.zw + seed)) * 0.6;
+// 느린 맥동
+float pulse = 0.5 + 0.5 * sin(t * 1.4 + seed * 5.0);
+// 겉빛은 낮추고 속빛(발광)을 키워 안에서 비치는 젤리처럼
+col = c * 0.4 + rim_c * fres * 0.35 + vec3(1.0) * bubble * 0.2;
+emit = core * (0.45 + 0.9 * pow(facing, 2.0) * (0.75 + 0.25 * pulse)) + rim_c * fres * 0.5 + vec3(0.8, 0.95, 1.0) * bubble * 0.3;
+rough = 0.12;
+"
+
+[sub_resource type="VisualShaderNodeVec4Parameter" id="VisualShaderNodeVec4Parameter_i0b4f"]
+parameter_name = "shock_a"
+default_value_enabled = true
+default_value = Vector4(0, -100, 0, 99)
+
+[sub_resource type="VisualShaderNodeVec4Parameter" id="VisualShaderNodeVec4Parameter_1ptp2"]
+parameter_name = "shock_b"
+default_value_enabled = true
+default_value = Vector4(0, -100, 0, 99)
+
+[sub_resource type="VisualShaderNodeVec4Parameter" id="VisualShaderNodeVec4Parameter_xnvp4"]
+parameter_name = "shock_c"
+default_value_enabled = true
+default_value = Vector4(0, -100, 0, 99)
+
+[sub_resource type="VisualShaderNodeVec4Parameter" id="VisualShaderNodeVec4Parameter_ophar"]
+parameter_name = "shock_d"
+default_value_enabled = true
+default_value = Vector4(0, -100, 0, 99)
+
+[sub_resource type="VisualShaderNodeVec4Parameter" id="VisualShaderNodeVec4Parameter_4i32c"]
+parameter_name = "shock_amp"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_jey03"]
+resource_name = "Wind and shock sway"
+size = Vector2(560, 380)
+expression = "
+// 붙은 곳(가중치 0)은 그대로, 늘어진 곳일수록 크게 흔들린다.
+vec3 wp = (model * vec4(v, 1.0)).xyz;
+float pin = col.r;
+float wind = sin(t * 1.15 + wp.x * 0.31 + wp.z * 0.23) * 0.65 + sin(t * 2.6 + wp.x * 0.9 - wp.y * 0.7) * 0.35;
+float push = nvw_shock(wp, sa, amp.x) + nvw_shock(wp, sb, amp.y) + nvw_shock(wp, sc, amp.z) + nvw_shock(wp, sd, amp.w);
+moved = v + n * (wind * sway + push * gain) * pin;
+"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_exlyd"]
+input_name = "vertex"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_s7nmj"]
+input_name = "normal"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_nwkew"]
+input_name = "color"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_ufc2n"]
+input_name = "time"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_v6o6e"]
+input_name = "model_matrix"
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_nlxhh"]
+parameter_name = "sway"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_jkvhe"]
+parameter_name = "shock_gain"
+default_value_enabled = true
+default_value = 0.18
+
+[resource]
+resource_name = "Nivella / frost egg"
+nodes/vertex/0/position = Vector2(400, 0)
+nodes/vertex/3/node = SubResource("VisualShaderNodeInput_exlyd")
+nodes/vertex/3/position = Vector2(-1200, -300)
+nodes/vertex/4/node = SubResource("VisualShaderNodeInput_s7nmj")
+nodes/vertex/4/position = Vector2(-1200, -200)
+nodes/vertex/5/node = SubResource("VisualShaderNodeInput_nwkew")
+nodes/vertex/5/position = Vector2(-1200, -100)
+nodes/vertex/6/node = SubResource("VisualShaderNodeInput_ufc2n")
+nodes/vertex/6/position = Vector2(-1200, 0)
+nodes/vertex/7/node = SubResource("VisualShaderNodeInput_v6o6e")
+nodes/vertex/7/position = Vector2(-1200, 100)
+nodes/vertex/8/node = SubResource("VisualShaderNodeFloatParameter_nlxhh")
+nodes/vertex/8/position = Vector2(-1200, 200)
+nodes/vertex/9/node = SubResource("VisualShaderNodeFloatParameter_jkvhe")
+nodes/vertex/9/position = Vector2(-1200, 300)
+nodes/vertex/10/node = SubResource("VisualShaderNodeVec4Parameter_i0b4f")
+nodes/vertex/10/position = Vector2(-1200, 400)
+nodes/vertex/11/node = SubResource("VisualShaderNodeVec4Parameter_1ptp2")
+nodes/vertex/11/position = Vector2(-1200, 500)
+nodes/vertex/12/node = SubResource("VisualShaderNodeVec4Parameter_xnvp4")
+nodes/vertex/12/position = Vector2(-1200, 600)
+nodes/vertex/13/node = SubResource("VisualShaderNodeVec4Parameter_ophar")
+nodes/vertex/13/position = Vector2(-1200, 700)
+nodes/vertex/14/node = SubResource("VisualShaderNodeVec4Parameter_4i32c")
+nodes/vertex/14/position = Vector2(-1200, 800)
+nodes/vertex/15/node = SubResource("VisualShaderNodeExpression_jey03")
+nodes/vertex/15/position = Vector2(-400, -200)
+nodes/vertex/15/size = Vector2(560, 380)
+nodes/vertex/15/input_ports = "0,4,v;1,4,n;2,5,col;3,0,t;4,7,model;5,0,sway;6,0,gain;7,5,sa;8,5,sb;9,5,sc;10,5,sd;11,5,amp;"
+nodes/vertex/15/output_ports = "0,4,moved;"
+nodes/vertex/15/expression = "
+// 붙은 곳(가중치 0)은 그대로, 늘어진 곳일수록 크게 흔들린다.
+vec3 wp = (model * vec4(v, 1.0)).xyz;
+float pin = col.r;
+float wind = sin(t * 1.15 + wp.x * 0.31 + wp.z * 0.23) * 0.65 + sin(t * 2.6 + wp.x * 0.9 - wp.y * 0.7) * 0.35;
+float push = nvw_shock(wp, sa, amp.x) + nvw_shock(wp, sb, amp.y) + nvw_shock(wp, sc, amp.z) + nvw_shock(wp, sd, amp.w);
+moved = v + n * (wind * sway + push * gain) * pin;
+"
+nodes/vertex/connections = PackedInt32Array(3, 0, 15, 0, 4, 0, 15, 1, 5, 0, 15, 2, 6, 0, 15, 3, 7, 0, 15, 4, 8, 0, 15, 5, 9, 0, 15, 6, 10, 0, 15, 7, 11, 0, 15, 8, 12, 0, 15, 9, 13, 0, 15, 10, 14, 0, 15, 11, 15, 0, 0, 0)
+nodes/fragment/0/position = Vector2(900, 0)
+nodes/fragment/2/node = SubResource("VisualShaderNodeGlobalExpression_xs0gt")
+nodes/fragment/2/position = Vector2(-1600, -600)
+nodes/fragment/2/size = Vector2(0, 0)
+nodes/fragment/2/input_ports = ""
+nodes/fragment/2/output_ports = ""
+nodes/fragment/2/expression = "
+float nvw_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float nvw_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(nvw_hash(i), nvw_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(nvw_hash(i + vec2(0.0, 1.0)), nvw_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// 보로노이: x = 가장 가까운 점까지, y = 두 번째와의 차(칸 안쪽일수록 큼), zw = 칸 id
+vec4 nvw_cells(vec2 p) {
+	vec2 g = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	vec2 id = vec2(0.0);
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 o = vec2(float(x), float(y));
+			vec2 q = o + vec2(nvw_hash(g + o), nvw_hash(g + o + 17.3)) * 0.8 + 0.1 - f;
+			float d = length(q);
+			if (d < d1) { d2 = d1; d1 = d; id = g + o; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return vec4(d1, d2 - d1, id);
+}
+// 충격파 하나: 거리/속도만큼 늦게 닿아 감쇠 진동한다. s.xyz = 발생 위치, s.w = 경과 초.
+float nvw_shock(vec3 wp, vec4 s, float amp) {
+	if (amp <= 0.0) return 0.0;
+	float d = length(wp.xz - s.xz);
+	float tt = s.w - d / 16.0;
+	if (tt <= 0.0) return 0.0;
+	return amp * exp(-tt * 2.0) * sin(tt * 12.0) * exp(-d * 0.035);
+}
+"
+nodes/fragment/16/node = SubResource("VisualShaderNodeInput_l004k")
+nodes/fragment/16/position = Vector2(-1200, 1000)
+nodes/fragment/17/node = SubResource("VisualShaderNodeInput_gwl62")
+nodes/fragment/17/position = Vector2(-1200, 1100)
+nodes/fragment/18/node = SubResource("VisualShaderNodeInput_r2iis")
+nodes/fragment/18/position = Vector2(-1200, 1200)
+nodes/fragment/19/node = SubResource("VisualShaderNodeInput_ggigy")
+nodes/fragment/19/position = Vector2(-1200, 1300)
+nodes/fragment/20/node = SubResource("VisualShaderNodeColorParameter_ky8pr")
+nodes/fragment/20/position = Vector2(-1200, 1400)
+nodes/fragment/21/node = SubResource("VisualShaderNodeColorParameter_d67le")
+nodes/fragment/21/position = Vector2(-1200, 1500)
+nodes/fragment/22/node = SubResource("VisualShaderNodeColorParameter_p7ieo")
+nodes/fragment/22/position = Vector2(-1200, 1600)
+nodes/fragment/23/node = SubResource("VisualShaderNodeFloatParameter_0bjjq")
+nodes/fragment/23/position = Vector2(-1200, 1700)
+nodes/fragment/24/node = SubResource("VisualShaderNodeExpression_h381f")
+nodes/fragment/24/position = Vector2(-300, -200)
+nodes/fragment/24/size = Vector2(560, 380)
+nodes/fragment/24/input_ports = "0,3,uv_in;1,0,t;2,4,n;3,4,view;4,4,core;5,4,deep;6,4,rim_c;7,0,seed;"
+nodes/fragment/24/output_ports = "0,4,col;1,4,emit;2,0,rough;"
+nodes/fragment/24/expression = "
+// 가운데(정면)는 속이 비치는 밝은 서리빛, 둘레로 갈수록 깊은 청록, 맨 가장자리는 희게 빛난다.
+float facing = clamp(dot(normalize(n), normalize(view)), 0.0, 1.0);
+float fres = pow(1.0 - facing, 2.4);
+vec3 c = mix(deep, core, pow(facing, 1.3));
+// 속의 그림자(자라는 새끼): 아래쪽 가운데가 흐리게 어둡다
+float shade = smoothstep(0.55, 0.95, facing) * smoothstep(0.2, 0.6, 1.0 - uv_in.y) * (0.5 + 0.5 * nvw_noise(uv_in * vec2(6.0, 4.0) + seed));
+c *= 1.0 - shade * 0.35;
+// 떠다니는 기포: 작은 고리
+vec4 b = nvw_cells(uv_in * vec2(14.0, 8.0) + vec2(seed, t * 0.04));
+float bubble = (1.0 - smoothstep(0.0, 0.14, b.x)) * step(0.8, nvw_hash(b.zw + seed)) * 0.6;
+// 느린 맥동
+float pulse = 0.5 + 0.5 * sin(t * 1.4 + seed * 5.0);
+// 겉빛은 낮추고 속빛(발광)을 키워 안에서 비치는 젤리처럼
+col = c * 0.4 + rim_c * fres * 0.35 + vec3(1.0) * bubble * 0.2;
+emit = core * (0.45 + 0.9 * pow(facing, 2.0) * (0.75 + 0.25 * pulse)) + rim_c * fres * 0.5 + vec3(0.8, 0.95, 1.0) * bubble * 0.3;
+rough = 0.12;
+"
+nodes/fragment/connections = PackedInt32Array(16, 0, 24, 0, 17, 0, 24, 1, 18, 0, 24, 2, 19, 0, 24, 3, 20, 0, 24, 4, 21, 0, 24, 5, 22, 0, 24, 6, 23, 0, 24, 7, 24, 0, 0, 0, 24, 1, 0, 5, 24, 2, 0, 3)

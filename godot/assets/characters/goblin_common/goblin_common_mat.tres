@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/user_rock.gdshader" id="1_bipvr"]
+[ext_resource type="Texture2D" path="res://assets/characters/goblin_common/goblin_common_paint.res" id="2_w6dqn"]
+
+[resource]
+resource_name = "goblin_common"
+render_priority = 0
+shader = ExtResource("1_bipvr")
+shader_parameter/rock_paint = ExtResource("2_w6dqn")
+shader_parameter/frost_amount = 0.0
+shader_parameter/frost_color = null
+shader_parameter/moss_saturation = 1.0
+shader_parameter/paint_brightness = 1.1

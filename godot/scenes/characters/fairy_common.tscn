@@ -1,0 +1,71 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://assets/characters/fairy_common/fairy_common_torso.res" id="1_u4by6"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/fairy_common/fairy_common_head.res" id="2_kx70q"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/fairy_common/fairy_common_arm_r.res" id="3_yqeak"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/fairy_common/fairy_common_arm_l.res" id="4_p2wb8"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/fairy_common/fairy_common_wing_r.res" id="5_bybip"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/fairy_common/fairy_common_wing_l.res" id="6_omj1q"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/fairy_common/fairy_common_leg_r.res" id="7_cgodr"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/fairy_common/fairy_common_leg_l.res" id="8_saypn"]
+
+[node name="FairyCommon" type="Node3D" unique_id=887398571]
+metadata/character_id = "fairy_common"
+metadata/label = "요정 손님(공용)"
+metadata/tripo_task = "1258cd57-ba4b-4d60-8944-d9ce0e471181"
+
+[node name="Torso" type="Node3D" parent="." unique_id=1699801339]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4901161e-08, 0.16368286, 0.045776054)
+metadata/part_group = "torso"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso" unique_id=408464555]
+mesh = ExtResource("1_u4by6")
+
+[node name="Head" type="Node3D" parent="Torso" unique_id=922141688]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4901161e-08, 0.26086956, -0.045776054)
+metadata/part_group = "head"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/Head" unique_id=1116226341]
+mesh = ExtResource("2_kx70q")
+
+[node name="ArmR" type="Node3D" parent="Torso" unique_id=1827074592]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09969628, 0.23319693, -0.008180153)
+metadata/part_group = "arm_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmR" unique_id=938353698]
+mesh = ExtResource("3_yqeak")
+
+[node name="ArmL" type="Node3D" parent="Torso" unique_id=1412100809]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09969313, 0.22493605, -0.008182116)
+metadata/part_group = "arm_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmL" unique_id=471792909]
+mesh = ExtResource("4_p2wb8")
+
+[node name="WingR" type="Node3D" parent="Torso" unique_id=910680858]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.029999984, 0.25631714, -0.13577606)
+metadata/part_group = "wing_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/WingR" unique_id=873120190]
+mesh = ExtResource("5_bybip")
+
+[node name="WingL" type="Node3D" parent="Torso" unique_id=191972871]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.030000014, 0.25631714, -0.13577606)
+metadata/part_group = "wing_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/WingL" unique_id=2104944400]
+mesh = ExtResource("6_omj1q")
+
+[node name="LegR" type="Node3D" parent="." unique_id=789038159]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09488306, 0.23836318, 0.031202033)
+metadata/part_group = "leg_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="LegR" unique_id=1869228818]
+mesh = ExtResource("7_cgodr")
+
+[node name="LegL" type="Node3D" parent="." unique_id=1614435672]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.09513935, 0.23529413, 0.03120207)
+metadata/part_group = "leg_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="LegL" unique_id=1908140663]
+mesh = ExtResource("8_saypn")

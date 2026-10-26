@@ -1,0 +1,157 @@
+{
+  "source": "art/ui/moon-runes-v01/approved/atlas.png",
+  "kind": "interim",
+  "pieces": {
+    "player_status": {
+      "file": "player_status.png",
+      "atlas_rect": [
+        6,
+        6,
+        577,
+        195
+      ]
+    },
+    "objective": {
+      "file": "objective.png",
+      "atlas_rect": [
+        5,
+        197,
+        398,
+        148
+      ]
+    },
+    "phase": {
+      "file": "phase.png",
+      "atlas_rect": [
+        625,
+        7,
+        526,
+        175
+      ]
+    },
+    "resources": {
+      "file": "resources.png",
+      "atlas_rect": [
+        1197,
+        29,
+        468,
+        143
+      ]
+    },
+    "pause": {
+      "file": "pause.png",
+      "atlas_rect": [
+        1668,
+        34,
+        105,
+        116
+      ]
+    },
+    "hand_tray": {
+      "file": "hand_tray.png",
+      "atlas_rect": [
+        460,
+        539,
+        856,
+        340
+      ]
+    },
+    "storage": {
+      "file": "storage.png",
+      "atlas_rect": [
+        3,
+        694,
+        195,
+        185
+      ]
+    },
+    "lodge_button": {
+      "file": "lodge_button.png",
+      "atlas_rect": [
+        1315,
+        696,
+        225,
+        183
+      ]
+    },
+    "dragon_disabled": {
+      "file": "dragon_disabled.png",
+      "atlas_rect": [
+        1540,
+        696,
+        233,
+        183
+      ]
+    },
+    "gauge_fill_red": {
+      "file": "gauge_fill_red.png",
+      "atlas_rect": [
+        312,
+        70,
+        135,
+        12
+      ]
+    },
+    "gauge_fill_teal": {
+      "file": "gauge_fill_teal.png",
+      "atlas_rect": [
+        312,
+        126,
+        134,
+        13
+      ]
+    },
+    "phase_fill": {
+      "file": "phase_fill.png",
+      "atlas_rect": [
+        754,
+        124,
+        125,
+        14
+      ]
+    },
+    "stack_badge": {
+      "file": "stack_badge.png",
+      "atlas_rect": [
+        812,
+        746,
+        70,
+        58
+      ]
+    }
+  },
+  "cards": {
+    "axe_mercenary": {
+      "file": "cards/axe_mercenary.png",
+      "size": [
+        256,
+        308
+      ],
+      "from": "godot/assets/cards/axe_mercenary.png"
+    },
+    "wool": {
+      "file": "cards/wool.png",
+      "size": [
+        256,
+        308
+      ],
+      "from": "godot/assets/cards/wool.png"
+    },
+    "timber": {
+      "file": "cards/timber.png",
+      "size": [
+        256,
+        308
+      ],
+      "from": "godot/assets/cards/timber.png"
+    },
+    "forest_monster": {
+      "file": "cards/forest_monster.png",
+      "size": [
+        256,
+        308
+      ],
+      "from": "godot/assets/cards/forest_monster.png"
+    }
+  }
+}

@@ -1,0 +1,266 @@
+[gd_resource type="VisualShader" format=3]
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_5xd41"]
+parameter_name = "color_hot"
+default_value_enabled = true
+default_value = Color(0.95, 0.45, 1, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_743c2"]
+parameter_name = "color_scorch"
+default_value_enabled = true
+default_value = Color(0.16, 0.12, 0.22, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_yr22d"]
+parameter_name = "color_snow"
+default_value_enabled = true
+default_value = Color(0.9, 0.92, 1, 1)
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_07wwv"]
+resource_name = "Slam coverage"
+size = Vector2(520, 360)
+expression = "
+vec2 p = (uv_in - vec2(0.5)) * 2.0;
+float r = length(p);
+float a = atan(p.y, p.x);
+// 충격 고리
+float edge = wave * (1.0 + 0.06 * (ww_noise(vec2(a * 5.0, seed)) - 0.5));
+ring = (1.0 - smoothstep(0.0, 0.05, abs(r - edge))) * (1.0 - wave * 0.6);
+// 방사 균열: 각도 방향으로 늘린 세포 경계 + 중심에서 crack 반지름까지
+vec2 polar = vec2(a * 2.6 + seed, r * 7.0);
+float cl = 1.0 - smoothstep(0.0, 0.06, ww_crack(polar));
+// 굵은 방사 균열 7갈래(각도 칸의 경계 근처만, 바깥으로 갈수록 가늘게)
+float lane = abs(fract(a * 7.0 / 6.2831853 + (ww_noise(vec2(r * 5.0, seed)) - 0.5) * 0.12) - 0.5);
+float radial = smoothstep(0.47 - 0.025 * (1.0 - r), 0.495, lane);
+cracks = max(cl * 0.55 * smoothstep(0.55, 0.2, r), radial) * (1.0 - smoothstep(crack * 0.95 - 0.08, crack * 0.95, r)) * smoothstep(0.08, 0.16, r);
+// 네 줄 발톱 패임(덮친 방향 = +y)
+gouge = 0.0;
+for (int i = 0; i < 4; i++) {
+	float x0 = -0.27 + float(i) * 0.18;
+	float along = p.y + 0.15;
+	float bend = 0.06 * along * along;
+	float d = abs(p.x - x0 - bend);
+	float len_ok = smoothstep(-0.55, -0.4, along) * (1.0 - smoothstep(0.55, 0.75, along));
+	gouge = max(gouge, (1.0 - smoothstep(0.012, 0.03, d)) * len_ok * smoothstep(0.0, 0.3, crack));
+}
+// 가운데 움푹 꺼진 자국과 흩뿌린 눈
+dent = (1.0 - smoothstep(0.12, 0.3, r)) * smoothstep(0.0, 0.25, crack);
+// 고리 안쪽에 흩뿌린 눈(둥근 점)
+vec2 sc = p * 13.0 + seed;
+vec2 sid = floor(sc);
+float sh = ww_hash(sid);
+float sd = length(fract(sc) - 0.5 - (vec2(ww_hash(sid + 3.0), ww_hash(sid + 7.0)) - 0.5) * 0.5);
+spray = step(0.8, sh) * (1.0 - smoothstep(0.08, 0.14, sd)) * smoothstep(0.3, 0.45, r) * (1.0 - smoothstep(edge - 0.1, edge, r));
+"
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_2ngy1"]
+resource_name = "Slam color"
+size = Vector2(520, 360)
+expression = "
+float mark = max(cracks, gouge);
+vec3 hot = mix(c_hot.rgb * 1.6, vec3(1.0, 0.9, 1.0), mark * 0.3);
+vec3 lines = mix(hot, c_scorch.rgb, cool);
+vec3 col = mix(c_scorch.rgb * 1.6, lines, mark);
+col = mix(col, c_snow.rgb, spray);
+col = mix(col, vec3(1.0, 0.85, 1.0), ring * (1.0 - cool));
+color = col;
+alpha = clamp(mark * 0.95 + dent * 0.45 + ring * 0.8 * (1.0 - cool) + spray * 0.8, 0.0, 1.0) * fade;
+"
+
+[sub_resource type="VisualShaderNodeGlobalExpression" id="VisualShaderNodeGlobalExpression_rvk34"]
+resource_name = "Werewolf noise / cracks"
+expression = "
+float ww_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float ww_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(ww_hash(i), ww_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(ww_hash(i + vec2(0.0, 1.0)), ww_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float ww_fbm(vec2 p) {
+	float v = 0.0;
+	float a = 0.5;
+	for (int k = 0; k < 4; k++) {
+		v += a * ww_noise(p);
+		p = p * 2.07 + vec2(3.1, 7.7);
+		a *= 0.5;
+	}
+	return v;
+}
+// 가장자리까지 거리(F2-F1) — 균열 선
+float ww_crack(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(ww_hash(i + g), ww_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_6uc3h"]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_bgh1g"]
+input_name = "time"
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_e42v6"]
+parameter_name = "wave"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_ui030"]
+parameter_name = "crack"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_fn3h7"]
+parameter_name = "cool"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_rouln"]
+parameter_name = "fade"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_gfpg8"]
+parameter_name = "seed"
+default_value_enabled = true
+
+[resource]
+resource_name = "Werewolf / pounce landing / cracked ground + claw gouges"
+modes/depth_draw = 2
+modes/cull = 2
+flags/unshaded = true
+flags/shadows_disabled = true
+nodes/fragment/0/position = Vector2(900, 0)
+nodes/fragment/2/node = SubResource("VisualShaderNodeGlobalExpression_rvk34")
+nodes/fragment/2/position = Vector2(-1500, -500)
+nodes/fragment/2/size = Vector2(0, 0)
+nodes/fragment/2/input_ports = ""
+nodes/fragment/2/output_ports = ""
+nodes/fragment/2/expression = "
+float ww_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float ww_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(ww_hash(i), ww_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(ww_hash(i + vec2(0.0, 1.0)), ww_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float ww_fbm(vec2 p) {
+	float v = 0.0;
+	float a = 0.5;
+	for (int k = 0; k < 4; k++) {
+		v += a * ww_noise(p);
+		p = p * 2.07 + vec2(3.1, 7.7);
+		a *= 0.5;
+	}
+	return v;
+}
+// 가장자리까지 거리(F2-F1) — 균열 선
+float ww_crack(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(ww_hash(i + g), ww_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+nodes/fragment/3/node = SubResource("VisualShaderNodeInput_6uc3h")
+nodes/fragment/3/position = Vector2(-1200, -300)
+nodes/fragment/4/node = SubResource("VisualShaderNodeInput_bgh1g")
+nodes/fragment/4/position = Vector2(-1200, -190)
+nodes/fragment/5/node = SubResource("VisualShaderNodeFloatParameter_e42v6")
+nodes/fragment/5/position = Vector2(-1200, -80)
+nodes/fragment/6/node = SubResource("VisualShaderNodeFloatParameter_ui030")
+nodes/fragment/6/position = Vector2(-1200, 30)
+nodes/fragment/7/node = SubResource("VisualShaderNodeFloatParameter_fn3h7")
+nodes/fragment/7/position = Vector2(-1200, 140)
+nodes/fragment/8/node = SubResource("VisualShaderNodeFloatParameter_rouln")
+nodes/fragment/8/position = Vector2(-1200, 250)
+nodes/fragment/9/node = SubResource("VisualShaderNodeFloatParameter_gfpg8")
+nodes/fragment/9/position = Vector2(-1200, 360)
+nodes/fragment/10/node = SubResource("VisualShaderNodeColorParameter_5xd41")
+nodes/fragment/10/position = Vector2(-1200, 470)
+nodes/fragment/11/node = SubResource("VisualShaderNodeColorParameter_743c2")
+nodes/fragment/11/position = Vector2(-1200, 580)
+nodes/fragment/12/node = SubResource("VisualShaderNodeColorParameter_yr22d")
+nodes/fragment/12/position = Vector2(-1200, 690)
+nodes/fragment/13/node = SubResource("VisualShaderNodeExpression_07wwv")
+nodes/fragment/13/position = Vector2(-500, -200)
+nodes/fragment/13/size = Vector2(520, 360)
+nodes/fragment/13/input_ports = "0,3,uv_in;1,0,wave;2,0,crack;3,0,seed;"
+nodes/fragment/13/output_ports = "0,0,ring;1,0,cracks;2,0,gouge;3,0,dent;4,0,spray;"
+nodes/fragment/13/expression = "
+vec2 p = (uv_in - vec2(0.5)) * 2.0;
+float r = length(p);
+float a = atan(p.y, p.x);
+// 충격 고리
+float edge = wave * (1.0 + 0.06 * (ww_noise(vec2(a * 5.0, seed)) - 0.5));
+ring = (1.0 - smoothstep(0.0, 0.05, abs(r - edge))) * (1.0 - wave * 0.6);
+// 방사 균열: 각도 방향으로 늘린 세포 경계 + 중심에서 crack 반지름까지
+vec2 polar = vec2(a * 2.6 + seed, r * 7.0);
+float cl = 1.0 - smoothstep(0.0, 0.06, ww_crack(polar));
+// 굵은 방사 균열 7갈래(각도 칸의 경계 근처만, 바깥으로 갈수록 가늘게)
+float lane = abs(fract(a * 7.0 / 6.2831853 + (ww_noise(vec2(r * 5.0, seed)) - 0.5) * 0.12) - 0.5);
+float radial = smoothstep(0.47 - 0.025 * (1.0 - r), 0.495, lane);
+cracks = max(cl * 0.55 * smoothstep(0.55, 0.2, r), radial) * (1.0 - smoothstep(crack * 0.95 - 0.08, crack * 0.95, r)) * smoothstep(0.08, 0.16, r);
+// 네 줄 발톱 패임(덮친 방향 = +y)
+gouge = 0.0;
+for (int i = 0; i < 4; i++) {
+	float x0 = -0.27 + float(i) * 0.18;
+	float along = p.y + 0.15;
+	float bend = 0.06 * along * along;
+	float d = abs(p.x - x0 - bend);
+	float len_ok = smoothstep(-0.55, -0.4, along) * (1.0 - smoothstep(0.55, 0.75, along));
+	gouge = max(gouge, (1.0 - smoothstep(0.012, 0.03, d)) * len_ok * smoothstep(0.0, 0.3, crack));
+}
+// 가운데 움푹 꺼진 자국과 흩뿌린 눈
+dent = (1.0 - smoothstep(0.12, 0.3, r)) * smoothstep(0.0, 0.25, crack);
+// 고리 안쪽에 흩뿌린 눈(둥근 점)
+vec2 sc = p * 13.0 + seed;
+vec2 sid = floor(sc);
+float sh = ww_hash(sid);
+float sd = length(fract(sc) - 0.5 - (vec2(ww_hash(sid + 3.0), ww_hash(sid + 7.0)) - 0.5) * 0.5);
+spray = step(0.8, sh) * (1.0 - smoothstep(0.08, 0.14, sd)) * smoothstep(0.3, 0.45, r) * (1.0 - smoothstep(edge - 0.1, edge, r));
+"
+nodes/fragment/14/node = SubResource("VisualShaderNodeExpression_2ngy1")
+nodes/fragment/14/position = Vector2(0, -60)
+nodes/fragment/14/size = Vector2(520, 360)
+nodes/fragment/14/input_ports = "0,0,ring;1,0,cracks;2,0,gouge;3,0,dent;4,0,spray;5,0,cool;6,0,fade;7,5,c_hot;8,5,c_scorch;9,5,c_snow;"
+nodes/fragment/14/output_ports = "0,4,color;1,0,alpha;"
+nodes/fragment/14/expression = "
+float mark = max(cracks, gouge);
+vec3 hot = mix(c_hot.rgb * 1.6, vec3(1.0, 0.9, 1.0), mark * 0.3);
+vec3 lines = mix(hot, c_scorch.rgb, cool);
+vec3 col = mix(c_scorch.rgb * 1.6, lines, mark);
+col = mix(col, c_snow.rgb, spray);
+col = mix(col, vec3(1.0, 0.85, 1.0), ring * (1.0 - cool));
+color = col;
+alpha = clamp(mark * 0.95 + dent * 0.45 + ring * 0.8 * (1.0 - cool) + spray * 0.8, 0.0, 1.0) * fade;
+"
+nodes/fragment/connections = PackedInt32Array(3, 0, 13, 0, 5, 0, 13, 1, 6, 0, 13, 2, 9, 0, 13, 3, 13, 0, 14, 0, 13, 1, 14, 1, 13, 2, 14, 2, 13, 3, 14, 3, 13, 4, 14, 4, 7, 0, 14, 5, 8, 0, 14, 6, 10, 0, 14, 7, 11, 0, 14, 8, 12, 0, 14, 9, 14, 0, 0, 0, 14, 1, 0, 1)

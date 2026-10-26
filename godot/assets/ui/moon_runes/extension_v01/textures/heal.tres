@@ -1,0 +1,8 @@
+[gd_resource type="AtlasTexture" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/ui/moon_runes/extension_v01/icons.png" id="1_ohi5x"]
+
+[resource]
+atlas = ExtResource("1_ohi5x")
+region = Rect2(339, 465, 278, 241)
+filter_clip = true

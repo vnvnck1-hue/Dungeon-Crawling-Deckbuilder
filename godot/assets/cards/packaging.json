@@ -1,0 +1,703 @@
+[
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "axe_mercenary",
+		"source_bounds": [
+			1,
+			0,
+			1022,
+			1535
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "wool",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "timber",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "forest_monster",
+		"source_bounds": [
+			4,
+			4,
+			1016,
+			1528
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "frost_rune",
+		"source_bounds": [
+			2,
+			1,
+			1021,
+			1534
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "ward_lantern",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "guest_invitation",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "lamb",
+		"source_bounds": [
+			4,
+			4,
+			1016,
+			1528
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "lumberjack",
+		"source_bounds": [
+			3,
+			3,
+			1017,
+			1529
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "hunter",
+		"source_bounds": [
+			1,
+			0,
+			1023,
+			1535
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "warrior",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "gatherer",
+		"source_bounds": [
+			2,
+			2,
+			1020,
+			1532
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "raw_meat",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "rabbit_pelt",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "treasure_chest",
+		"source_bounds": [
+			6,
+			7,
+			1014,
+			1520
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "relic_unknown",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "moonlit_charm",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "hearth_ember",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "old_tree_heart",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "wolf_fang_pendant",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "frost_queen_tear",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "sleeping_thorn_seed",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "black_sheep",
+		"source_bounds": [
+			2,
+			1,
+			1021,
+			1534
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "black_wool",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "poison_mushroom",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "old_spellbook",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1535
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "moss_bandage",
+		"source_bounds": [
+			2,
+			2,
+			1020,
+			1532
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "resin_torch",
+		"source_bounds": [
+			1,
+			0,
+			1023,
+			1535
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "firefly_swarm",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "vine_snare",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "winter_firewood",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "shroud_cloth",
+		"source_bounds": [
+			3,
+			3,
+			1018,
+			1530
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "thorn_bind",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "red_chalice",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "hibernation_pelt",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "corrupt_prayer",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "poison_spore",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "cursed_whisper",
+		"source_bounds": [
+			0,
+			0,
+			1024,
+			1536
+		]
+	},
+	{
+		"existing_preserved": true,
+		"full": [
+			1024,
+			1536
+		],
+		"hand": [
+			256,
+			384
+		],
+		"id": "card_back",
+		"source_bounds": [
+			3,
+			3,
+			1018,
+			1530
+		]
+	}
+]

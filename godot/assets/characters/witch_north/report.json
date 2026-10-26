@@ -1,0 +1,156 @@
+{
+  "groups": {
+    "arm_l": {
+      "parent": "torso",
+      "parts": [
+        5.0
+      ],
+      "pivot": [
+        0.155,
+        0.428,
+        0.064
+      ],
+      "size": [
+        0.248,
+        0.219,
+        0.144
+      ],
+      "triangles": 329
+    },
+    "arm_r": {
+      "parent": "torso",
+      "parts": [
+        2.0
+      ],
+      "pivot": [
+        -0.155,
+        0.428,
+        0.064
+      ],
+      "size": [
+        0.248,
+        0.219,
+        0.144
+      ],
+      "triangles": 331
+    },
+    "cape": {
+      "parent": "torso",
+      "parts": [
+        4.0
+      ],
+      "pivot": [
+        0.0,
+        0.632,
+        -0.082
+      ],
+      "size": [
+        0.454,
+        0.264,
+        0.202
+      ],
+      "triangles": 175
+    },
+    "head": {
+      "parent": "torso",
+      "parts": [
+        0.0
+      ],
+      "pivot": [
+        0.0,
+        0.53,
+        0.05
+      ],
+      "size": [
+        0.583,
+        0.611,
+        0.656
+      ],
+      "triangles": 1453
+    },
+    "lantern": {
+      "parent": "torso",
+      "parts": [
+        7.0,
+        9.0,
+        10.0,
+        12.0
+      ],
+      "pivot": [
+        0.168,
+        0.392,
+        0.188
+      ],
+      "size": [
+        0.142,
+        0.199,
+        0.125
+      ],
+      "triangles": 226
+    },
+    "leg_l": {
+      "parent": "",
+      "parts": [
+        6.0
+      ],
+      "pivot": [
+        0.106,
+        0.17,
+        0.065
+      ],
+      "size": [
+        0.154,
+        0.17,
+        0.211
+      ],
+      "triangles": 242
+    },
+    "leg_r": {
+      "parent": "",
+      "parts": [
+        3.0
+      ],
+      "pivot": [
+        -0.106,
+        0.17,
+        0.065
+      ],
+      "size": [
+        0.154,
+        0.17,
+        0.211
+      ],
+      "triangles": 242
+    },
+    "torso": {
+      "parent": "",
+      "parts": [
+        1.0,
+        8.0,
+        11.0
+      ],
+      "pivot": [
+        0.0,
+        0.128,
+        0.048
+      ],
+      "size": [
+        0.517,
+        0.425,
+        0.398
+      ],
+      "triangles": 836
+    }
+  },
+  "height_m": 1.0,
+  "id": "witch_north",
+  "scale_from_source": 1.00048851978505,
+  "scene": "res://scenes/characters/witch_north.tscn",
+  "source": "art_sources/characters/witch_north/witch_tripo_segmented_packuv.glb",
+  "source_parts": 13,
+  "texture": [
+    1024,
+    1024
+  ],
+  "triangles": 3834
+}

@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bmqpf44ga4e47" path="res://assets/rocks/user_rock_steps.glb" id="1"]
+[ext_resource type="Material" path="res://assets/rocks/materials/user_rock_paint.tres" id="2"]
+
+[node name="UserRockSteps" type="Node3D"]
+metadata/nature_id = "user_rock_steps"
+metadata/label = "이끼 바위 · 비탈 돌계단"
+
+[node name="Model" parent="." instance=ExtResource("1")]
+
+[node name="user_rock_steps" parent="Model" index="0"]
+material_override = ExtResource("2")
+
+[editable path="Model"]

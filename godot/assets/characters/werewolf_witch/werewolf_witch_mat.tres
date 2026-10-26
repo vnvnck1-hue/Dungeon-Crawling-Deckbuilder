@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/user_rock.gdshader" id="1_nejq7"]
+[ext_resource type="Texture2D" path="res://assets/characters/werewolf_witch/werewolf_witch_paint.res" id="2_136j7"]
+
+[resource]
+resource_name = "werewolf_witch"
+render_priority = 0
+shader = ExtResource("1_nejq7")
+shader_parameter/rock_paint = ExtResource("2_136j7")
+shader_parameter/frost_amount = 0.0
+shader_parameter/frost_color = null
+shader_parameter/moss_saturation = 1.0
+shader_parameter/paint_brightness = 1.1

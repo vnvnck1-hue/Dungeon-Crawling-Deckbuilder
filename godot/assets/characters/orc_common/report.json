@@ -1,0 +1,130 @@
+{
+  "groups": {
+    "arm_l": {
+      "parent": "torso",
+      "parts": [
+        8.0
+      ],
+      "pivot": [
+        0.223,
+        0.5,
+        0.025
+      ],
+      "size": [
+        0.314,
+        0.319,
+        0.223
+      ],
+      "triangles": 340
+    },
+    "arm_r": {
+      "parent": "torso",
+      "parts": [
+        2.0
+      ],
+      "pivot": [
+        -0.223,
+        0.5,
+        0.025
+      ],
+      "size": [
+        0.314,
+        0.319,
+        0.223
+      ],
+      "triangles": 338
+    },
+    "head": {
+      "parent": "torso",
+      "parts": [
+        0.0,
+        3.0,
+        5.0,
+        14.0,
+        15.0,
+        16.0,
+        17.0,
+        19.0
+      ],
+      "pivot": [
+        0.0,
+        0.544,
+        0.0
+      ],
+      "size": [
+        0.837,
+        0.456,
+        0.674
+      ],
+      "triangles": 1390
+    },
+    "leg_l": {
+      "parent": "",
+      "parts": [
+        7.0,
+        10.0,
+        12.0
+      ],
+      "pivot": [
+        0.17,
+        0.272,
+        0.085
+      ],
+      "size": [
+        0.289,
+        0.272,
+        0.33
+      ],
+      "triangles": 378
+    },
+    "leg_r": {
+      "parent": "",
+      "parts": [
+        6.0,
+        9.0,
+        11.0
+      ],
+      "pivot": [
+        -0.17,
+        0.272,
+        0.085
+      ],
+      "size": [
+        0.289,
+        0.272,
+        0.33
+      ],
+      "triangles": 378
+    },
+    "torso": {
+      "parent": "",
+      "parts": [
+        1.0,
+        4.0,
+        13.0
+      ],
+      "pivot": [
+        0.0,
+        0.212,
+        0.028
+      ],
+      "size": [
+        0.643,
+        0.452,
+        0.498
+      ],
+      "triangles": 1106
+    }
+  },
+  "height_m": 1.0,
+  "id": "orc_common",
+  "scale_from_source": 1.00048851978505,
+  "scene": "res://scenes/characters/orc_common.tscn",
+  "source": "art_sources/characters/orc_common/orc_common_tripo_segmented_packuv.glb",
+  "source_parts": 19,
+  "texture": [
+    1024,
+    1024
+  ],
+  "triangles": 3930
+}

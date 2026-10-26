@@ -1,0 +1,249 @@
+[gd_resource type="VisualShader" format=3]
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_7yji3"]
+parameter_name = "color_void"
+default_value_enabled = true
+default_value = Color(0.05, 0, 0.1, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_wa03c"]
+parameter_name = "color_rim"
+default_value_enabled = true
+default_value = Color(1, 0.35, 0.95, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_itgno"]
+parameter_name = "color_hot"
+default_value_enabled = true
+default_value = Color(1, 0.9, 1, 1)
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_nv8o7"]
+resource_name = "Rift shape"
+size = Vector2(520, 360)
+expression = "
+float x = uv_in.x;
+float y = (uv_in.y - 0.5) * 2.0;
+float drawn = 1.0 - smoothstep(reach - 0.02, reach, x);
+float pin = smoothstep(0.0, 0.05, x) * (1.0 - smoothstep(0.93, 1.0, x));
+float off = lt_path(x * len * 0.28, seed) * 0.5;
+float d = abs(y - off);
+// 틈 폭: 마디마다 들쭉날쭉, 앞머리 쪽은 아직 덜 벌어짐
+float jag = 0.45 + 0.55 * lt_zig(x * len * 1.3, seed + 3.0);
+float front = smoothstep(0.0, 0.12, reach - x);
+float w = 0.17 * open * jag * pin * (0.3 + 0.7 * front);
+float aa = fwidth(d) * 1.2;
+gap = (1.0 - smoothstep(w - aa, w, d)) * drawn;
+rim = max((1.0 - smoothstep(w * 1.45 + 0.012 - aa, w * 1.45 + 0.012, d)) * drawn * pin * step(0.002, open) - gap, 0.0);
+// 틈에서 갈라져 나간 잔금
+float c = lt_cell(vec2(x * len * 1.4 + seed, y * 4.0));
+veins = (1.0 - smoothstep(0.0, 0.06, c)) * (1.0 - smoothstep(w + 0.05, w + 0.45, d)) * drawn * pin * open;
+halo = exp(-max(d - w, 0.0) * 6.0) * drawn * pin * open;
+// 틈 안쪽에서 흐르는 가는 자홍 전기 줄(노이즈 등고선)
+float sn = lt_noise(vec2(x * len * 0.9 - clock * 4.0, (y - off) * 3.0) + seed) * 0.65 + lt_noise(vec2(x * len * 2.3 + clock * 2.0, (y - off) * 7.0) - seed) * 0.35;
+swirl = (1.0 - smoothstep(0.0, 0.045, abs(sn - 0.5))) * gap;
+"
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_ot1lo"]
+resource_name = "Rift color"
+size = Vector2(520, 360)
+expression = "
+vec3 col = c_rim.rgb * 0.5 * halo;
+col = mix(col, c_rim.rgb * 2.2, veins);
+col = mix(col, c_hot.rgb * 2.6, rim);
+col = mix(col, mix(c_void.rgb, c_rim.rgb * 1.8, swirl), gap);
+color = col;
+alpha = clamp(max(max(gap, rim), max(veins * 0.9, halo * 0.45)), 0.0, 1.0) * fade;
+"
+
+[sub_resource type="VisualShaderNodeGlobalExpression" id="VisualShaderNodeGlobalExpression_2bm73"]
+resource_name = "Lightning noise / zigzag"
+expression = "
+float lt_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float lt_hash1(float x) {
+	return lt_hash(vec2(x, x * 0.37 + 1.3));
+}
+float lt_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(lt_hash(i), lt_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(lt_hash(i + vec2(0.0, 1.0)), lt_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// 선형 보간 1D 노이즈 — 꺾인 직선 마디(번개의 지그재그)
+float lt_zig(float x, float s) {
+	float i = floor(x);
+	float f = fract(x);
+	return mix(lt_hash1(i + s * 13.1), lt_hash1(i + 1.0 + s * 13.1), f);
+}
+// 세 옥타브 지그재그(-0.5~0.5 근처)
+float lt_path(float x, float s) {
+	return (lt_zig(x * 5.0, s) - 0.5) * 0.62 + (lt_zig(x * 15.0, s + 3.0) - 0.5) * 0.24 + (lt_zig(x * 41.0, s + 7.0) - 0.5) * 0.09;
+}
+// 셀 경계까지 거리(F2-F1) — 방전선
+float lt_cell(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(lt_hash(i + g), lt_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_8npap"]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_ti051"]
+input_name = "time"
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_mlm7g"]
+parameter_name = "reach"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_v5q1d"]
+parameter_name = "open"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_lsuu4"]
+parameter_name = "fade"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_pd4i3"]
+parameter_name = "len"
+default_value_enabled = true
+default_value = 8.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_u3158"]
+parameter_name = "seed"
+default_value_enabled = true
+
+[resource]
+resource_name = "Lightning / black thunder / torn ground rift"
+modes/depth_draw = 2
+modes/cull = 2
+flags/depth_test_disabled = true
+flags/unshaded = true
+flags/shadows_disabled = true
+flags/fog_disabled = true
+nodes/fragment/0/position = Vector2(900, 0)
+nodes/fragment/2/node = SubResource("VisualShaderNodeGlobalExpression_2bm73")
+nodes/fragment/2/position = Vector2(-1500, -500)
+nodes/fragment/2/size = Vector2(0, 0)
+nodes/fragment/2/input_ports = ""
+nodes/fragment/2/output_ports = ""
+nodes/fragment/2/expression = "
+float lt_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float lt_hash1(float x) {
+	return lt_hash(vec2(x, x * 0.37 + 1.3));
+}
+float lt_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(lt_hash(i), lt_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(lt_hash(i + vec2(0.0, 1.0)), lt_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// 선형 보간 1D 노이즈 — 꺾인 직선 마디(번개의 지그재그)
+float lt_zig(float x, float s) {
+	float i = floor(x);
+	float f = fract(x);
+	return mix(lt_hash1(i + s * 13.1), lt_hash1(i + 1.0 + s * 13.1), f);
+}
+// 세 옥타브 지그재그(-0.5~0.5 근처)
+float lt_path(float x, float s) {
+	return (lt_zig(x * 5.0, s) - 0.5) * 0.62 + (lt_zig(x * 15.0, s + 3.0) - 0.5) * 0.24 + (lt_zig(x * 41.0, s + 7.0) - 0.5) * 0.09;
+}
+// 셀 경계까지 거리(F2-F1) — 방전선
+float lt_cell(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(lt_hash(i + g), lt_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+nodes/fragment/3/node = SubResource("VisualShaderNodeInput_8npap")
+nodes/fragment/3/position = Vector2(-1200, -300)
+nodes/fragment/4/node = SubResource("VisualShaderNodeInput_ti051")
+nodes/fragment/4/position = Vector2(-1200, -190)
+nodes/fragment/5/node = SubResource("VisualShaderNodeFloatParameter_mlm7g")
+nodes/fragment/5/position = Vector2(-1200, -80)
+nodes/fragment/6/node = SubResource("VisualShaderNodeFloatParameter_v5q1d")
+nodes/fragment/6/position = Vector2(-1200, 30)
+nodes/fragment/7/node = SubResource("VisualShaderNodeFloatParameter_lsuu4")
+nodes/fragment/7/position = Vector2(-1200, 140)
+nodes/fragment/8/node = SubResource("VisualShaderNodeFloatParameter_pd4i3")
+nodes/fragment/8/position = Vector2(-1200, 250)
+nodes/fragment/9/node = SubResource("VisualShaderNodeFloatParameter_u3158")
+nodes/fragment/9/position = Vector2(-1200, 360)
+nodes/fragment/10/node = SubResource("VisualShaderNodeColorParameter_7yji3")
+nodes/fragment/10/position = Vector2(-1200, 470)
+nodes/fragment/11/node = SubResource("VisualShaderNodeColorParameter_wa03c")
+nodes/fragment/11/position = Vector2(-1200, 580)
+nodes/fragment/12/node = SubResource("VisualShaderNodeColorParameter_itgno")
+nodes/fragment/12/position = Vector2(-1200, 690)
+nodes/fragment/13/node = SubResource("VisualShaderNodeExpression_nv8o7")
+nodes/fragment/13/position = Vector2(-500, -200)
+nodes/fragment/13/size = Vector2(520, 360)
+nodes/fragment/13/input_ports = "0,3,uv_in;1,0,clock;2,0,reach;3,0,open;4,0,len;5,0,seed;"
+nodes/fragment/13/output_ports = "0,0,gap;1,0,rim;2,0,veins;3,0,halo;4,0,swirl;"
+nodes/fragment/13/expression = "
+float x = uv_in.x;
+float y = (uv_in.y - 0.5) * 2.0;
+float drawn = 1.0 - smoothstep(reach - 0.02, reach, x);
+float pin = smoothstep(0.0, 0.05, x) * (1.0 - smoothstep(0.93, 1.0, x));
+float off = lt_path(x * len * 0.28, seed) * 0.5;
+float d = abs(y - off);
+// 틈 폭: 마디마다 들쭉날쭉, 앞머리 쪽은 아직 덜 벌어짐
+float jag = 0.45 + 0.55 * lt_zig(x * len * 1.3, seed + 3.0);
+float front = smoothstep(0.0, 0.12, reach - x);
+float w = 0.17 * open * jag * pin * (0.3 + 0.7 * front);
+float aa = fwidth(d) * 1.2;
+gap = (1.0 - smoothstep(w - aa, w, d)) * drawn;
+rim = max((1.0 - smoothstep(w * 1.45 + 0.012 - aa, w * 1.45 + 0.012, d)) * drawn * pin * step(0.002, open) - gap, 0.0);
+// 틈에서 갈라져 나간 잔금
+float c = lt_cell(vec2(x * len * 1.4 + seed, y * 4.0));
+veins = (1.0 - smoothstep(0.0, 0.06, c)) * (1.0 - smoothstep(w + 0.05, w + 0.45, d)) * drawn * pin * open;
+halo = exp(-max(d - w, 0.0) * 6.0) * drawn * pin * open;
+// 틈 안쪽에서 흐르는 가는 자홍 전기 줄(노이즈 등고선)
+float sn = lt_noise(vec2(x * len * 0.9 - clock * 4.0, (y - off) * 3.0) + seed) * 0.65 + lt_noise(vec2(x * len * 2.3 + clock * 2.0, (y - off) * 7.0) - seed) * 0.35;
+swirl = (1.0 - smoothstep(0.0, 0.045, abs(sn - 0.5))) * gap;
+"
+nodes/fragment/14/node = SubResource("VisualShaderNodeExpression_ot1lo")
+nodes/fragment/14/position = Vector2(0, -60)
+nodes/fragment/14/size = Vector2(520, 360)
+nodes/fragment/14/input_ports = "0,0,gap;1,0,rim;2,0,veins;3,0,halo;4,0,swirl;5,0,fade;6,5,c_void;7,5,c_rim;8,5,c_hot;"
+nodes/fragment/14/output_ports = "0,4,color;1,0,alpha;"
+nodes/fragment/14/expression = "
+vec3 col = c_rim.rgb * 0.5 * halo;
+col = mix(col, c_rim.rgb * 2.2, veins);
+col = mix(col, c_hot.rgb * 2.6, rim);
+col = mix(col, mix(c_void.rgb, c_rim.rgb * 1.8, swirl), gap);
+color = col;
+alpha = clamp(max(max(gap, rim), max(veins * 0.9, halo * 0.45)), 0.0, 1.0) * fade;
+"
+nodes/fragment/connections = PackedInt32Array(3, 0, 13, 0, 4, 0, 13, 1, 5, 0, 13, 2, 6, 0, 13, 3, 8, 0, 13, 4, 9, 0, 13, 5, 13, 0, 14, 0, 13, 1, 14, 1, 13, 2, 14, 2, 13, 3, 14, 3, 13, 4, 14, 4, 7, 0, 14, 5, 10, 0, 14, 6, 11, 0, 14, 7, 12, 0, 14, 8, 14, 0, 0, 0, 14, 1, 0, 1)

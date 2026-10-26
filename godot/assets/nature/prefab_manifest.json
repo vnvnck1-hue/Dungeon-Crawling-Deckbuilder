@@ -1,0 +1,109 @@
+{
+	"count": 26,
+	"prefabs": [
+		{
+			"id": "pine_swept",
+			"triangles": 9768.0
+		},
+		{
+			"id": "pine_swept_snow",
+			"triangles": 14952.0
+		},
+		{
+			"id": "pine_broad",
+			"triangles": 11220.0
+		},
+		{
+			"id": "pine_broad_snow",
+			"triangles": 17268.0
+		},
+		{
+			"id": "pine_sparse",
+			"triangles": 6864.0
+		},
+		{
+			"id": "pine_sparse_snow",
+			"triangles": 10320.0
+		},
+		{
+			"id": "pine_sapling",
+			"triangles": 9768.0
+		},
+		{
+			"id": "pine_sapling_snow",
+			"triangles": 14952.0
+		},
+		{
+			"id": "dead_snag",
+			"triangles": 444.0
+		},
+		{
+			"id": "hollow_stump",
+			"triangles": 1864.0
+		},
+		{
+			"id": "fallen_log",
+			"triangles": 5822.0
+		},
+		{
+			"id": "rock_spire",
+			"triangles": 2544.0
+		},
+		{
+			"id": "rock_spire_snow",
+			"triangles": 1432.0
+		},
+		{
+			"id": "rock_ledge",
+			"triangles": 1956.0
+		},
+		{
+			"id": "rock_ledge_snow",
+			"triangles": 1152.0
+		},
+		{
+			"id": "rock_boulder",
+			"triangles": 1800.0
+		},
+		{
+			"id": "rock_boulder_snow",
+			"triangles": 1064.0
+		},
+		{
+			"id": "rock_shards",
+			"triangles": 2004.0
+		},
+		{
+			"id": "fern_clump",
+			"triangles": 800.0
+		},
+		{
+			"id": "berry_shrub",
+			"triangles": 3958.0
+		},
+		{
+			"id": "mushroom_cluster",
+			"triangles": 1862.0
+		},
+		{
+			"id": "cluster_spire_grove",
+			"parts": 4
+		},
+		{
+			"id": "cluster_ledge_forest",
+			"parts": 4
+		},
+		{
+			"id": "cluster_ancient_log",
+			"parts": 4
+		},
+		{
+			"id": "cluster_snow_spire",
+			"parts": 3
+		},
+		{
+			"id": "cluster_snow_ledge",
+			"parts": 3
+		}
+	]
+}

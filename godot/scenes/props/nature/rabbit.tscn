@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/nature/rabbit.glb" id="1"]
+[ext_resource type="Material" path="res://assets/nature/materials/nature_paint.tres" id="2"]
+
+[node name="Rabbit" instance=ExtResource("1")]
+metadata/nature_id = "rabbit"
+metadata/label = "눈숲 토끼"
+
+[node name="rabbit_body_mesh" parent="Body" index="1"]
+material_override = ExtResource("2")
+
+[node name="rabbit_head_mesh" parent="Body/Head" index="0"]
+material_override = ExtResource("2")
+

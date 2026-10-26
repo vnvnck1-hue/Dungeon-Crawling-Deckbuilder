@@ -1,0 +1,257 @@
+[gd_resource type="VisualShader" format=3]
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_tjakr"]
+parameter_name = "color_glow"
+default_value_enabled = true
+default_value = Color(0.12, 0.78, 1, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_l8kwh"]
+parameter_name = "color_deep"
+default_value_enabled = true
+default_value = Color(0.04, 0.3, 1, 1)
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_f2t3f"]
+resource_name = "Bolt shape"
+size = Vector2(520, 360)
+expression = "
+// uv.x = 줄기 방향(0 시전점 → 1 끝점), uv.y = 가로(0.5 가 가운데).
+float x = uv_in.x;
+float y = (uv_in.y - 0.5) * 2.0;
+// 양 끝은 가운데로 모이고 가운데에서 크게 꺾인다
+float pin = pow(clamp(sin(x * 3.14159), 0.0, 1.0), 0.45);
+float off = lt_path(x * 2.2, seed) * 1.15 * pin;
+float d = abs(y - off);
+// 칼날: 마디마다 두꺼웠다 가늘어진다(참고 원화의 길게 늘어진 날 모양)
+float blade = lt_zig(x * 5.5 + seed * 1.7, seed + 11.0);
+blade = blade * blade;
+float w = (0.035 + 0.28 * blade) * thick * (0.3 + 0.7 * pin);
+// 뻗는 머리와 사라지는 꼬리
+float drawn = 1.0 - smoothstep(reach - 0.015, reach, x);
+float erode = lt_noise(vec2(x * 26.0 + seed * 3.0, y * 3.0)) * 0.35 + x * 0.65;
+float alive = smoothstep(dis * 1.1 - 0.06, dis * 1.1, erode);
+float vis = drawn * alive;
+core = (1.0 - smoothstep(w * 0.7, w * 0.85, d)) * vis;
+glow = exp(-max(d - w * 0.7, 0.0) * 16.0) * vis;
+// 두꺼운 날 안쪽의 푸른 타원 구멍
+float hn = lt_noise(vec2(x * 9.0 + seed * 5.0, (y - off) / max(w, 0.02) * 0.8));
+hole = smoothstep(0.6, 0.68, hn) * smoothstep(0.08, 0.15, w) * (1.0 - smoothstep(w * 0.35, w * 0.6, d)) * core;
+// 잔가지: 다른 씨앗의 가는 지그재그가 군데군데에서만 보인다
+float boff = off + lt_path(x * 3.4, seed + 5.0) * 1.1 * pin;
+float bmask = smoothstep(0.55, 0.68, lt_zig(x * 3.0 + seed * 2.3, seed + 19.0));
+float bd = abs(y - boff);
+branch = (1.0 - smoothstep(0.01, 0.024, bd)) * bmask * vis + exp(-bd * 55.0) * bmask * vis * 0.35;
+// 뻗어 나가는 머리의 섬광
+head = exp(-abs(x - reach) * 30.0) * exp(-d * 6.0) * step(x, reach + 0.03) * (1.0 - step(0.999, reach));
+"
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_ipets"]
+resource_name = "Bolt color"
+size = Vector2(520, 360)
+expression = "
+float c = clamp(core - hole, 0.0, 1.0);
+float rim = clamp(glow - core, 0.0, 1.0);
+vec3 col = c_deep.rgb * rim * 0.55 + c_glow.rgb * (rim * rim * 0.9 + hole * 0.55 + branch * 0.9) + c_core.rgb * (c * 1.15 + head * 1.4);
+color = col * intensity;
+alpha = clamp(c + rim * 0.6 + hole * 0.4 + branch + head, 0.0, 1.0);
+"
+
+[sub_resource type="VisualShaderNodeGlobalExpression" id="VisualShaderNodeGlobalExpression_a7xkx"]
+resource_name = "Lightning noise / zigzag"
+expression = "
+float lt_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float lt_hash1(float x) {
+	return lt_hash(vec2(x, x * 0.37 + 1.3));
+}
+float lt_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(lt_hash(i), lt_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(lt_hash(i + vec2(0.0, 1.0)), lt_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// 선형 보간 1D 노이즈 — 꺾인 직선 마디(번개의 지그재그)
+float lt_zig(float x, float s) {
+	float i = floor(x);
+	float f = fract(x);
+	return mix(lt_hash1(i + s * 13.1), lt_hash1(i + 1.0 + s * 13.1), f);
+}
+// 세 옥타브 지그재그(-0.5~0.5 근처)
+float lt_path(float x, float s) {
+	return (lt_zig(x * 5.0, s) - 0.5) * 0.62 + (lt_zig(x * 15.0, s + 3.0) - 0.5) * 0.24 + (lt_zig(x * 41.0, s + 7.0) - 0.5) * 0.09;
+}
+// 셀 경계까지 거리(F2-F1) — 방전선
+float lt_cell(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(lt_hash(i + g), lt_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_du62r"]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_dqog8"]
+parameter_name = "reach"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_xsna1"]
+parameter_name = "dissolve"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_awu1d"]
+parameter_name = "intensity"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_eqvau"]
+parameter_name = "thickness"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_fvld0"]
+parameter_name = "seed"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_r0gl2"]
+parameter_name = "color_core"
+default_value_enabled = true
+default_value = Color(0.88, 1, 1, 1)
+
+[resource]
+resource_name = "Lightning / lance bolt / jagged blade beam"
+modes/blend = 1
+modes/depth_draw = 2
+modes/cull = 2
+flags/unshaded = true
+flags/shadows_disabled = true
+flags/fog_disabled = true
+nodes/fragment/0/position = Vector2(900, 0)
+nodes/fragment/2/node = SubResource("VisualShaderNodeGlobalExpression_a7xkx")
+nodes/fragment/2/position = Vector2(-1500, -500)
+nodes/fragment/2/size = Vector2(0, 0)
+nodes/fragment/2/input_ports = ""
+nodes/fragment/2/output_ports = ""
+nodes/fragment/2/expression = "
+float lt_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float lt_hash1(float x) {
+	return lt_hash(vec2(x, x * 0.37 + 1.3));
+}
+float lt_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(lt_hash(i), lt_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(lt_hash(i + vec2(0.0, 1.0)), lt_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// 선형 보간 1D 노이즈 — 꺾인 직선 마디(번개의 지그재그)
+float lt_zig(float x, float s) {
+	float i = floor(x);
+	float f = fract(x);
+	return mix(lt_hash1(i + s * 13.1), lt_hash1(i + 1.0 + s * 13.1), f);
+}
+// 세 옥타브 지그재그(-0.5~0.5 근처)
+float lt_path(float x, float s) {
+	return (lt_zig(x * 5.0, s) - 0.5) * 0.62 + (lt_zig(x * 15.0, s + 3.0) - 0.5) * 0.24 + (lt_zig(x * 41.0, s + 7.0) - 0.5) * 0.09;
+}
+// 셀 경계까지 거리(F2-F1) — 방전선
+float lt_cell(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(lt_hash(i + g), lt_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+nodes/fragment/3/node = SubResource("VisualShaderNodeInput_du62r")
+nodes/fragment/3/position = Vector2(-1200, -300)
+nodes/fragment/4/node = SubResource("VisualShaderNodeFloatParameter_dqog8")
+nodes/fragment/4/position = Vector2(-1200, -190)
+nodes/fragment/5/node = SubResource("VisualShaderNodeFloatParameter_xsna1")
+nodes/fragment/5/position = Vector2(-1200, -80)
+nodes/fragment/6/node = SubResource("VisualShaderNodeFloatParameter_awu1d")
+nodes/fragment/6/position = Vector2(-1200, 30)
+nodes/fragment/7/node = SubResource("VisualShaderNodeFloatParameter_eqvau")
+nodes/fragment/7/position = Vector2(-1200, 140)
+nodes/fragment/8/node = SubResource("VisualShaderNodeFloatParameter_fvld0")
+nodes/fragment/8/position = Vector2(-1200, 250)
+nodes/fragment/9/node = SubResource("VisualShaderNodeColorParameter_r0gl2")
+nodes/fragment/9/position = Vector2(-1200, 360)
+nodes/fragment/10/node = SubResource("VisualShaderNodeColorParameter_tjakr")
+nodes/fragment/10/position = Vector2(-1200, 470)
+nodes/fragment/11/node = SubResource("VisualShaderNodeColorParameter_l8kwh")
+nodes/fragment/11/position = Vector2(-1200, 580)
+nodes/fragment/12/node = SubResource("VisualShaderNodeExpression_f2t3f")
+nodes/fragment/12/position = Vector2(-500, -200)
+nodes/fragment/12/size = Vector2(520, 360)
+nodes/fragment/12/input_ports = "0,3,uv_in;1,0,reach;2,0,dis;3,0,thick;4,0,seed;"
+nodes/fragment/12/output_ports = "0,0,core;1,0,glow;2,0,hole;3,0,branch;4,0,head;"
+nodes/fragment/12/expression = "
+// uv.x = 줄기 방향(0 시전점 → 1 끝점), uv.y = 가로(0.5 가 가운데).
+float x = uv_in.x;
+float y = (uv_in.y - 0.5) * 2.0;
+// 양 끝은 가운데로 모이고 가운데에서 크게 꺾인다
+float pin = pow(clamp(sin(x * 3.14159), 0.0, 1.0), 0.45);
+float off = lt_path(x * 2.2, seed) * 1.15 * pin;
+float d = abs(y - off);
+// 칼날: 마디마다 두꺼웠다 가늘어진다(참고 원화의 길게 늘어진 날 모양)
+float blade = lt_zig(x * 5.5 + seed * 1.7, seed + 11.0);
+blade = blade * blade;
+float w = (0.035 + 0.28 * blade) * thick * (0.3 + 0.7 * pin);
+// 뻗는 머리와 사라지는 꼬리
+float drawn = 1.0 - smoothstep(reach - 0.015, reach, x);
+float erode = lt_noise(vec2(x * 26.0 + seed * 3.0, y * 3.0)) * 0.35 + x * 0.65;
+float alive = smoothstep(dis * 1.1 - 0.06, dis * 1.1, erode);
+float vis = drawn * alive;
+core = (1.0 - smoothstep(w * 0.7, w * 0.85, d)) * vis;
+glow = exp(-max(d - w * 0.7, 0.0) * 16.0) * vis;
+// 두꺼운 날 안쪽의 푸른 타원 구멍
+float hn = lt_noise(vec2(x * 9.0 + seed * 5.0, (y - off) / max(w, 0.02) * 0.8));
+hole = smoothstep(0.6, 0.68, hn) * smoothstep(0.08, 0.15, w) * (1.0 - smoothstep(w * 0.35, w * 0.6, d)) * core;
+// 잔가지: 다른 씨앗의 가는 지그재그가 군데군데에서만 보인다
+float boff = off + lt_path(x * 3.4, seed + 5.0) * 1.1 * pin;
+float bmask = smoothstep(0.55, 0.68, lt_zig(x * 3.0 + seed * 2.3, seed + 19.0));
+float bd = abs(y - boff);
+branch = (1.0 - smoothstep(0.01, 0.024, bd)) * bmask * vis + exp(-bd * 55.0) * bmask * vis * 0.35;
+// 뻗어 나가는 머리의 섬광
+head = exp(-abs(x - reach) * 30.0) * exp(-d * 6.0) * step(x, reach + 0.03) * (1.0 - step(0.999, reach));
+"
+nodes/fragment/13/node = SubResource("VisualShaderNodeExpression_ipets")
+nodes/fragment/13/position = Vector2(0, -60)
+nodes/fragment/13/size = Vector2(520, 360)
+nodes/fragment/13/input_ports = "0,0,core;1,0,glow;2,0,hole;3,0,branch;4,0,head;5,0,intensity;6,5,c_core;7,5,c_glow;8,5,c_deep;"
+nodes/fragment/13/output_ports = "0,4,color;1,0,alpha;"
+nodes/fragment/13/expression = "
+float c = clamp(core - hole, 0.0, 1.0);
+float rim = clamp(glow - core, 0.0, 1.0);
+vec3 col = c_deep.rgb * rim * 0.55 + c_glow.rgb * (rim * rim * 0.9 + hole * 0.55 + branch * 0.9) + c_core.rgb * (c * 1.15 + head * 1.4);
+color = col * intensity;
+alpha = clamp(c + rim * 0.6 + hole * 0.4 + branch + head, 0.0, 1.0);
+"
+nodes/fragment/connections = PackedInt32Array(3, 0, 12, 0, 4, 0, 12, 1, 5, 0, 12, 2, 7, 0, 12, 3, 8, 0, 12, 4, 12, 0, 13, 0, 12, 1, 13, 1, 12, 2, 13, 2, 12, 3, 13, 3, 12, 4, 13, 4, 6, 0, 13, 5, 9, 0, 13, 6, 10, 0, 13, 7, 11, 0, 13, 8, 13, 0, 0, 0, 13, 1, 0, 1)

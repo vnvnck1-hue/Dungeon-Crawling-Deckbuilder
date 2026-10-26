@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://shaders/nature_prop.gdshader" id="1_m04xt"]
+
+[resource]
+resource_name = "Nature toon · wind conifer"
+render_priority = 0
+shader = ExtResource("1_m04xt")
+shader_parameter/wind_strength = 0.22
+shader_parameter/wind_height = 5.0
+shader_parameter/wind_speed = 0.9
+shader_parameter/wind_flutter = 0.035
+shader_parameter/wind_direction = Vector2(0.93, 0.37)

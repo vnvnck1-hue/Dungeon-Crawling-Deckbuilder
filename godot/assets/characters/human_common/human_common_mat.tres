@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/user_rock.gdshader" id="1_1gxv5"]
+[ext_resource type="Texture2D" path="res://assets/characters/human_common/human_common_paint.res" id="2_u2wxq"]
+
+[resource]
+resource_name = "human_common"
+render_priority = 0
+shader = ExtResource("1_1gxv5")
+shader_parameter/rock_paint = ExtResource("2_u2wxq")
+shader_parameter/frost_amount = 0.0
+shader_parameter/frost_color = null
+shader_parameter/moss_saturation = 1.0
+shader_parameter/paint_brightness = 1.1

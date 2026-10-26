@@ -1,0 +1,235 @@
+[gd_resource type="VisualShader" format=3]
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_tc8rw"]
+parameter_name = "haze"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_hboq2"]
+parameter_name = "color_snow"
+default_value_enabled = true
+default_value = Color(0.93, 0.96, 1, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_q1q56"]
+parameter_name = "color_shade"
+default_value_enabled = true
+default_value = Color(0.55, 0.66, 0.95, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_2og7a"]
+parameter_name = "color_glow"
+default_value_enabled = true
+default_value = Color(0.62, 0.82, 1, 1)
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_jkysl"]
+resource_name = "Polar snow front"
+size = Vector2(520, 360)
+expression = "
+// 평면 UV 를 보스 중심 극좌표로. 무늬는 바깥으로 밀려 나가도록 반경 방향으로 끌어 늘린다.
+vec2 p = uv_in * 2.0 - 1.0;
+r = length(p);
+dir = p / max(r, 0.0001);
+front = mix(0.06, 0.93, 1.0 - pow(1.0 - clamp(prog, 0.0, 1.0), 2.4));
+vec2 flow = p * 3.2 - dir * prog * 5.0 + vec2(seed * 7.1, seed * 3.3);
+churn = nv_fbm(flow + vec2(0.0, clock * 0.6));
+"
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_dv0ho"]
+resource_name = "Snow band, streaks, haze"
+size = Vector2(520, 360)
+expression = "
+// 앞머리 눈 띠: 들쭉날쭉한 가장자리, 뒤로 갈수록 두께가 붙는다.
+float edge = r + (churn - 0.5) * 0.2;
+float w = (0.05 + 0.12 * prog) * bw;
+float lead = exp(-pow((edge - front) / w, 2.0));
+float behind = smoothstep(front + 0.02, front - w * 2.5, edge) * smoothstep(0.0, front, edge);
+// 띠를 매끈한 고리가 아니라 찢긴 눈덩이로: 반경 방향으로 늘어난 잘게 끊긴 덩이만 남긴다.
+float clumps = nv_fbm(dir * 7.0 + vec2(r * 9.0 - prog * 6.0, seed));
+float torn = smoothstep(0.38, 0.62, clumps + lead * 0.25);
+band = clamp(lead * torn * 1.25 + behind * 0.22 * churn, 0.0, 1.0);
+// 방사형 눈발 줄기: 방향 벡터로 잡음을 뽑아 이음매가 없다. 고리 뒤쪽에만, 바깥으로 달리는 대시로 끊긴다.
+float rays = smoothstep(0.55, 0.85, nv_noise(dir * 12.0 + seed * 5.0)) * 0.7
+	+ smoothstep(0.62, 0.9, nv_noise(dir * 31.0 + seed * 2.0)) * 0.55;
+float dash = smoothstep(0.15, 0.55, fract(r * 3.2 - prog * 3.5 + nv_noise(dir * 17.0) * 0.6));
+streak = rays * dash * smoothstep(front + 0.03, front * 0.3, r) * smoothstep(0.04, 0.2, r);
+// 가운데 서리 안개: 처음에 짙고 고리가 지나가면 옅어진다.
+haze = smoothstep(front, 0.0, r) * (0.45 - prog * 0.25) * (0.5 + churn * 0.5) * haze_k;
+streak *= mix(1.0, 0.6, 1.0 - haze_k);
+"
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_8fsol"]
+resource_name = "Snow color"
+size = Vector2(520, 360)
+expression = "
+float body = max(band, max(streak * 0.75, haze));
+col = mix(shade, snow, clamp(churn * 1.3 + band * 0.4, 0.0, 1.0));
+float outer = 1.0 - smoothstep(0.9, 1.0, r);
+alpha = clamp(body * intensity * fade * outer, 0.0, 0.85);
+emit = glow * band * 0.35 * fade;
+"
+
+[sub_resource type="VisualShaderNodeGlobalExpression" id="VisualShaderNodeGlobalExpression_4ag0i"]
+resource_name = "Nivella snow noise"
+expression = "
+float nv_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float nv_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(nv_hash(i), nv_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(nv_hash(i + vec2(0.0, 1.0)), nv_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float nv_fbm(vec2 p) {
+	float v = 0.0;
+	float a = 0.5;
+	for (int k = 0; k < 4; k++) {
+		v += a * nv_noise(p);
+		p = p * 2.07 + vec2(3.1, 7.7);
+		a *= 0.5;
+	}
+	return v;
+}
+"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_f2jbv"]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_iqe2p"]
+input_name = "time"
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_diun6"]
+parameter_name = "progress"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_hl8yv"]
+parameter_name = "fade"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_kmn4m"]
+parameter_name = "intensity"
+default_value_enabled = true
+default_value = 0.8
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_oh12y"]
+parameter_name = "seed"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_ht2qf"]
+parameter_name = "band_width"
+default_value_enabled = true
+default_value = 1.0
+
+[resource]
+resource_name = "Nivella / roar / ground snow burst"
+modes/depth_draw = 2
+modes/cull = 2
+flags/unshaded = true
+flags/shadows_disabled = true
+flags/fog_disabled = true
+nodes/fragment/0/position = Vector2(900, 0)
+nodes/fragment/2/node = SubResource("VisualShaderNodeGlobalExpression_4ag0i")
+nodes/fragment/2/position = Vector2(-1500, -500)
+nodes/fragment/2/size = Vector2(0, 0)
+nodes/fragment/2/input_ports = ""
+nodes/fragment/2/output_ports = ""
+nodes/fragment/2/expression = "
+float nv_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float nv_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(nv_hash(i), nv_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(nv_hash(i + vec2(0.0, 1.0)), nv_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float nv_fbm(vec2 p) {
+	float v = 0.0;
+	float a = 0.5;
+	for (int k = 0; k < 4; k++) {
+		v += a * nv_noise(p);
+		p = p * 2.07 + vec2(3.1, 7.7);
+		a *= 0.5;
+	}
+	return v;
+}
+"
+nodes/fragment/3/node = SubResource("VisualShaderNodeInput_f2jbv")
+nodes/fragment/3/position = Vector2(-1200, -300)
+nodes/fragment/4/node = SubResource("VisualShaderNodeInput_iqe2p")
+nodes/fragment/4/position = Vector2(-1200, -190)
+nodes/fragment/5/node = SubResource("VisualShaderNodeFloatParameter_diun6")
+nodes/fragment/5/position = Vector2(-1200, -80)
+nodes/fragment/6/node = SubResource("VisualShaderNodeFloatParameter_hl8yv")
+nodes/fragment/6/position = Vector2(-1200, 30)
+nodes/fragment/7/node = SubResource("VisualShaderNodeFloatParameter_kmn4m")
+nodes/fragment/7/position = Vector2(-1200, 140)
+nodes/fragment/8/node = SubResource("VisualShaderNodeFloatParameter_oh12y")
+nodes/fragment/8/position = Vector2(-1200, 250)
+nodes/fragment/9/node = SubResource("VisualShaderNodeFloatParameter_ht2qf")
+nodes/fragment/9/position = Vector2(-1200, 360)
+nodes/fragment/10/node = SubResource("VisualShaderNodeFloatParameter_tc8rw")
+nodes/fragment/10/position = Vector2(-1200, 470)
+nodes/fragment/11/node = SubResource("VisualShaderNodeColorParameter_hboq2")
+nodes/fragment/11/position = Vector2(-1200, 580)
+nodes/fragment/12/node = SubResource("VisualShaderNodeColorParameter_q1q56")
+nodes/fragment/12/position = Vector2(-1200, 690)
+nodes/fragment/13/node = SubResource("VisualShaderNodeColorParameter_2og7a")
+nodes/fragment/13/position = Vector2(-1200, 800)
+nodes/fragment/14/node = SubResource("VisualShaderNodeExpression_jkysl")
+nodes/fragment/14/position = Vector2(-700, -200)
+nodes/fragment/14/size = Vector2(520, 360)
+nodes/fragment/14/input_ports = "0,3,uv_in;1,0,prog;2,0,seed;3,0,clock;"
+nodes/fragment/14/output_ports = "0,0,r;1,0,front;2,3,dir;3,0,churn;"
+nodes/fragment/14/expression = "
+// 평면 UV 를 보스 중심 극좌표로. 무늬는 바깥으로 밀려 나가도록 반경 방향으로 끌어 늘린다.
+vec2 p = uv_in * 2.0 - 1.0;
+r = length(p);
+dir = p / max(r, 0.0001);
+front = mix(0.06, 0.93, 1.0 - pow(1.0 - clamp(prog, 0.0, 1.0), 2.4));
+vec2 flow = p * 3.2 - dir * prog * 5.0 + vec2(seed * 7.1, seed * 3.3);
+churn = nv_fbm(flow + vec2(0.0, clock * 0.6));
+"
+nodes/fragment/15/node = SubResource("VisualShaderNodeExpression_dv0ho")
+nodes/fragment/15/position = Vector2(-150, -60)
+nodes/fragment/15/size = Vector2(520, 360)
+nodes/fragment/15/input_ports = "0,0,r;1,0,front;2,3,dir;3,0,churn;4,0,prog;5,0,seed;6,0,bw;7,0,haze_k;"
+nodes/fragment/15/output_ports = "0,0,band;1,0,streak;2,0,haze;"
+nodes/fragment/15/expression = "
+// 앞머리 눈 띠: 들쭉날쭉한 가장자리, 뒤로 갈수록 두께가 붙는다.
+float edge = r + (churn - 0.5) * 0.2;
+float w = (0.05 + 0.12 * prog) * bw;
+float lead = exp(-pow((edge - front) / w, 2.0));
+float behind = smoothstep(front + 0.02, front - w * 2.5, edge) * smoothstep(0.0, front, edge);
+// 띠를 매끈한 고리가 아니라 찢긴 눈덩이로: 반경 방향으로 늘어난 잘게 끊긴 덩이만 남긴다.
+float clumps = nv_fbm(dir * 7.0 + vec2(r * 9.0 - prog * 6.0, seed));
+float torn = smoothstep(0.38, 0.62, clumps + lead * 0.25);
+band = clamp(lead * torn * 1.25 + behind * 0.22 * churn, 0.0, 1.0);
+// 방사형 눈발 줄기: 방향 벡터로 잡음을 뽑아 이음매가 없다. 고리 뒤쪽에만, 바깥으로 달리는 대시로 끊긴다.
+float rays = smoothstep(0.55, 0.85, nv_noise(dir * 12.0 + seed * 5.0)) * 0.7
+	+ smoothstep(0.62, 0.9, nv_noise(dir * 31.0 + seed * 2.0)) * 0.55;
+float dash = smoothstep(0.15, 0.55, fract(r * 3.2 - prog * 3.5 + nv_noise(dir * 17.0) * 0.6));
+streak = rays * dash * smoothstep(front + 0.03, front * 0.3, r) * smoothstep(0.04, 0.2, r);
+// 가운데 서리 안개: 처음에 짙고 고리가 지나가면 옅어진다.
+haze = smoothstep(front, 0.0, r) * (0.45 - prog * 0.25) * (0.5 + churn * 0.5) * haze_k;
+streak *= mix(1.0, 0.6, 1.0 - haze_k);
+"
+nodes/fragment/16/node = SubResource("VisualShaderNodeExpression_8fsol")
+nodes/fragment/16/position = Vector2(400, 80)
+nodes/fragment/16/size = Vector2(520, 360)
+nodes/fragment/16/input_ports = "0,0,band;1,0,streak;2,0,haze;3,0,churn;4,0,r;5,0,fade;6,0,intensity;7,4,snow;8,4,shade;9,4,glow;"
+nodes/fragment/16/output_ports = "0,4,col;1,0,alpha;2,4,emit;"
+nodes/fragment/16/expression = "
+float body = max(band, max(streak * 0.75, haze));
+col = mix(shade, snow, clamp(churn * 1.3 + band * 0.4, 0.0, 1.0));
+float outer = 1.0 - smoothstep(0.9, 1.0, r);
+alpha = clamp(body * intensity * fade * outer, 0.0, 0.85);
+emit = glow * band * 0.35 * fade;
+"
+nodes/fragment/connections = PackedInt32Array(3, 0, 14, 0, 5, 0, 14, 1, 8, 0, 14, 2, 4, 0, 14, 3, 14, 0, 15, 0, 14, 1, 15, 1, 14, 2, 15, 2, 14, 3, 15, 3, 5, 0, 15, 4, 8, 0, 15, 5, 9, 0, 15, 6, 10, 0, 15, 7, 15, 0, 16, 0, 15, 1, 16, 1, 15, 2, 16, 2, 14, 3, 16, 3, 14, 0, 16, 4, 6, 0, 16, 5, 7, 0, 16, 6, 11, 0, 16, 7, 12, 0, 16, 8, 13, 0, 16, 9, 16, 0, 0, 0, 16, 1, 0, 1, 16, 2, 0, 5)

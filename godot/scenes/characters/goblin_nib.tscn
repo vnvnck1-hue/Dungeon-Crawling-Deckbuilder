@@ -1,0 +1,63 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://assets/characters/goblin_nib/goblin_nib_torso.res" id="1_ptojf"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/goblin_nib/goblin_nib_arm_r.res" id="2_iu68n"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/goblin_nib/goblin_nib_arm_l.res" id="3_v6g5o"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/goblin_nib/goblin_nib_backpack.res" id="4_mfa02"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/goblin_nib/goblin_nib_head.res" id="5_wwwf1"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/goblin_nib/goblin_nib_leg_r.res" id="6_itpik"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/goblin_nib/goblin_nib_leg_l.res" id="7_3wd3s"]
+
+[node name="GoblinNib" type="Node3D" unique_id=1046167943]
+metadata/character_id = "goblin_nib"
+metadata/label = "고블린 니브"
+metadata/tripo_task = "e2eadc07-dea2-4ff1-9ce0-ecccc9069596"
+
+[node name="Torso" type="Node3D" parent="." unique_id=553237680]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.9802322e-08, 0.19833903, 0.06253059)
+metadata/part_group = "torso"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso" unique_id=869345893]
+mesh = ExtResource("1_ptojf")
+
+[node name="ArmR" type="Node3D" parent="Torso" unique_id=1635211307]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.16223744, 0.24650629, 0.006349258)
+metadata/part_group = "arm_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmR" unique_id=1430967893]
+mesh = ExtResource("2_iu68n")
+
+[node name="ArmL" type="Node3D" parent="Torso" unique_id=428104704]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16224357, 0.24651276, 0.0063498095)
+metadata/part_group = "arm_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmL" unique_id=118651114]
+mesh = ExtResource("3_v6g5o")
+
+[node name="Backpack" type="Node3D" parent="Torso" unique_id=992668378]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.021739215, 0.42696625, -0.14044945)
+metadata/part_group = "backpack"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/Backpack" unique_id=206761350]
+mesh = ExtResource("4_mfa02")
+
+[node name="Head" type="Node3D" parent="Torso" unique_id=1248189308]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.9802322e-08, 0.3082531, -0.045188114)
+metadata/part_group = "head"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/Head" unique_id=564249816]
+mesh = ExtResource("5_wwwf1")
+
+[node name="LegR" type="Node3D" parent="." unique_id=563250784]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.12310536, 0.30043966, 0.072789475)
+metadata/part_group = "leg_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="LegR" unique_id=1216443448]
+mesh = ExtResource("6_itpik")
+
+[node name="LegL" type="Node3D" parent="." unique_id=866155250]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.103321925, 0.30043966, 0.072789475)
+metadata/part_group = "leg_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="LegL" unique_id=1818098474]
+mesh = ExtResource("7_3wd3s")

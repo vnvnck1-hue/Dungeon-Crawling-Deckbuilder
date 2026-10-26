@@ -1,0 +1,382 @@
+[
+	{
+		"id": "header",
+		"region": [
+			62.0,
+			78.0,
+			969.0,
+			267.0
+		],
+		"sheet": "headers"
+	},
+	{
+		"id": "victory_header",
+		"region": [
+			1139.0,
+			50.0,
+			971.0,
+			295.0
+		],
+		"sheet": "headers"
+	},
+	{
+		"id": "defeat_header",
+		"region": [
+			61.0,
+			401.0,
+			970.0,
+			274.0
+		],
+		"sheet": "headers"
+	},
+	{
+		"id": "paper_header",
+		"region": [
+			1133.0,
+			523.0,
+			985.0,
+			152.0
+		],
+		"sheet": "headers"
+	},
+	{
+		"id": "extension",
+		"region": [
+			12.0,
+			183.0,
+			305.0,
+			242.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "pasture",
+		"region": [
+			343.0,
+			242.0,
+			270.0,
+			177.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "graves",
+		"region": [
+			646.0,
+			198.0,
+			278.0,
+			227.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "sheep",
+		"region": [
+			952.0,
+			212.0,
+			274.0,
+			215.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "repair",
+		"region": [
+			28.0,
+			464.0,
+			270.0,
+			251.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "heal",
+		"region": [
+			339.0,
+			465.0,
+			278.0,
+			241.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "scissors",
+		"region": [
+			644.0,
+			470.0,
+			285.0,
+			245.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "hourglass",
+		"region": [
+			1005.0,
+			463.0,
+			184.0,
+			251.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "book",
+		"region": [
+			27.0,
+			727.0,
+			299.0,
+			262.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "quill",
+		"region": [
+			367.0,
+			727.0,
+			243.0,
+			265.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "envelope",
+		"region": [
+			657.0,
+			754.0,
+			261.0,
+			222.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "footsteps",
+		"region": [
+			995.0,
+			755.0,
+			208.0,
+			216.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "paw",
+		"region": [
+			64.0,
+			1014.0,
+			209.0,
+			202.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "check",
+		"region": [
+			369.0,
+			1014.0,
+			206.0,
+			199.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "warning",
+		"region": [
+			681.0,
+			1021.0,
+			218.0,
+			189.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "arrow",
+		"region": [
+			1015.0,
+			1027.0,
+			171.0,
+			178.0
+		],
+		"sheet": "icons"
+	},
+	{
+		"id": "bar_track",
+		"region": [
+			24.0,
+			161.0,
+			282.0,
+			58.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "bar_fill",
+		"region": [
+			349.0,
+			165.0,
+			265.0,
+			52.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "speech",
+		"region": [
+			657.0,
+			112.0,
+			252.0,
+			168.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "person",
+		"region": [
+			947.0,
+			128.0,
+			290.0,
+			123.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "action",
+		"region": [
+			17.0,
+			439.0,
+			370.0,
+			117.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "relic",
+		"region": [
+			429.0,
+			404.0,
+			179.0,
+			177.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "badge",
+		"region": [
+			714.0,
+			428.0,
+			142.0,
+			141.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "toast",
+		"region": [
+			928.0,
+			448.0,
+			311.0,
+			97.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "button_normal",
+		"region": [
+			13.0,
+			737.0,
+			307.0,
+			100.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "button_hover",
+		"region": [
+			328.0,
+			732.0,
+			298.0,
+			107.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "button_pressed",
+		"region": [
+			631.0,
+			730.0,
+			303.0,
+			111.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "button_disabled",
+		"region": [
+			941.0,
+			732.0,
+			301.0,
+			108.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "toggle_on",
+		"region": [
+			39.0,
+			1030.0,
+			246.0,
+			104.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "toggle_off",
+		"region": [
+			353.0,
+			1029.0,
+			243.0,
+			105.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "close",
+		"region": [
+			727.0,
+			1008.0,
+			149.0,
+			148.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "plus",
+		"region": [
+			1026.0,
+			1009.0,
+			146.0,
+			145.0
+		],
+		"sheet": "widgets"
+	},
+	{
+		"id": "scroll_vertical_track",
+		"region": [
+			370.0,
+			68.0,
+			101.0,
+			1124.0
+		],
+		"sheet": "scrollbars"
+	},
+	{
+		"id": "scroll_vertical_thumb",
+		"region": [
+			791.0,
+			421.0,
+			111.0,
+			406.0
+		],
+		"sheet": "scrollbars"
+	}
+]

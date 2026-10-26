@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/props/nature/rock_ledge_snow.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/props/nature/pine_broad_snow.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/props/nature/pine_sparse_snow.tscn" id="3"]
+
+[node name="ClusterSnowLedge" type="Node3D"]
+metadata/nature_id = "cluster_snow_ledge"
+
+[node name="RockLedgeSnow" parent="." instance=ExtResource("1")]
+position = Vector3(0.000000,0.000000,0.000000)
+rotation = Vector3(0,0.000000,0)
+scale = Vector3(1.000000,1.000000,1.000000)
+
+[node name="PineBroadSnow" parent="." instance=ExtResource("2")]
+position = Vector3(-1.500000,0.000000,-0.900000)
+rotation = Vector3(0,0.800000,0)
+scale = Vector3(0.780000,0.780000,0.780000)
+
+[node name="PineSparseSnow" parent="." instance=ExtResource("3")]
+position = Vector3(1.300000,0.000000,-0.800000)
+rotation = Vector3(0,-0.500000,0)
+scale = Vector3(0.610000,0.610000,0.610000)

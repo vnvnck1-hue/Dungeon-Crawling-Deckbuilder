@@ -1,0 +1,55 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://assets/characters/dwarf_common/dwarf_common_torso.res" id="1_hgeif"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/dwarf_common/dwarf_common_head.res" id="2_xvokg"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/dwarf_common/dwarf_common_arm_r.res" id="3_pt88l"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/dwarf_common/dwarf_common_arm_l.res" id="4_2r4gp"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/dwarf_common/dwarf_common_leg_r.res" id="5_76xc4"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/dwarf_common/dwarf_common_leg_l.res" id="6_00yuq"]
+
+[node name="DwarfCommon" type="Node3D" unique_id=1164481290]
+metadata/character_id = "dwarf_common"
+metadata/label = "드워프 손님(공용)"
+metadata/tripo_task = "0e30a460-fb9e-45e7-9f13-d1dd3c879d5f"
+
+[node name="Torso" type="Node3D" parent="." unique_id=1718432663]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15144114, 0.032242313)
+metadata/part_group = "torso"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso" unique_id=971653773]
+mesh = ExtResource("1_hgeif")
+
+[node name="Head" type="Node3D" parent="Torso" unique_id=534486239]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.34855884, -0.032242313)
+metadata/part_group = "head"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/Head" unique_id=1107165174]
+mesh = ExtResource("2_xvokg")
+
+[node name="ArmR" type="Node3D" parent="Torso" unique_id=997569300]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2591598, 0.32874614, -0.0024464577)
+metadata/part_group = "arm_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmR" unique_id=520928617]
+mesh = ExtResource("3_pt88l")
+
+[node name="ArmL" type="Node3D" parent="Torso" unique_id=1768565718]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.25837815, 0.32875425, -0.0009770095)
+metadata/part_group = "arm_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmL" unique_id=1042968501]
+mesh = ExtResource("4_2r4gp")
+
+[node name="LegR" type="Node3D" parent="." unique_id=2072333232]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14875524, 0.24328285, 0.03492531)
+metadata/part_group = "leg_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="LegR" unique_id=1834611377]
+mesh = ExtResource("5_76xc4")
+
+[node name="LegL" type="Node3D" parent="." unique_id=1676877568]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15095167, 0.24328285, 0.03493301)
+metadata/part_group = "leg_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="LegL" unique_id=1049278283]
+mesh = ExtResource("6_00yuq")

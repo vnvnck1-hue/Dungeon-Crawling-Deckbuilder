@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/props/nature/rock_spire_snow.tscn" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/props/nature/pine_swept_snow.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/props/nature/pine_sapling_snow.tscn" id="3"]
+
+[node name="ClusterSnowSpire" type="Node3D"]
+metadata/nature_id = "cluster_snow_spire"
+
+[node name="RockSpireSnow" parent="." instance=ExtResource("1")]
+position = Vector3(0.000000,0.000000,0.000000)
+rotation = Vector3(0,0.000000,0)
+scale = Vector3(1.000000,1.000000,1.000000)
+
+[node name="PineSweptSnow" parent="." instance=ExtResource("2")]
+position = Vector3(-1.400000,0.000000,-0.800000)
+rotation = Vector3(0,-0.350000,0)
+scale = Vector3(0.780000,0.780000,0.780000)
+
+[node name="PineSaplingSnow" parent="." instance=ExtResource("3")]
+position = Vector3(1.300000,0.000000,0.000000)
+rotation = Vector3(0,0.600000,0)
+scale = Vector3(0.900000,0.900000,0.900000)

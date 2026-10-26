@@ -1,0 +1,192 @@
+[gd_resource type="VisualShader" format=3]
+
+[sub_resource type="VisualShaderNodeGlobalExpression" id="VisualShaderNodeGlobalExpression_63kj2"]
+resource_name = "Werewolf noise / cracks"
+expression = "
+float ww_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float ww_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(ww_hash(i), ww_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(ww_hash(i + vec2(0.0, 1.0)), ww_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float ww_fbm(vec2 p) {
+	float v = 0.0;
+	float a = 0.5;
+	for (int k = 0; k < 4; k++) {
+		v += a * ww_noise(p);
+		p = p * 2.07 + vec2(3.1, 7.7);
+		a *= 0.5;
+	}
+	return v;
+}
+// 가장자리까지 거리(F2-F1) — 균열 선
+float ww_crack(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(ww_hash(i + g), ww_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_7iqdl"]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_c0e27"]
+parameter_name = "close"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_bnnl3"]
+parameter_name = "flash"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_qf52q"]
+parameter_name = "fade"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_lxoa3"]
+parameter_name = "color_fang"
+default_value_enabled = true
+default_value = Color(1, 0.95, 1, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_1whvd"]
+parameter_name = "color_glow"
+default_value_enabled = true
+default_value = Color(0.9, 0.3, 0.8, 1)
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_x4xwu"]
+resource_name = "Fang jaws"
+size = Vector2(520, 360)
+expression = "
+vec2 p = (uv_in - vec2(0.5)) * 2.0;
+p.y = -p.y;
+float open = (1.0 - close) * 0.62;
+// 턱 윤곽: 위아래 초승달(입 모양으로 휜 띠)
+float curve = 0.32 * p.x * p.x;
+float jaw_u = p.y - (open + 0.04 - curve);    // 위턱 아래 가장자리 기준
+float jaw_l = -(p.y + (open + 0.04 - curve)); // 아래턱 위 가장자리 기준
+float span = 1.0 - smoothstep(0.78, 0.92, abs(p.x));
+// 송곳니 줄: 톱니(가운데 두 개가 길다)
+float n = 7.0;
+float cell = fract(p.x * n * 0.5 + 0.5) - 0.5;
+float big = 1.0 + 1.1 * (1.0 - smoothstep(0.18, 0.42, abs(p.x)));
+float tooth_h = 0.17 * big * (1.0 - abs(cell) * 2.0);
+float upper = smoothstep(-0.015, 0.015, jaw_u + tooth_h) * (1.0 - smoothstep(0.1, 0.16, jaw_u));
+float lower = smoothstep(-0.015, 0.015, jaw_l + tooth_h * 0.8) * (1.0 - smoothstep(0.1, 0.16, jaw_l));
+float fang = max(upper, lower) * span;
+float g = exp(-min(abs(jaw_u), abs(jaw_l)) * 9.0) * span;
+float flash_ring = exp(-abs(length(p) - 0.35 - flash * 0.4) * 18.0) * flash;
+color = c_fang.rgb * fang * 1.4 + c_glow.rgb * g * 0.8 + vec3(1.0, 0.8, 1.0) * flash_ring * 1.6;
+alpha = clamp(fang + g * 0.5 + flash_ring, 0.0, 1.0) * fade * (1.0 - smoothstep(0.9, 1.0, length(p)));
+"
+
+[resource]
+resource_name = "Werewolf / bite snap / fang jaws"
+modes/blend = 1
+modes/depth_draw = 2
+modes/cull = 2
+flags/unshaded = true
+flags/shadows_disabled = true
+flags/fog_disabled = true
+nodes/fragment/0/position = Vector2(900, 0)
+nodes/fragment/2/node = SubResource("VisualShaderNodeGlobalExpression_63kj2")
+nodes/fragment/2/position = Vector2(-1500, -500)
+nodes/fragment/2/size = Vector2(0, 0)
+nodes/fragment/2/input_ports = ""
+nodes/fragment/2/output_ports = ""
+nodes/fragment/2/expression = "
+float ww_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float ww_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(ww_hash(i), ww_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(ww_hash(i + vec2(0.0, 1.0)), ww_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float ww_fbm(vec2 p) {
+	float v = 0.0;
+	float a = 0.5;
+	for (int k = 0; k < 4; k++) {
+		v += a * ww_noise(p);
+		p = p * 2.07 + vec2(3.1, 7.7);
+		a *= 0.5;
+	}
+	return v;
+}
+// 가장자리까지 거리(F2-F1) — 균열 선
+float ww_crack(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(ww_hash(i + g), ww_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+nodes/fragment/3/node = SubResource("VisualShaderNodeInput_7iqdl")
+nodes/fragment/3/position = Vector2(-1200, -300)
+nodes/fragment/4/node = SubResource("VisualShaderNodeFloatParameter_c0e27")
+nodes/fragment/4/position = Vector2(-1200, -190)
+nodes/fragment/5/node = SubResource("VisualShaderNodeFloatParameter_bnnl3")
+nodes/fragment/5/position = Vector2(-1200, -80)
+nodes/fragment/6/node = SubResource("VisualShaderNodeFloatParameter_qf52q")
+nodes/fragment/6/position = Vector2(-1200, 30)
+nodes/fragment/7/node = SubResource("VisualShaderNodeColorParameter_lxoa3")
+nodes/fragment/7/position = Vector2(-1200, 140)
+nodes/fragment/8/node = SubResource("VisualShaderNodeColorParameter_1whvd")
+nodes/fragment/8/position = Vector2(-1200, 250)
+nodes/fragment/9/node = SubResource("VisualShaderNodeExpression_x4xwu")
+nodes/fragment/9/position = Vector2(-400, -200)
+nodes/fragment/9/size = Vector2(520, 360)
+nodes/fragment/9/input_ports = "0,3,uv_in;1,0,close;2,0,flash;3,0,fade;4,5,c_fang;5,5,c_glow;"
+nodes/fragment/9/output_ports = "0,4,color;1,0,alpha;"
+nodes/fragment/9/expression = "
+vec2 p = (uv_in - vec2(0.5)) * 2.0;
+p.y = -p.y;
+float open = (1.0 - close) * 0.62;
+// 턱 윤곽: 위아래 초승달(입 모양으로 휜 띠)
+float curve = 0.32 * p.x * p.x;
+float jaw_u = p.y - (open + 0.04 - curve);    // 위턱 아래 가장자리 기준
+float jaw_l = -(p.y + (open + 0.04 - curve)); // 아래턱 위 가장자리 기준
+float span = 1.0 - smoothstep(0.78, 0.92, abs(p.x));
+// 송곳니 줄: 톱니(가운데 두 개가 길다)
+float n = 7.0;
+float cell = fract(p.x * n * 0.5 + 0.5) - 0.5;
+float big = 1.0 + 1.1 * (1.0 - smoothstep(0.18, 0.42, abs(p.x)));
+float tooth_h = 0.17 * big * (1.0 - abs(cell) * 2.0);
+float upper = smoothstep(-0.015, 0.015, jaw_u + tooth_h) * (1.0 - smoothstep(0.1, 0.16, jaw_u));
+float lower = smoothstep(-0.015, 0.015, jaw_l + tooth_h * 0.8) * (1.0 - smoothstep(0.1, 0.16, jaw_l));
+float fang = max(upper, lower) * span;
+float g = exp(-min(abs(jaw_u), abs(jaw_l)) * 9.0) * span;
+float flash_ring = exp(-abs(length(p) - 0.35 - flash * 0.4) * 18.0) * flash;
+color = c_fang.rgb * fang * 1.4 + c_glow.rgb * g * 0.8 + vec3(1.0, 0.8, 1.0) * flash_ring * 1.6;
+alpha = clamp(fang + g * 0.5 + flash_ring, 0.0, 1.0) * fade * (1.0 - smoothstep(0.9, 1.0, length(p)));
+"
+nodes/fragment/connections = PackedInt32Array(3, 0, 9, 0, 4, 0, 9, 1, 5, 0, 9, 2, 6, 0, 9, 3, 7, 0, 9, 4, 8, 0, 9, 5, 9, 0, 0, 0, 9, 1, 0, 1)

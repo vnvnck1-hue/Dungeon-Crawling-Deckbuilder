@@ -1,0 +1,270 @@
+[gd_resource type="VisualShader" format=3]
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_nyxqm"]
+parameter_name = "seed"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_rfv04"]
+parameter_name = "color_frost"
+default_value_enabled = true
+default_value = Color(0.62, 0.74, 1, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_pp5pr"]
+parameter_name = "color_edge"
+default_value_enabled = true
+default_value = Color(0.95, 0.98, 1, 1)
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_5gsb5"]
+resource_name = "Rime coverage"
+size = Vector2(520, 360)
+expression = "
+vec2 p = (uv_in - vec2(0.5)) * 2.0 * ext;
+float r = length(p);
+float a = atan(p.y, p.x);
+// 들쭉날쭉한 서리 앞머리
+float jag = fr_fbm(vec2(cos(a), sin(a)) * 2.2 + seed * 7.0);
+float spike = pow(abs(sin(a * 11.0 + seed * 5.0)), 18.0) * 0.08;
+float front = spread * (0.8 + 0.3 * jag + spike);
+float wob = (fr_fbm(p * 3.0 + seed * 11.0) - 0.5) * 0.16;
+float body = 1.0 - smoothstep(front - 0.04, front, r + wob);
+// 결정 세포
+vec3 c = fr_cells(p * cells_n + seed * 13.0);
+crack = 1.0 - smoothstep(0.0, 0.07, c.y);
+facet = c.z;
+rim = smoothstep(front - 0.28, front - 0.02, r + wob) * body;
+// 바깥과 성긴 부분부터 녹는다
+float m = fr_fbm(p * 2.2 + seed * 5.0 + 3.0) * 0.72 + (1.0 - clamp(r / ext, 0.0, 1.0)) * 0.28;
+float alive = smoothstep(melt, melt + 0.06, m);
+wet = alive * (1.0 - smoothstep(melt + 0.06, melt + 0.13, m)) * step(0.001, melt);
+cover = body * alive * (1.0 - smoothstep(ext * 0.94, ext, r));
+// 세포 하나씩 깜빡이는 반짝임
+vec2 gc = floor(p * cells_n * 3.0 + seed * 3.0);
+float gh = fr_hash(gc);
+glint = step(0.955, gh) * pow(0.5 + 0.5 * sin(clock * 5.0 + gh * 60.0), 6.0) * cover;
+"
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_878va"]
+resource_name = "Rime color"
+size = Vector2(520, 360)
+expression = "
+vec3 col = mix(c_frost.rgb * (0.86 + 0.22 * facet), c_edge.rgb, clamp(crack * 0.75 + rim * 0.55, 0.0, 1.0));
+col += vec3(1.0) * glint * 1.2;
+col = mix(col, vec3(0.5, 0.66, 0.95), wet * 0.6);
+color = col;
+alpha = clamp(cover * opacity * (0.5 + 0.2 * facet + 0.35 * crack + 0.3 * rim) + glint * 0.6, 0.0, 1.0);
+"
+
+[sub_resource type="VisualShaderNodeGlobalExpression" id="VisualShaderNodeGlobalExpression_quk6k"]
+resource_name = "Frost noise / cells / segment"
+expression = "
+float fr_hash(vec2 p) {
+	p = fract(p * vec2(123.34, 456.21));
+	p += dot(p, p + 45.32);
+	return fract(p.x * p.y);
+}
+float fr_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(fr_hash(i), fr_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(fr_hash(i + vec2(0.0, 1.0)), fr_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float fr_fbm(vec2 p) {
+	float v = 0.0;
+	float a = 0.5;
+	for (int k = 0; k < 4; k++) {
+		v += a * fr_noise(p);
+		p = p * 2.03 + vec2(1.7, 9.2);
+		a *= 0.5;
+	}
+	return v;
+}
+// 결정 세포: x = 가장 가까운 점까지 거리, y = 경계까지 거리(F2-F1), z = 세포 고유값
+vec3 fr_cells(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	float id = 0.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(fr_hash(i + g), fr_hash(i + g + 19.7));
+			float d = length(g + o - f);
+			if (d < d1) {
+				d2 = d1;
+				d1 = d;
+				id = fr_hash(i + g + 3.1);
+			} else if (d < d2) {
+				d2 = d;
+			}
+		}
+	}
+	return vec3(d1, d2 - d1, id);
+}
+float fr_seg(vec2 p, vec2 a, vec2 b) {
+	vec2 pa = p - a;
+	vec2 ba = b - a;
+	float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+	return length(pa - ba * h);
+}
+"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_a10it"]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_k7cii"]
+input_name = "time"
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_mq6pn"]
+parameter_name = "extent"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_euvku"]
+parameter_name = "spread"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_qnkak"]
+parameter_name = "melt"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_7ajeu"]
+parameter_name = "opacity"
+default_value_enabled = true
+default_value = 0.78
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_gw71c"]
+parameter_name = "cell_scale"
+default_value_enabled = true
+default_value = 7.0
+
+[resource]
+resource_name = "Frost rune / ground rime / spread + melt"
+modes/depth_draw = 2
+modes/cull = 2
+flags/unshaded = true
+flags/shadows_disabled = true
+nodes/fragment/0/position = Vector2(900, 0)
+nodes/fragment/2/node = SubResource("VisualShaderNodeGlobalExpression_quk6k")
+nodes/fragment/2/position = Vector2(-1500, -500)
+nodes/fragment/2/size = Vector2(0, 0)
+nodes/fragment/2/input_ports = ""
+nodes/fragment/2/output_ports = ""
+nodes/fragment/2/expression = "
+float fr_hash(vec2 p) {
+	p = fract(p * vec2(123.34, 456.21));
+	p += dot(p, p + 45.32);
+	return fract(p.x * p.y);
+}
+float fr_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(fr_hash(i), fr_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(fr_hash(i + vec2(0.0, 1.0)), fr_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+float fr_fbm(vec2 p) {
+	float v = 0.0;
+	float a = 0.5;
+	for (int k = 0; k < 4; k++) {
+		v += a * fr_noise(p);
+		p = p * 2.03 + vec2(1.7, 9.2);
+		a *= 0.5;
+	}
+	return v;
+}
+// 결정 세포: x = 가장 가까운 점까지 거리, y = 경계까지 거리(F2-F1), z = 세포 고유값
+vec3 fr_cells(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	float id = 0.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(fr_hash(i + g), fr_hash(i + g + 19.7));
+			float d = length(g + o - f);
+			if (d < d1) {
+				d2 = d1;
+				d1 = d;
+				id = fr_hash(i + g + 3.1);
+			} else if (d < d2) {
+				d2 = d;
+			}
+		}
+	}
+	return vec3(d1, d2 - d1, id);
+}
+float fr_seg(vec2 p, vec2 a, vec2 b) {
+	vec2 pa = p - a;
+	vec2 ba = b - a;
+	float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+	return length(pa - ba * h);
+}
+"
+nodes/fragment/3/node = SubResource("VisualShaderNodeInput_a10it")
+nodes/fragment/3/position = Vector2(-1200, -300)
+nodes/fragment/4/node = SubResource("VisualShaderNodeInput_k7cii")
+nodes/fragment/4/position = Vector2(-1200, -190)
+nodes/fragment/5/node = SubResource("VisualShaderNodeFloatParameter_mq6pn")
+nodes/fragment/5/position = Vector2(-1200, -80)
+nodes/fragment/6/node = SubResource("VisualShaderNodeFloatParameter_euvku")
+nodes/fragment/6/position = Vector2(-1200, 30)
+nodes/fragment/7/node = SubResource("VisualShaderNodeFloatParameter_qnkak")
+nodes/fragment/7/position = Vector2(-1200, 140)
+nodes/fragment/8/node = SubResource("VisualShaderNodeFloatParameter_7ajeu")
+nodes/fragment/8/position = Vector2(-1200, 250)
+nodes/fragment/9/node = SubResource("VisualShaderNodeFloatParameter_gw71c")
+nodes/fragment/9/position = Vector2(-1200, 360)
+nodes/fragment/10/node = SubResource("VisualShaderNodeFloatParameter_nyxqm")
+nodes/fragment/10/position = Vector2(-1200, 470)
+nodes/fragment/11/node = SubResource("VisualShaderNodeColorParameter_rfv04")
+nodes/fragment/11/position = Vector2(-1200, 580)
+nodes/fragment/12/node = SubResource("VisualShaderNodeColorParameter_pp5pr")
+nodes/fragment/12/position = Vector2(-1200, 690)
+nodes/fragment/13/node = SubResource("VisualShaderNodeExpression_5gsb5")
+nodes/fragment/13/position = Vector2(-500, -200)
+nodes/fragment/13/size = Vector2(520, 360)
+nodes/fragment/13/input_ports = "0,3,uv_in;1,0,ext;2,0,spread;3,0,melt;4,0,cells_n;5,0,seed;6,0,clock;"
+nodes/fragment/13/output_ports = "0,0,cover;1,0,crack;2,0,facet;3,0,rim;4,0,glint;5,0,wet;"
+nodes/fragment/13/expression = "
+vec2 p = (uv_in - vec2(0.5)) * 2.0 * ext;
+float r = length(p);
+float a = atan(p.y, p.x);
+// 들쭉날쭉한 서리 앞머리
+float jag = fr_fbm(vec2(cos(a), sin(a)) * 2.2 + seed * 7.0);
+float spike = pow(abs(sin(a * 11.0 + seed * 5.0)), 18.0) * 0.08;
+float front = spread * (0.8 + 0.3 * jag + spike);
+float wob = (fr_fbm(p * 3.0 + seed * 11.0) - 0.5) * 0.16;
+float body = 1.0 - smoothstep(front - 0.04, front, r + wob);
+// 결정 세포
+vec3 c = fr_cells(p * cells_n + seed * 13.0);
+crack = 1.0 - smoothstep(0.0, 0.07, c.y);
+facet = c.z;
+rim = smoothstep(front - 0.28, front - 0.02, r + wob) * body;
+// 바깥과 성긴 부분부터 녹는다
+float m = fr_fbm(p * 2.2 + seed * 5.0 + 3.0) * 0.72 + (1.0 - clamp(r / ext, 0.0, 1.0)) * 0.28;
+float alive = smoothstep(melt, melt + 0.06, m);
+wet = alive * (1.0 - smoothstep(melt + 0.06, melt + 0.13, m)) * step(0.001, melt);
+cover = body * alive * (1.0 - smoothstep(ext * 0.94, ext, r));
+// 세포 하나씩 깜빡이는 반짝임
+vec2 gc = floor(p * cells_n * 3.0 + seed * 3.0);
+float gh = fr_hash(gc);
+glint = step(0.955, gh) * pow(0.5 + 0.5 * sin(clock * 5.0 + gh * 60.0), 6.0) * cover;
+"
+nodes/fragment/14/node = SubResource("VisualShaderNodeExpression_878va")
+nodes/fragment/14/position = Vector2(-20, -60)
+nodes/fragment/14/size = Vector2(520, 360)
+nodes/fragment/14/input_ports = "0,0,cover;1,0,crack;2,0,facet;3,0,rim;4,0,glint;5,0,wet;6,0,opacity;7,5,c_frost;8,5,c_edge;"
+nodes/fragment/14/output_ports = "0,4,color;1,0,alpha;"
+nodes/fragment/14/expression = "
+vec3 col = mix(c_frost.rgb * (0.86 + 0.22 * facet), c_edge.rgb, clamp(crack * 0.75 + rim * 0.55, 0.0, 1.0));
+col += vec3(1.0) * glint * 1.2;
+col = mix(col, vec3(0.5, 0.66, 0.95), wet * 0.6);
+color = col;
+alpha = clamp(cover * opacity * (0.5 + 0.2 * facet + 0.35 * crack + 0.3 * rim) + glint * 0.6, 0.0, 1.0);
+"
+nodes/fragment/connections = PackedInt32Array(3, 0, 13, 0, 5, 0, 13, 1, 6, 0, 13, 2, 7, 0, 13, 3, 9, 0, 13, 4, 10, 0, 13, 5, 4, 0, 13, 6, 13, 0, 14, 0, 13, 1, 14, 1, 13, 2, 14, 2, 13, 3, 14, 3, 13, 4, 14, 4, 13, 5, 14, 5, 8, 0, 14, 6, 11, 0, 14, 7, 12, 0, 14, 8, 14, 0, 0, 0, 14, 1, 0, 1)

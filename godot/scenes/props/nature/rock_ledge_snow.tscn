@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/nature/rock_ledge_snow.glb" id="1"]
+[ext_resource type="Material" path="res://assets/nature/materials/nature_paint.tres" id="2"]
+
+[node name="RockLedgeSnow" type="Node3D"]
+metadata/nature_id = "rock_ledge_snow"
+metadata/label = "기울어진 바위 선반 · 눈"
+
+[node name="Model" parent="." instance=ExtResource("1")]
+
+[node name="rock_ledge_snow" parent="Model" index="0"]
+material_override = ExtResource("2")
+
+[editable path="Model"]

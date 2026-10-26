@@ -1,0 +1,233 @@
+[gd_resource type="VisualShader" format=3]
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_mw6by"]
+parameter_name = "color_glow"
+default_value_enabled = true
+default_value = Color(0.45, 0.35, 1, 1)
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_by6os"]
+resource_name = "Sky bolt"
+size = Vector2(520, 360)
+expression = "
+// uv.y = 위(0) → 땅(1), uv.x = 가로
+float y = uv_in.y;
+float x = (uv_in.x - 0.5) * 2.0;
+float drawn = 1.0 - smoothstep(drop - 0.01, drop, y);
+float off = lt_path(y * 1.6, seed) * 0.55 * (0.4 + 0.6 * y);
+float d = abs(x - off);
+float w = (0.1 + 0.13 * lt_zig(y * 7.0 + seed, seed + 2.0)) * smoothstep(0.0, 0.2, y);
+// 땅 가까이에서 갈라지는 갈래
+float fk = smoothstep(0.72, 0.85, y);
+float off2 = off + (y - 0.78) * 1.6 * fk + lt_path(y * 4.0, seed + 9.0) * 0.12;
+float off3 = off - (y - 0.78) * 1.3 * fk + lt_path(y * 4.0, seed + 4.0) * 0.12;
+float df = min(abs(x - off2), abs(x - off3));
+float wf = 0.05 * fk;
+float aa = fwidth(d) * 1.2;
+inner = (1.0 - smoothstep(w * 0.66 - aa, w * 0.66, d)) * drawn;
+rim = max((1.0 - smoothstep(w - aa, w, d)) * drawn - inner, 0.0);
+rim = max(rim, (1.0 - smoothstep(wf - 0.01, wf, df)) * drawn * fk);
+glow = exp(-max(d - w, 0.0) * 7.0) * drawn;
+burst = exp(-(1.0 - y) * 14.0) * exp(-abs(x - off) * 3.5) * flash;
+"
+
+[sub_resource type="VisualShaderNodeExpression" id="VisualShaderNodeExpression_0ota5"]
+resource_name = "Sky bolt color"
+size = Vector2(520, 360)
+expression = "
+vec3 col = c_glow.rgb * 0.9 * glow;
+col = mix(col, c_rim.rgb * 1.8 + vec3(0.25), rim);
+col = mix(col, c_void.rgb, inner);
+col += vec3(1.0, 0.85, 1.0) * burst * 2.5;
+color = col;
+alpha = clamp(max(max(inner, rim), glow * 0.5) + burst, 0.0, 1.0) * fade;
+"
+
+[sub_resource type="VisualShaderNodeGlobalExpression" id="VisualShaderNodeGlobalExpression_4hjku"]
+resource_name = "Lightning noise / zigzag"
+expression = "
+float lt_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float lt_hash1(float x) {
+	return lt_hash(vec2(x, x * 0.37 + 1.3));
+}
+float lt_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(lt_hash(i), lt_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(lt_hash(i + vec2(0.0, 1.0)), lt_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// 선형 보간 1D 노이즈 — 꺾인 직선 마디(번개의 지그재그)
+float lt_zig(float x, float s) {
+	float i = floor(x);
+	float f = fract(x);
+	return mix(lt_hash1(i + s * 13.1), lt_hash1(i + 1.0 + s * 13.1), f);
+}
+// 세 옥타브 지그재그(-0.5~0.5 근처)
+float lt_path(float x, float s) {
+	return (lt_zig(x * 5.0, s) - 0.5) * 0.62 + (lt_zig(x * 15.0, s + 3.0) - 0.5) * 0.24 + (lt_zig(x * 41.0, s + 7.0) - 0.5) * 0.09;
+}
+// 셀 경계까지 거리(F2-F1) — 방전선
+float lt_cell(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(lt_hash(i + g), lt_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_q3p75"]
+input_name = "uv"
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_3yova"]
+parameter_name = "drop"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_dd7ls"]
+parameter_name = "fade"
+default_value_enabled = true
+default_value = 1.0
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_we1mj"]
+parameter_name = "flash"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeFloatParameter" id="VisualShaderNodeFloatParameter_trw88"]
+parameter_name = "seed"
+default_value_enabled = true
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_fy7ka"]
+parameter_name = "color_void"
+default_value_enabled = true
+default_value = Color(0.06, 0, 0.14, 1)
+
+[sub_resource type="VisualShaderNodeColorParameter" id="VisualShaderNodeColorParameter_bj3yq"]
+parameter_name = "color_rim"
+default_value_enabled = true
+default_value = Color(1, 0.35, 0.95, 1)
+
+[resource]
+resource_name = "Lightning / black thunder / dark sky bolt"
+modes/depth_draw = 2
+modes/cull = 2
+flags/unshaded = true
+flags/shadows_disabled = true
+flags/fog_disabled = true
+nodes/fragment/0/position = Vector2(900, 0)
+nodes/fragment/2/node = SubResource("VisualShaderNodeGlobalExpression_4hjku")
+nodes/fragment/2/position = Vector2(-1500, -500)
+nodes/fragment/2/size = Vector2(0, 0)
+nodes/fragment/2/input_ports = ""
+nodes/fragment/2/output_ports = ""
+nodes/fragment/2/expression = "
+float lt_hash(vec2 p) {
+	p = fract(p * vec2(127.13, 311.71));
+	p += dot(p, p + 41.7);
+	return fract(p.x * p.y);
+}
+float lt_hash1(float x) {
+	return lt_hash(vec2(x, x * 0.37 + 1.3));
+}
+float lt_noise(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	f = f * f * (3.0 - 2.0 * f);
+	return mix(mix(lt_hash(i), lt_hash(i + vec2(1.0, 0.0)), f.x),
+		mix(lt_hash(i + vec2(0.0, 1.0)), lt_hash(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+// 선형 보간 1D 노이즈 — 꺾인 직선 마디(번개의 지그재그)
+float lt_zig(float x, float s) {
+	float i = floor(x);
+	float f = fract(x);
+	return mix(lt_hash1(i + s * 13.1), lt_hash1(i + 1.0 + s * 13.1), f);
+}
+// 세 옥타브 지그재그(-0.5~0.5 근처)
+float lt_path(float x, float s) {
+	return (lt_zig(x * 5.0, s) - 0.5) * 0.62 + (lt_zig(x * 15.0, s + 3.0) - 0.5) * 0.24 + (lt_zig(x * 41.0, s + 7.0) - 0.5) * 0.09;
+}
+// 셀 경계까지 거리(F2-F1) — 방전선
+float lt_cell(vec2 p) {
+	vec2 i = floor(p);
+	vec2 f = fract(p);
+	float d1 = 8.0;
+	float d2 = 8.0;
+	for (int y = -1; y <= 1; y++) {
+		for (int x = -1; x <= 1; x++) {
+			vec2 g = vec2(float(x), float(y));
+			vec2 o = vec2(lt_hash(i + g), lt_hash(i + g + 17.3));
+			float d = length(g + o - f);
+			if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+		}
+	}
+	return d2 - d1;
+}
+"
+nodes/fragment/3/node = SubResource("VisualShaderNodeInput_q3p75")
+nodes/fragment/3/position = Vector2(-1200, -300)
+nodes/fragment/4/node = SubResource("VisualShaderNodeFloatParameter_3yova")
+nodes/fragment/4/position = Vector2(-1200, -190)
+nodes/fragment/5/node = SubResource("VisualShaderNodeFloatParameter_dd7ls")
+nodes/fragment/5/position = Vector2(-1200, -80)
+nodes/fragment/6/node = SubResource("VisualShaderNodeFloatParameter_we1mj")
+nodes/fragment/6/position = Vector2(-1200, 30)
+nodes/fragment/7/node = SubResource("VisualShaderNodeFloatParameter_trw88")
+nodes/fragment/7/position = Vector2(-1200, 140)
+nodes/fragment/8/node = SubResource("VisualShaderNodeColorParameter_fy7ka")
+nodes/fragment/8/position = Vector2(-1200, 250)
+nodes/fragment/9/node = SubResource("VisualShaderNodeColorParameter_bj3yq")
+nodes/fragment/9/position = Vector2(-1200, 360)
+nodes/fragment/10/node = SubResource("VisualShaderNodeColorParameter_mw6by")
+nodes/fragment/10/position = Vector2(-1200, 470)
+nodes/fragment/11/node = SubResource("VisualShaderNodeExpression_by6os")
+nodes/fragment/11/position = Vector2(-500, -200)
+nodes/fragment/11/size = Vector2(520, 360)
+nodes/fragment/11/input_ports = "0,3,uv_in;1,0,drop;2,0,seed;3,0,flash;"
+nodes/fragment/11/output_ports = "0,0,inner;1,0,rim;2,0,glow;3,0,burst;"
+nodes/fragment/11/expression = "
+// uv.y = 위(0) → 땅(1), uv.x = 가로
+float y = uv_in.y;
+float x = (uv_in.x - 0.5) * 2.0;
+float drawn = 1.0 - smoothstep(drop - 0.01, drop, y);
+float off = lt_path(y * 1.6, seed) * 0.55 * (0.4 + 0.6 * y);
+float d = abs(x - off);
+float w = (0.1 + 0.13 * lt_zig(y * 7.0 + seed, seed + 2.0)) * smoothstep(0.0, 0.2, y);
+// 땅 가까이에서 갈라지는 갈래
+float fk = smoothstep(0.72, 0.85, y);
+float off2 = off + (y - 0.78) * 1.6 * fk + lt_path(y * 4.0, seed + 9.0) * 0.12;
+float off3 = off - (y - 0.78) * 1.3 * fk + lt_path(y * 4.0, seed + 4.0) * 0.12;
+float df = min(abs(x - off2), abs(x - off3));
+float wf = 0.05 * fk;
+float aa = fwidth(d) * 1.2;
+inner = (1.0 - smoothstep(w * 0.66 - aa, w * 0.66, d)) * drawn;
+rim = max((1.0 - smoothstep(w - aa, w, d)) * drawn - inner, 0.0);
+rim = max(rim, (1.0 - smoothstep(wf - 0.01, wf, df)) * drawn * fk);
+glow = exp(-max(d - w, 0.0) * 7.0) * drawn;
+burst = exp(-(1.0 - y) * 14.0) * exp(-abs(x - off) * 3.5) * flash;
+"
+nodes/fragment/12/node = SubResource("VisualShaderNodeExpression_0ota5")
+nodes/fragment/12/position = Vector2(0, -60)
+nodes/fragment/12/size = Vector2(520, 360)
+nodes/fragment/12/input_ports = "0,0,inner;1,0,rim;2,0,glow;3,0,burst;4,0,fade;5,5,c_void;6,5,c_rim;7,5,c_glow;"
+nodes/fragment/12/output_ports = "0,4,color;1,0,alpha;"
+nodes/fragment/12/expression = "
+vec3 col = c_glow.rgb * 0.9 * glow;
+col = mix(col, c_rim.rgb * 1.8 + vec3(0.25), rim);
+col = mix(col, c_void.rgb, inner);
+col += vec3(1.0, 0.85, 1.0) * burst * 2.5;
+color = col;
+alpha = clamp(max(max(inner, rim), glow * 0.5) + burst, 0.0, 1.0) * fade;
+"
+nodes/fragment/connections = PackedInt32Array(3, 0, 11, 0, 4, 0, 11, 1, 7, 0, 11, 2, 6, 0, 11, 3, 11, 0, 12, 0, 11, 1, 12, 1, 11, 2, 12, 2, 11, 3, 12, 3, 5, 0, 12, 4, 8, 0, 12, 5, 9, 0, 12, 6, 10, 0, 12, 7, 12, 0, 0, 0, 12, 1, 0, 1)

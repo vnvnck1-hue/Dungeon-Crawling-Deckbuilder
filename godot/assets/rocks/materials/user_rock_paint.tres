@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://shaders/user_rock.gdshader" id="1"]
+[ext_resource type="Texture2D" uid="uid://db3aialj7frvs" path="res://assets/rocks/user_rock_paint.jpg" id="2"]
+
+[resource]
+resource_name = "UserRockOriginalPaint"
+render_priority = 0
+shader = ExtResource("1")
+shader_parameter/rock_paint = ExtResource("2")
+shader_parameter/frost_amount = 0.5
+shader_parameter/frost_color = Color(0.86, 0.9, 0.98, 1)
+shader_parameter/moss_saturation = 0.78
+shader_parameter/paint_brightness = 1.15

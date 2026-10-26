@@ -1,0 +1,512 @@
+{
+  "version": 1,
+  "units": "meters",
+  "up": "Y",
+  "pivot": "ground",
+  "assets": [
+    {
+      "id": "pine_swept",
+      "label": "바람결 침엽수",
+      "category": "tree",
+      "parts": 86,
+      "triangles": 9768,
+      "vertices": 5056,
+      "size": [
+        3.095,
+        5.436,
+        3.144
+      ],
+      "bounds_min": [
+        -1.4898,
+        -0.0338,
+        -1.3719
+      ],
+      "bounds_max": [
+        1.6051,
+        5.4024,
+        1.7723
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "pine_swept_snow",
+      "label": "바람결 침엽수 · 눈",
+      "category": "tree",
+      "parts": 110,
+      "triangles": 14952,
+      "vertices": 7696,
+      "size": [
+        2.883,
+        5.436,
+        2.967
+      ],
+      "bounds_min": [
+        -1.2224,
+        -0.0338,
+        -1.3913
+      ],
+      "bounds_max": [
+        1.661,
+        5.4024,
+        1.5757
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "pine_broad",
+      "label": "넓은 침엽수",
+      "category": "tree",
+      "parts": 98,
+      "triangles": 11220,
+      "vertices": 5806,
+      "size": [
+        3.378,
+        4.234,
+        3.199
+      ],
+      "bounds_min": [
+        -1.8278,
+        -0.032,
+        -1.4362
+      ],
+      "bounds_max": [
+        1.5506,
+        4.2017,
+        1.7624
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "pine_broad_snow",
+      "label": "넓은 침엽수 · 눈",
+      "category": "tree",
+      "parts": 126,
+      "triangles": 17268,
+      "vertices": 8886,
+      "size": [
+        2.998,
+        4.234,
+        3.552
+      ],
+      "bounds_min": [
+        -1.5759,
+        -0.032,
+        -1.6944
+      ],
+      "bounds_max": [
+        1.4221,
+        4.2017,
+        1.8573
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "pine_sparse",
+      "label": "성긴 침엽수",
+      "category": "tree",
+      "parts": 62,
+      "triangles": 6864,
+      "vertices": 3556,
+      "size": [
+        2.709,
+        5.23,
+        2.296
+      ],
+      "bounds_min": [
+        -1.2643,
+        -0.0283,
+        -0.9121
+      ],
+      "bounds_max": [
+        1.4447,
+        5.2017,
+        1.3839
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "pine_sparse_snow",
+      "label": "성긴 침엽수 · 눈",
+      "category": "tree",
+      "parts": 78,
+      "triangles": 10320,
+      "vertices": 5316,
+      "size": [
+        2.196,
+        5.23,
+        2.254
+      ],
+      "bounds_min": [
+        -0.9608,
+        -0.0283,
+        -1.0598
+      ],
+      "bounds_max": [
+        1.235,
+        5.2017,
+        1.1938
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "pine_sapling",
+      "label": "어린 침엽수",
+      "category": "tree",
+      "parts": 86,
+      "triangles": 9768,
+      "vertices": 5056,
+      "size": [
+        1.385,
+        2.311,
+        1.402
+      ],
+      "bounds_min": [
+        -0.6685,
+        -0.0582,
+        -0.5569
+      ],
+      "bounds_max": [
+        0.7161,
+        2.2527,
+        0.8449
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "pine_sapling_snow",
+      "label": "어린 침엽수 · 눈",
+      "category": "tree",
+      "parts": 110,
+      "triangles": 14952,
+      "vertices": 7696,
+      "size": [
+        1.393,
+        2.311,
+        1.342
+      ],
+      "bounds_min": [
+        -0.7382,
+        -0.0582,
+        -0.6033
+      ],
+      "bounds_max": [
+        0.6545,
+        2.2527,
+        0.7392
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "dead_snag",
+      "label": "갈라진 고사목",
+      "category": "wood",
+      "parts": 14,
+      "triangles": 444,
+      "vertices": 250,
+      "size": [
+        1.873,
+        3.633,
+        1.909
+      ],
+      "bounds_min": [
+        -0.8733,
+        -0.0745,
+        -0.9645
+      ],
+      "bounds_max": [
+        0.9996,
+        3.5584,
+        0.944
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "hollow_stump",
+      "label": "덩굴 속빈 그루터기",
+      "category": "wood",
+      "parts": 121,
+      "triangles": 1864,
+      "vertices": 1172,
+      "size": [
+        2.069,
+        1.269,
+        1.907
+      ],
+      "bounds_min": [
+        -1.0687,
+        -0.066,
+        -0.9519
+      ],
+      "bounds_max": [
+        1.0006,
+        1.2034,
+        0.9547
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "fallen_log",
+      "label": "덩굴 쓰러진 고목",
+      "category": "wood",
+      "parts": 204,
+      "triangles": 5822,
+      "vertices": 3317,
+      "size": [
+        3.57,
+        1.725,
+        2.176
+      ],
+      "bounds_min": [
+        -1.7811,
+        -0.2785,
+        -0.9779
+      ],
+      "bounds_max": [
+        1.7885,
+        1.4469,
+        1.1981
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "rock_spire",
+      "label": "층진 바위 첨탑",
+      "category": "rock",
+      "parts": 110,
+      "triangles": 2544,
+      "vertices": 1492,
+      "size": [
+        2.835,
+        3.182,
+        2.418
+      ],
+      "bounds_min": [
+        -1.4091,
+        -0.0067,
+        -1.05
+      ],
+      "bounds_max": [
+        1.426,
+        3.1752,
+        1.3678
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "rock_spire_snow",
+      "label": "층진 바위 첨탑 · 눈",
+      "category": "rock",
+      "parts": 11,
+      "triangles": 1432,
+      "vertices": 738,
+      "size": [
+        2.877,
+        3.405,
+        2.16
+      ],
+      "bounds_min": [
+        -1.484,
+        0.0,
+        -1.0423
+      ],
+      "bounds_max": [
+        1.3933,
+        3.4051,
+        1.1181
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "rock_ledge",
+      "label": "기울어진 바위 선반",
+      "category": "rock",
+      "parts": 97,
+      "triangles": 1956,
+      "vertices": 1172,
+      "size": [
+        3.951,
+        1.675,
+        2.297
+      ],
+      "bounds_min": [
+        -1.8942,
+        -0.0067,
+        -1.0348
+      ],
+      "bounds_max": [
+        2.0573,
+        1.6684,
+        1.2626
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "rock_ledge_snow",
+      "label": "기울어진 바위 선반 · 눈",
+      "category": "rock",
+      "parts": 9,
+      "triangles": 1152,
+      "vertices": 594,
+      "size": [
+        3.772,
+        1.964,
+        2.103
+      ],
+      "bounds_min": [
+        -1.8393,
+        0.0,
+        -1.0692
+      ],
+      "bounds_max": [
+        1.9331,
+        1.9638,
+        1.0335
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "rock_boulder",
+      "label": "둥근 어깨 바위",
+      "category": "rock",
+      "parts": 96,
+      "triangles": 1800,
+      "vertices": 1092,
+      "size": [
+        2.813,
+        1.608,
+        2.442
+      ],
+      "bounds_min": [
+        -1.361,
+        -0.0067,
+        -1.0814
+      ],
+      "bounds_max": [
+        1.4524,
+        1.6014,
+        1.3607
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "rock_boulder_snow",
+      "label": "둥근 어깨 바위 · 눈",
+      "category": "rock",
+      "parts": 8,
+      "triangles": 1064,
+      "vertices": 548,
+      "size": [
+        2.881,
+        1.712,
+        2.194
+      ],
+      "bounds_min": [
+        -1.3871,
+        0.0,
+        -1.0794
+      ],
+      "bounds_max": [
+        1.4941,
+        1.7117,
+        1.1147
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "rock_shards",
+      "label": "세 갈래 바위 조각",
+      "category": "rock",
+      "parts": 98,
+      "triangles": 2004,
+      "vertices": 1198,
+      "size": [
+        2.811,
+        2.108,
+        2.383
+      ],
+      "bounds_min": [
+        -1.3972,
+        -0.0067,
+        -1.0658
+      ],
+      "bounds_max": [
+        1.414,
+        2.101,
+        1.3167
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "fern_clump",
+      "label": "펼쳐진 고사리",
+      "category": "undergrowth",
+      "parts": 88,
+      "triangles": 800,
+      "vertices": 576,
+      "size": [
+        1.958,
+        0.443,
+        1.904
+      ],
+      "bounds_min": [
+        -1.0152,
+        -0.0123,
+        -1.0164
+      ],
+      "bounds_max": [
+        0.9424,
+        0.4308,
+        0.8879
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "berry_shrub",
+      "label": "숲 베리 관목",
+      "category": "undergrowth",
+      "parts": 84,
+      "triangles": 3958,
+      "vertices": 2147,
+      "size": [
+        1.33,
+        0.955,
+        1.306
+      ],
+      "bounds_min": [
+        -0.6447,
+        -0.0224,
+        -0.6448
+      ],
+      "bounds_max": [
+        0.6854,
+        0.9322,
+        0.6614
+      ],
+      "non_manifold_edges": 0
+    },
+    {
+      "id": "mushroom_cluster",
+      "label": "작은 붉은 버섯 무리",
+      "category": "undergrowth",
+      "parts": 15,
+      "triangles": 1862,
+      "vertices": 961,
+      "size": [
+        0.85,
+        0.479,
+        0.667
+      ],
+      "bounds_min": [
+        -0.3533,
+        -0.0093,
+        -0.2716
+      ],
+      "bounds_max": [
+        0.4968,
+        0.47,
+        0.3951
+      ],
+      "non_manifold_edges": 0
+    }
+  ]
+}

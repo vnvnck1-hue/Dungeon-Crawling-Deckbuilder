@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://shaders/user_rock.gdshader" id="1"]
+[ext_resource type="Texture2D" uid="uid://cipms2gng65cn" path="res://assets/vines/user_vine_coils_tripo_image_549e0119-dd26-48ea-9166-27bfc4235cf6_0_0.jpg" id="2"]
+
+[resource]
+resource_name = "user_vine_coils_paint"
+render_priority = 0
+shader = ExtResource("1")
+shader_parameter/rock_paint = ExtResource("2")
+shader_parameter/frost_amount = 0.0
+shader_parameter/frost_color = Color(0.86, 0.9, 0.98, 1)
+shader_parameter/moss_saturation = 0.82
+shader_parameter/paint_brightness = 1.1

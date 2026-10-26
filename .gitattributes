@@ -1,0 +1,2 @@
+# 실행 파일은 GitHub 100MB 제한을 넘으므로 LFS(마녀산장과 같은 방식)
+/ForestExpedition.exe filter=lfs diff=lfs merge=lfs -text

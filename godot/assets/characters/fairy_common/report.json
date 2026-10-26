@@ -1,0 +1,166 @@
+{
+  "groups": {
+    "arm_l": {
+      "parent": "torso",
+      "parts": [
+        3.0
+      ],
+      "pivot": [
+        0.1,
+        0.389,
+        0.038
+      ],
+      "size": [
+        0.244,
+        0.253,
+        0.18
+      ],
+      "triangles": 417
+    },
+    "arm_r": {
+      "parent": "torso",
+      "parts": [
+        2.0
+      ],
+      "pivot": [
+        -0.1,
+        0.397,
+        0.038
+      ],
+      "size": [
+        0.244,
+        0.263,
+        0.18
+      ],
+      "triangles": 426
+    },
+    "head": {
+      "parent": "torso",
+      "parts": [
+        0.0,
+        5.0,
+        7.0,
+        10.0,
+        11.0,
+        12.0,
+        15.0,
+        16.0,
+        17.0,
+        18.0,
+        19.0
+      ],
+      "pivot": [
+        0.0,
+        0.425,
+        0.0
+      ],
+      "size": [
+        0.687,
+        0.575,
+        0.608
+      ],
+      "triangles": 2064
+    },
+    "leg_l": {
+      "parent": "",
+      "parts": [
+        6.0
+      ],
+      "pivot": [
+        0.095,
+        0.235,
+        0.031
+      ],
+      "size": [
+        0.19,
+        0.235,
+        0.224
+      ],
+      "triangles": 319
+    },
+    "leg_r": {
+      "parent": "",
+      "parts": [
+        4.0
+      ],
+      "pivot": [
+        -0.095,
+        0.238,
+        0.031
+      ],
+      "size": [
+        0.19,
+        0.238,
+        0.224
+      ],
+      "triangles": 314
+    },
+    "torso": {
+      "parent": "",
+      "parts": [
+        1.0,
+        21.0,
+        22.0,
+        23.0
+      ],
+      "pivot": [
+        0.0,
+        0.164,
+        0.046
+      ],
+      "size": [
+        0.329,
+        0.371,
+        0.268
+      ],
+      "triangles": 572
+    },
+    "wing_l": {
+      "parent": "torso",
+      "parts": [
+        8.0,
+        13.0
+      ],
+      "pivot": [
+        0.03,
+        0.42,
+        -0.09
+      ],
+      "size": [
+        0.615,
+        0.471,
+        0.02
+      ],
+      "triangles": 76
+    },
+    "wing_r": {
+      "parent": "torso",
+      "parts": [
+        9.0,
+        14.0
+      ],
+      "pivot": [
+        -0.03,
+        0.42,
+        -0.09
+      ],
+      "size": [
+        0.521,
+        0.471,
+        0.02
+      ],
+      "triangles": 72
+    }
+  },
+  "height_m": 1.0,
+  "id": "fairy_common",
+  "scale_from_source": 1.04757033248082,
+  "scene": "res://scenes/characters/fairy_common.tscn",
+  "source": "art_sources/characters/fairy_common/fairy_common_tripo_segmented_packuv.glb",
+  "source_parts": 23,
+  "texture": [
+    1024,
+    1024
+  ],
+  "triangles": 4260
+}

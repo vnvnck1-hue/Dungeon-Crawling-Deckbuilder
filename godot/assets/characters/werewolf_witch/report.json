@@ -1,0 +1,198 @@
+{
+  "groups": {
+    "arm_l": {
+      "parent": "torso",
+      "parts": [],
+      "pivot": [
+        0.175,
+        0.695,
+        -0.03
+      ],
+      "size": [
+        0.307,
+        0.282,
+        0.282
+      ],
+      "triangles": 154
+    },
+    "arm_r": {
+      "parent": "torso",
+      "parts": [
+        14.0,
+        18.0
+      ],
+      "pivot": [
+        -0.219,
+        0.685,
+        -0.016
+      ],
+      "size": [
+        0.339,
+        0.258,
+        0.216
+      ],
+      "triangles": 127
+    },
+    "fore_l": {
+      "parent": "arm_l",
+      "parts": [
+        10.0,
+        6.0
+      ],
+      "pivot": [
+        0.391,
+        0.545,
+        0.066
+      ],
+      "size": [
+        0.245,
+        0.344,
+        0.242
+      ],
+      "triangles": 384
+    },
+    "fore_r": {
+      "parent": "arm_r",
+      "parts": [
+        12.0,
+        19.0
+      ],
+      "pivot": [
+        -0.379,
+        0.561,
+        0.036
+      ],
+      "size": [
+        0.268,
+        0.336,
+        0.298
+      ],
+      "triangles": 345
+    },
+    "head": {
+      "parent": "torso",
+      "parts": [
+        0.0,
+        2.0,
+        16.0,
+        22.0,
+        17.0,
+        31.0
+      ],
+      "pivot": [
+        0.0,
+        0.64,
+        -0.02
+      ],
+      "size": [
+        0.549,
+        0.5,
+        0.674
+      ],
+      "triangles": 1323
+    },
+    "leg_l": {
+      "parent": "",
+      "parts": [
+        4.0,
+        7.0,
+        39.0,
+        41.0
+      ],
+      "pivot": [
+        0.15,
+        0.34,
+        -0.05
+      ],
+      "size": [
+        0.331,
+        0.446,
+        0.437
+      ],
+      "triangles": 542
+    },
+    "leg_r": {
+      "parent": "",
+      "parts": [
+        8.0
+      ],
+      "pivot": [
+        -0.15,
+        0.33,
+        -0.04
+      ],
+      "size": [
+        0.24,
+        0.331,
+        0.277
+      ],
+      "triangles": 510
+    },
+    "tail": {
+      "parent": "torso",
+      "parts": [
+        3.0,
+        9.0,
+        21.0,
+        23.0,
+        24.0,
+        25.0,
+        26.0,
+        27.0,
+        30.0,
+        33.0,
+        35.0
+      ],
+      "pivot": [
+        0.0,
+        0.34,
+        -0.16
+      ],
+      "size": [
+        0.407,
+        0.269,
+        0.264
+      ],
+      "triangles": 472
+    },
+    "torso": {
+      "parent": "",
+      "parts": [
+        5.0,
+        20.0,
+        15.0,
+        28.0,
+        11.0,
+        13.0
+      ],
+      "pivot": [
+        0.0,
+        0.33,
+        -0.02
+      ],
+      "size": [
+        0.583,
+        0.551,
+        0.392
+      ],
+      "triangles": 675
+    }
+  },
+  "height_m": 1.0,
+  "id": "werewolf_witch",
+  "scale_from_source": 1.43116701607268,
+  "scene": "res://scenes/characters/werewolf_witch.tscn",
+  "source": "art_sources/characters/werewolf_witch/werewolf_tripo_segmented_packuv.glb",
+  "source_parts": 34,
+  "splits": {
+    "5→_drop": 34,
+    "5→arm_l": 154,
+    "5→leg_r": 286,
+    "5→torso": 220
+  },
+  "texture": [
+    1024,
+    1024
+  ],
+  "triangles": 4532
+}

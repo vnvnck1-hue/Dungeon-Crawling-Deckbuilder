@@ -1,0 +1,71 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://assets/characters/witch_north/witch_north_torso.res" id="1_vrp2j"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/witch_north/witch_north_head.res" id="2_fvbet"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/witch_north/witch_north_arm_r.res" id="3_xfbdx"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/witch_north/witch_north_arm_l.res" id="4_6b4nh"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/witch_north/witch_north_cape.res" id="5_6lg1v"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/witch_north/witch_north_lantern.res" id="6_63xni"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/witch_north/witch_north_leg_r.res" id="7_o7yi1"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/witch_north/witch_north_leg_l.res" id="8_yjyw5"]
+
+[node name="WitchNorth" type="Node3D" unique_id=749100320]
+metadata/character_id = "witch_north"
+metadata/label = "북쪽의 마녀"
+metadata/tripo_task = "89e195ed-1fd3-4c4d-87fd-3143e649276b"
+
+[node name="Torso" type="Node3D" parent="." unique_id=1317781479]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.12848069, 0.048363477)
+metadata/part_group = "torso"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso" unique_id=295367636]
+mesh = ExtResource("1_vrp2j")
+
+[node name="Head" type="Node3D" parent="Torso" unique_id=1408208088]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4015193, 0.0016365238)
+metadata/part_group = "head"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/Head" unique_id=744115609]
+mesh = ExtResource("2_fvbet")
+
+[node name="ArmR" type="Node3D" parent="Torso" unique_id=1349901130]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15530658, 0.29977697, 0.015876122)
+metadata/part_group = "arm_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmR" unique_id=485274500]
+mesh = ExtResource("3_xfbdx")
+
+[node name="ArmL" type="Node3D" parent="Torso" unique_id=1799843135]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.15530655, 0.2997834, 0.015878819)
+metadata/part_group = "arm_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmL" unique_id=1071694987]
+mesh = ExtResource("4_6b4nh")
+
+[node name="Cape" type="Node3D" parent="Torso" unique_id=859168594]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00048850477, 0.50317544, -0.13018863)
+metadata/part_group = "cape"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/Cape" unique_id=1621318863]
+mesh = ExtResource("5_6lg1v")
+
+[node name="Lantern" type="Node3D" parent="Torso" unique_id=2083218531]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.16756228, 0.26380074, 0.13971668)
+metadata/part_group = "lantern"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/Lantern" unique_id=1924889556]
+mesh = ExtResource("6_63xni")
+
+[node name="LegR" type="Node3D" parent="." unique_id=130937331]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.10625307, 0.1704934, 0.06472886)
+metadata/part_group = "leg_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="LegR" unique_id=1916339975]
+mesh = ExtResource("7_o7yi1")
+
+[node name="LegL" type="Node3D" parent="." unique_id=1150575965]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.10625305, 0.1704934, 0.0647289)
+metadata/part_group = "leg_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="LegL" unique_id=575140944]
+mesh = ExtResource("8_yjyw5")

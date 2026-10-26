@@ -1,0 +1,123 @@
+{
+  "groups": {
+    "arm_l": {
+      "parent": "torso",
+      "parts": [
+        3.0
+      ],
+      "pivot": [
+        0.258,
+        0.48,
+        0.031
+      ],
+      "size": [
+        0.27,
+        0.316,
+        0.2
+      ],
+      "triangles": 382
+    },
+    "arm_r": {
+      "parent": "torso",
+      "parts": [
+        2.0
+      ],
+      "pivot": [
+        -0.259,
+        0.48,
+        0.03
+      ],
+      "size": [
+        0.269,
+        0.316,
+        0.203
+      ],
+      "triangles": 384
+    },
+    "head": {
+      "parent": "torso",
+      "parts": [
+        0.0,
+        1.0,
+        8.0,
+        10.0
+      ],
+      "pivot": [
+        0.0,
+        0.5,
+        0.0
+      ],
+      "size": [
+        0.609,
+        0.641,
+        0.604
+      ],
+      "triangles": 1782
+    },
+    "leg_l": {
+      "parent": "",
+      "parts": [
+        5.0
+      ],
+      "pivot": [
+        0.151,
+        0.243,
+        0.035
+      ],
+      "size": [
+        0.255,
+        0.243,
+        0.301
+      ],
+      "triangles": 350
+    },
+    "leg_r": {
+      "parent": "",
+      "parts": [
+        4.0
+      ],
+      "pivot": [
+        -0.149,
+        0.243,
+        0.035
+      ],
+      "size": [
+        0.259,
+        0.243,
+        0.301
+      ],
+      "triangles": 358
+    },
+    "torso": {
+      "parent": "",
+      "parts": [
+        6.0,
+        7.0,
+        9.0,
+        11.0
+      ],
+      "pivot": [
+        0.0,
+        0.151,
+        0.032
+      ],
+      "size": [
+        0.578,
+        0.436,
+        0.458
+      ],
+      "triangles": 672
+    }
+  },
+  "height_m": 1.0,
+  "id": "dwarf_common",
+  "scale_from_source": 1.00048851978505,
+  "scene": "res://scenes/characters/dwarf_common.tscn",
+  "source": "art_sources/characters/dwarf_common/dwarf_common_tripo_segmented_packuv.glb",
+  "source_parts": 12,
+  "texture": [
+    1024,
+    1024
+  ],
+  "triangles": 3928
+}

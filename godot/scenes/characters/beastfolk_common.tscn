@@ -1,0 +1,63 @@
+[gd_scene format=3]
+
+[ext_resource type="ArrayMesh" path="res://assets/characters/beastfolk_common/beastfolk_common_torso.res" id="1_odo4x"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/beastfolk_common/beastfolk_common_head.res" id="2_baqpe"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/beastfolk_common/beastfolk_common_arm_r.res" id="3_eg05l"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/beastfolk_common/beastfolk_common_arm_l.res" id="4_lum7d"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/beastfolk_common/beastfolk_common_tail.res" id="5_4ti12"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/beastfolk_common/beastfolk_common_leg_r.res" id="6_spi16"]
+[ext_resource type="ArrayMesh" path="res://assets/characters/beastfolk_common/beastfolk_common_leg_l.res" id="7_jquk1"]
+
+[node name="BeastfolkCommon" type="Node3D" unique_id=63438550]
+metadata/character_id = "beastfolk_common"
+metadata/label = "수인 손님(공용)"
+metadata/tripo_task = "6ff07e4e-eb81-4ba8-b5da-1449a0c6b7e0"
+
+[node name="Torso" type="Node3D" parent="." unique_id=525822685]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0031753182, 0.12212994, 0.03492911)
+metadata/part_group = "torso"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso" unique_id=283408334]
+mesh = ExtResource("1_odo4x")
+
+[node name="Head" type="Node3D" parent="Torso" unique_id=1085047440]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0031753182, 0.32787004, -0.014929112)
+metadata/part_group = "head"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/Head" unique_id=576437025]
+mesh = ExtResource("2_baqpe")
+
+[node name="ArmR" type="Node3D" parent="Torso" unique_id=1587708817]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.17625792, 0.24557886, 0.06497309)
+metadata/part_group = "arm_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmR" unique_id=1552663392]
+mesh = ExtResource("3_eg05l")
+
+[node name="ArmL" type="Node3D" parent="Torso" unique_id=917111235]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12212999, 0.25268686, 0.06472699)
+metadata/part_group = "arm_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/ArmL" unique_id=356396017]
+mesh = ExtResource("4_lum7d")
+
+[node name="Tail" type="Node3D" parent="Torso" unique_id=953671670]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.016824681, 0.09787006, -0.124929115)
+metadata/part_group = "tail"
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso/Tail" unique_id=283070514]
+mesh = ExtResource("5_4ti12")
+
+[node name="LegR" type="Node3D" parent="." unique_id=82976849]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14020523, 0.13629702, 0.11138244)
+metadata/part_group = "leg_r"
+
+[node name="Mesh" type="MeshInstance3D" parent="LegR" unique_id=630181224]
+mesh = ExtResource("6_spi16")
+
+[node name="LegL" type="Node3D" parent="." unique_id=316575759]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.10356683, 0.1358085, 0.111386284)
+metadata/part_group = "leg_l"
+
+[node name="Mesh" type="MeshInstance3D" parent="LegL" unique_id=177923756]
+mesh = ExtResource("7_jquk1")

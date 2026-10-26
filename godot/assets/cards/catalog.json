@@ -1,0 +1,2942 @@
+{
+  "schema_version": 1,
+  "design_reference": "docs/kingdom-integration-design.md §4 (v0.3)",
+  "full_size": [
+    1024,
+    1536
+  ],
+  "hand_size": [
+    256,
+    384
+  ],
+  "back": "res://assets/cards/card_back.png",
+  "back_hand": "res://assets/cards/hand/card_back.png",
+  "cards": [
+    {
+      "id": "sleeping_thorn_seed",
+      "name": "잠자는 가시 씨앗",
+      "category": "식물 · 살아 있는 방책",
+      "kind": "structure",
+      "texture": "res://assets/cards/sleeping_thorn_seed.png",
+      "hand_texture": "res://assets/cards/hand/sleeping_thorn_seed.png",
+      "printed_rules": [
+        "낮에 심으면 천천히 자랍니다.",
+        "밤이 되면 가시로 적을 막습니다."
+      ],
+      "description": "낮에는 땅속에서 코를 골고, 해가 지면 가시를 세워 깨어나는 씨앗입니다. 마녀들이 울타리 대신 심어 온 오래된 방책이지요. 검은 양의 털을 한 줌 덮어 주면 꿈에서 뭘 봤는지, 하룻밤 새 무섭게 자라납니다.",
+      "acquisition": "시작 손패",
+      "target_tags": [
+        "walkable_ground",
+        "defense_point"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "black_sheep",
+      "name": "목장의 검은 양",
+      "category": "가축 · 기묘한 양",
+      "badge": "가축",
+      "kind": "livestock",
+      "texture": "res://assets/cards/black_sheep.png",
+      "hand_texture": "res://assets/cards/hand/black_sheep.png",
+      "printed_rules": [
+        "목장에 놓으면 검은 양이 옵니다.",
+        "의식에 쓰는 검은 털을 얻습니다."
+      ],
+      "description": "흰 양 떼 사이에서 혼자 검은 양. 달이 없는 밤에도 털이 희미하게 빛나는데, 본인은 그게 자랑인 줄 압니다. 그 털은 오래된 의식의 공물로, 가시 방책이 가장 탐내는 간식이기도 합니다.",
+      "acquisition": "시작 손패",
+      "target_tags": [
+        "pasture"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "black_wool",
+      "name": "검은 털",
+      "category": "재료 · 의식의 공물",
+      "kind": "resource",
+      "texture": "res://assets/cards/black_wool.png",
+      "hand_texture": "res://assets/cards/hand/black_wool.png",
+      "printed_rules": [
+        "가시 씨앗에 바치면 힘을 얻습니다.",
+        "가시 방책을 강화하고 회복합니다."
+      ],
+      "description": "검은 양에게서 깎아 낸 털입니다. 손에 쥐면 달빛처럼 서늘하고, 가시 씨앗 위에 올리면 땅이 작게 꿈틀거립니다. 베갯속으로 쓰지는 마세요. 꿈이 너무 생생해집니다.",
+      "acquisition": "검은 양의 털 수확",
+      "target_tags": [
+        "thorn_plant"
+      ],
+      "stackable": true
+    },
+    {
+      "id": "wool",
+      "name": "양털",
+      "category": "자원 · 수확 재료",
+      "kind": "resource",
+      "texture": "res://assets/cards/wool.png",
+      "hand_texture": "res://assets/cards/hand/wool.png",
+      "printed_rules": [
+        "양에게 다가가 수확합니다.",
+        "산장에서 판매할 수 있습니다."
+      ],
+      "description": "산장 목장에서 깎은 평범한 양털입니다. 평범하다는 게 이 산에서는 귀한 미덕이지요. 마을 상인들은 마녀의 양털이 더 따뜻하다고 소문을 내는데, 마녀는 굳이 정정하지 않습니다.",
+      "acquisition": "양에게 접근해 수확",
+      "target_tags": [
+        "lodge_trade"
+      ],
+      "stackable": true
+    },
+    {
+      "id": "timber",
+      "name": "목재",
+      "category": "자원 · 벌목 재료",
+      "kind": "resource",
+      "texture": "res://assets/cards/timber.png",
+      "hand_texture": "res://assets/cards/hand/timber.png",
+      "printed_rules": [
+        "벌목을 마치면 얻습니다.",
+        "산장 수리에 사용할 수 있습니다."
+      ],
+      "description": "숲이 내어 준 나무입니다. 벽에 난 구멍을 막고, 무너진 제단을 받치고, 추운 밤 난로를 먹입니다. 산장이 지금껏 서 있는 건 마법보다 목재 덕이라는 말을 마녀는 부정하지 않습니다.",
+      "acquisition": "용병 벌목 임무 완료",
+      "target_tags": [
+        "damaged_lodge"
+      ],
+      "stackable": true
+    },
+    {
+      "id": "forest_monster",
+      "name": "숲의 괴물",
+      "category": "몬스터 · 하수인 소환",
+      "badge": "하수인",
+      "kind": "summon",
+      "texture": "res://assets/cards/forest_monster.png",
+      "hand_texture": "res://assets/cards/hand/forest_monster.png",
+      "printed_rules": [
+        "처치하면 카드를 얻습니다.",
+        "사용하면 하수인을 소환합니다."
+      ],
+      "description": "등에 가지가 돋고 이끼가 자라는 숲의 괴물입니다. 쓰러뜨리면 그 그림자가 잠시 마녀의 말을 듣습니다. 다만 아침 햇살을 보면 기억을 잃고 다시 나무가 되어 버리지요. 한때는 숲을 지키던 존재였는지도 모릅니다.",
+      "acquisition": "지정 적 처치",
+      "target_tags": [
+        "enemy",
+        "walkable_ground",
+        "defense_point"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "frost_rune",
+      "name": "서리 룬",
+      "category": "주문 · 마녀의 룬",
+      "kind": "spell",
+      "texture": "res://assets/cards/frost_rune.png",
+      "hand_texture": "res://assets/cards/hand/frost_rune.png",
+      "printed_rules": [
+        "적이나 땅에 새기면 터집니다.",
+        "주변 적을 얼려 느리게 합니다."
+      ],
+      "description": "북쪽 마녀가 눈 위에 손가락으로 그리는 달의 문양입니다. 서리는 소리 없이 번지고, 밟은 자의 발목을 얼음으로 붙듭니다. 겨울이 왜 마녀 편인지 묻는 사람에게 마녀는 대답하지 않습니다.",
+      "acquisition": "시작 손패",
+      "target_tags": [
+        "enemy",
+        "walkable_ground"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "ward_lantern",
+      "name": "수호 등불",
+      "category": "설치물 · 마녀의 등불",
+      "kind": "structure",
+      "texture": "res://assets/cards/ward_lantern.png",
+      "hand_texture": "res://assets/cards/hand/ward_lantern.png",
+      "printed_rules": [
+        "땅에 놓으면 불을 밝힙니다.",
+        "빛 안의 적은 느려집니다."
+      ],
+      "description": "굽은 장대 끝에 매단 마녀의 등불입니다. 기름 대신 오래된 약속으로 타오르며, 안개를 밀어내고 어둠 속의 것들을 주춤하게 합니다. 밤길을 걷는 손님이라면 이 불빛을 보고 산장을 찾아왔을 겁니다.",
+      "acquisition": "시작 손패",
+      "target_tags": [
+        "walkable_ground",
+        "defense_point"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "guest_invitation",
+      "name": "숙박 초대장",
+      "category": "산장 · 손님 초대",
+      "kind": "invite",
+      "texture": "res://assets/cards/guest_invitation.png",
+      "hand_texture": "res://assets/cards/hand/guest_invitation.png",
+      "printed_rules": [
+        "산장에 놓으면 손님이 옵니다.",
+        "낮에만 사용할 수 있습니다."
+      ],
+      "description": "산장의 문장으로 봉한 초대장입니다. 받은 이는 자기도 모르게 짐을 꾸리고 산을 오르게 되지요. 어떤 손님이 올지는 열어 보기 전까지 모릅니다. 마녀는 그 점이 산장 운영의 유일한 재미라고 말합니다.",
+      "acquisition": "시작 손패",
+      "target_tags": [
+        "lodge_trade"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "lamb",
+      "name": "새끼양",
+      "category": "가축 · 목장 입식",
+      "badge": "가축",
+      "kind": "livestock",
+      "texture": "res://assets/cards/lamb.png",
+      "hand_texture": "res://assets/cards/hand/lamb.png",
+      "printed_rules": [
+        "목장에 놓으면 새끼양이 옵니다.",
+        "이틀 뒤 어른 양이 됩니다."
+      ],
+      "description": "아직 털도 제대로 안 난 새끼양입니다. 목장에 들이면 이틀 내내 울타리에 머리를 박고 놀다가, 어느 날 아침 갑자기 어른이 되어 있습니다. 양이란 원래 그렇습니다.",
+      "acquisition": "시작 손패",
+      "target_tags": [
+        "pasture"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "lumberjack",
+      "name": "나무꾼",
+      "category": "용병 · 벌목 계약",
+      "badge": "인간",
+      "kind": "contract",
+      "texture": "res://assets/cards/lumberjack.png",
+      "hand_texture": "res://assets/cards/hand/lumberjack.png",
+      "printed_rules": [
+        "나무에 사용하면 벌목합니다.",
+        "목재를 들고 있다가 건네줍니다."
+      ],
+      "description": "산장에서 하룻밤 묵고 도끼를 빌려 간 손님과의 약속입니다. 나무를 베는 동안은 콧노래를 부르고, 목재는 마녀가 올 때까지 품에 안고 있습니다. 밤이 오면 누구보다 먼저 문을 두드립니다.",
+      "acquisition": "숙박 손님 고용(토르빈)",
+      "target_tags": [
+        "harvestable_tree"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "hunter",
+      "name": "사냥꾼",
+      "category": "용병 · 사냥 계약",
+      "badge": "인간",
+      "kind": "contract",
+      "texture": "res://assets/cards/hunter.png",
+      "hand_texture": "res://assets/cards/hand/hunter.png",
+      "printed_rules": [
+        "낮에는 토끼와 사슴을 사냥합니다.",
+        "밤에는 활로 산장을 지킵니다."
+      ],
+      "description": "활을 메고 산장에 묵은 손님과의 약속입니다. 낮에는 눈 위의 발자국을 쫓고, 밤에는 지붕 그림자에 숨어 화살을 재지요. 토끼에게는 미안하지만 스튜는 맛있습니다.",
+      "acquisition": "숙박 손님 고용(올라프)",
+      "target_tags": [
+        "walkable_ground",
+        "enemy"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "warrior",
+      "name": "전투용병",
+      "category": "용병 · 전투 계약",
+      "badge": "인간",
+      "kind": "contract",
+      "texture": "res://assets/cards/warrior.png",
+      "hand_texture": "res://assets/cards/hand/warrior.png",
+      "printed_rules": [
+        "산장 주변을 정찰합니다.",
+        "적이 오면 검으로 맞섭니다."
+      ],
+      "description": "검 한 자루로 밥값을 하겠다는 손님과의 약속입니다. 낮에는 산장 둘레를 돌며 눈을 밟고, 어둠 속에서 뭔가 움직이면 묻지도 않고 달려갑니다. 마녀는 가끔 그 뒷모습이 조금 걱정됩니다.",
+      "acquisition": "숙박 손님 고용(브람)",
+      "target_tags": [
+        "walkable_ground",
+        "enemy"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "gatherer",
+      "name": "채집가",
+      "category": "용병 · 채집 계약",
+      "badge": "인간",
+      "kind": "contract",
+      "texture": "res://assets/cards/gatherer.png",
+      "hand_texture": "res://assets/cards/hand/gatherer.png",
+      "printed_rules": [
+        "낮에 숲을 탐색하고 돌아옵니다.",
+        "쓸모 있는 것을 주워 옵니다."
+      ],
+      "description": "숲을 제집처럼 아는 손님과의 약속입니다. 아침에 바구니를 들고 나가 저녁 전에 돌아오는데, 바구니 안에 뭐가 들었는지는 본인도 다 모릅니다. 가끔 상자를 들고 오면 그날은 운이 좋은 날입니다.",
+      "acquisition": "숙박 손님 고용(미라)",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "raw_meat",
+      "name": "생고기",
+      "category": "자원 · 사냥 재료",
+      "kind": "resource",
+      "texture": "res://assets/cards/raw_meat.png",
+      "hand_texture": "res://assets/cards/hand/raw_meat.png",
+      "printed_rules": [
+        "사냥과 채집으로 얻습니다.",
+        "판매하거나 마녀가 먹습니다."
+      ],
+      "description": "사냥꾼과 채집가가 들고 온 고기입니다. 상인에게 넘기면 동전이 되고, 모닥불에 올리면 스튜가 되고, 급하면 마녀가 그냥 먹습니다. 마녀의 위장은 생각보다 튼튼합니다.",
+      "acquisition": "사냥·채집",
+      "target_tags": [
+        "lodge_trade",
+        "player"
+      ],
+      "stackable": true
+    },
+    {
+      "id": "meat_stew",
+      "name": "고기 스튜",
+      "category": "자원 · 모닥불 요리",
+      "kind": "consumable",
+      "texture": "res://assets/cards/meat_stew.png",
+      "hand_texture": "res://assets/cards/hand/meat_stew.png",
+      "printed_rules": [
+        "켜진 모닥불에서 생고기로 끓입니다.",
+        "다친 용병의 체력을 회복합니다."
+      ],
+      "description": "앞마당 모닥불에서 끓인 스튜입니다. 감자, 소금, 버섯, 그리고 고기. 고기는 추가 요금이지만 다친 용병에게는 받지 않습니다. 한 그릇이면 밤새 흘린 피가 대충 돌아옵니다.",
+      "acquisition": "모닥불 조리(생고기 1)",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "rabbit_pelt",
+      "name": "토끼 가죽",
+      "category": "자원 · 사냥 재료",
+      "kind": "resource",
+      "texture": "res://assets/cards/rabbit_pelt.png",
+      "hand_texture": "res://assets/cards/hand/rabbit_pelt.png",
+      "printed_rules": [
+        "토끼를 사냥하면 얻습니다.",
+        "산장에서 판매할 수 있습니다."
+      ],
+      "description": "눈처럼 하얀 토끼 가죽입니다. 마을 아낙들이 겨울 목도리감으로 제일 좋아하지요. 토끼 입장은 듣지 못했습니다.",
+      "acquisition": "토끼 사냥·채집",
+      "target_tags": [
+        "lodge_trade"
+      ],
+      "stackable": true
+    },
+    {
+      "id": "treasure_chest",
+      "name": "보물상자",
+      "category": "보물 · 숲의 발견",
+      "kind": "treasure",
+      "texture": "res://assets/cards/treasure_chest.png",
+      "hand_texture": "res://assets/cards/hand/treasure_chest.png",
+      "printed_rules": [
+        "땅에 놓으면 상자가 열립니다.",
+        "유물 셋 중 하나를 고릅니다."
+      ],
+      "description": "채집가가 눈 속에서 파낸 낡은 상자입니다. 자물쇠는 오래전에 녹슬어 떨어졌고, 안에는 누군가 숨겨 둔 세 가지 물건이 잠들어 있습니다. 하나를 고르면 나머지는 다시 어디론가 사라집니다. 상자란 원래 그렇습니다.",
+      "acquisition": "채집가 탐색",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "relic_unknown",
+      "name": "?",
+      "category": "유물 · 미공개",
+      "kind": "relic",
+      "texture": "res://assets/cards/relic_unknown.png",
+      "hand_texture": "res://assets/cards/hand/relic_unknown.png",
+      "printed_rules": [],
+      "description": "아직 먼지를 털지 않은 유물입니다. 뒤집어 보기 전까지는 보물인지 잡동사니인지 아무도 모릅니다.",
+      "acquisition": "보물상자",
+      "target_tags": [],
+      "stackable": false
+    },
+    {
+      "id": "moonlit_charm",
+      "name": "달빛 부적",
+      "category": "유물 · 마녀의 힘",
+      "kind": "relic",
+      "texture": "res://assets/cards/moonlit_charm.png",
+      "hand_texture": "res://assets/cards/hand/moonlit_charm.png",
+      "printed_rules": [
+        "마녀의 마법탄이 강해집니다.",
+        "더 멀리 닿습니다."
+      ],
+      "description": "달이 가장 밝은 밤에 은실로 묶어 둔 부적입니다. 지니고 있으면 마녀의 손끝에서 나가는 빛이 더 멀리, 더 매섭게 닿습니다. 달이 왜 마녀를 돕는지는 달만 압니다.",
+      "acquisition": "보물상자 선택",
+      "target_tags": [],
+      "stackable": false
+    },
+    {
+      "id": "hearth_ember",
+      "name": "화로의 온기석",
+      "category": "유물 · 산장의 온기",
+      "kind": "relic",
+      "texture": "res://assets/cards/hearth_ember.png",
+      "hand_texture": "res://assets/cards/hand/hearth_ember.png",
+      "printed_rules": [
+        "산장 곁의 아군이 회복합니다.",
+        "아침마다 산장이 아물어 갑니다."
+      ],
+      "description": "어느 오래된 산장의 화로에서 꺼져 본 적이 없는 돌입니다. 손에 쥐면 겨울에도 따뜻하고, 곁에 두면 산장의 상처가 밤새 천천히 아뭅니다. 집이란 이렇게 지키는 거라고 돌이 말하는 것 같습니다.",
+      "acquisition": "보물상자 선택",
+      "target_tags": [],
+      "stackable": false
+    },
+    {
+      "id": "old_tree_heart",
+      "name": "고목의 심장",
+      "category": "유물 · 숲의 축복",
+      "kind": "relic",
+      "texture": "res://assets/cards/old_tree_heart.png",
+      "hand_texture": "res://assets/cards/hand/old_tree_heart.png",
+      "printed_rules": [
+        "벌목이 빨라집니다.",
+        "목재를 더 많이 얻습니다."
+      ],
+      "description": "숲에서 가장 오래된 나무가 쓰러지며 남긴 심장입니다. 이걸 지닌 벌목꾼의 도끼는 나무가 스스로 길을 내주듯 가볍게 들어갑니다. 숲이 허락한 거라고 믿기로 합니다.",
+      "acquisition": "보물상자 선택",
+      "target_tags": [],
+      "stackable": false
+    },
+    {
+      "id": "wolf_fang_pendant",
+      "name": "늑대 송곳니 목걸이",
+      "category": "유물 · 사냥의 본능",
+      "kind": "relic",
+      "texture": "res://assets/cards/wolf_fang_pendant.png",
+      "hand_texture": "res://assets/cards/hand/wolf_fang_pendant.png",
+      "printed_rules": [
+        "사냥꾼과 전투용병이 강해집니다.",
+        "사냥감에서 더 얻습니다."
+      ],
+      "description": "늑대 송곳니를 가죽끈에 꿴 목걸이입니다. 걸고 있으면 사냥꾼의 눈이 밝아지고 검잡이의 손이 거칠어집니다. 늑대 수인들은 이걸 보면 눈살을 찌푸리니 손님 앞에서는 옷 안에 넣어 두세요.",
+      "acquisition": "보물상자 선택",
+      "target_tags": [],
+      "stackable": false
+    },
+    {
+      "id": "frost_queen_tear",
+      "name": "서리 여왕의 눈물",
+      "category": "유물 · 겨울의 저주",
+      "kind": "relic",
+      "texture": "res://assets/cards/frost_queen_tear.png",
+      "hand_texture": "res://assets/cards/hand/frost_queen_tear.png",
+      "printed_rules": [
+        "모든 적이 느려집니다.",
+        "아침마다 서리 룬을 얻습니다."
+      ],
+      "description": "서리 여왕이 단 한 번 흘렸다는 눈물입니다. 아니, 전설이 그렇다는 겁니다. 곁에 두면 산장 둘레의 공기가 느려지고, 아침마다 창틀에 새 서리 문양이 하나씩 피어 있습니다.",
+      "acquisition": "보물상자 선택",
+      "target_tags": [],
+      "stackable": false
+    },
+    {
+      "id": "poison_mushroom",
+      "name": "독버섯",
+      "category": "재료 · 숲의 독",
+      "kind": "draw",
+      "texture": "res://assets/cards/poison_mushroom.png",
+      "hand_texture": "res://assets/cards/hand/poison_mushroom.png",
+      "printed_rules": [
+        "마녀의 체력을 깎습니다.",
+        "대신 주머니에서 한 장을 뽑습니다."
+      ],
+      "description": "붉은 갓에 흰 점이 박힌, 누가 봐도 먹으면 안 될 버섯입니다. 마녀는 먹습니다. 속이 뒤집히는 대신 주머니 깊은 곳에서 잊고 있던 카드가 떠오르거든요. 마녀의 지혜인지 고집인지는 보는 사람 마음입니다.",
+      "acquisition": "채집가 탐색(줍기 8%)",
+      "target_tags": [
+        "player"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "old_spellbook",
+      "name": "오래된 마법서적",
+      "category": "주문 · 마녀의 서적",
+      "kind": "draw",
+      "texture": "res://assets/cards/old_spellbook.png",
+      "hand_texture": "res://assets/cards/hand/old_spellbook.png",
+      "printed_rules": [
+        "주머니의 카드 세 장을 펼칩니다.",
+        "그중 한 장을 골라 뽑습니다."
+      ],
+      "description": "가죽 표지가 다 닳은 마법서입니다. 누가 쓴 건지는 첫 장이 뜯겨 알 수 없고, 펼치면 마녀의 주머니 속 카드들이 책장 위로 떠올라 자기를 뽑아 달라고 아우성칩니다. 시간은 그동안 잠시 숨을 멈춥니다.",
+      "acquisition": "채집가 탐색(줍기 3%, 하루 1권)",
+      "target_tags": [
+        "walkable_ground",
+        "player",
+        "lodge_trade",
+        "pasture",
+        "defense_point"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "moss_bandage",
+      "name": "이끼 붕대",
+      "category": "숲 카드 · 회복과 정화",
+      "kind": "spell",
+      "texture": "res://assets/cards/moss_bandage.png",
+      "hand_texture": "res://assets/cards/hand/moss_bandage.png",
+      "printed_rules": [
+        "마녀에게 놓아 체력을 돌봅니다.",
+        "침식 카드 한 장을 정화합니다."
+      ],
+      "description": "숲의 이끼를 감아 만든 붕대입니다. 상처에 대면 흙냄새가 나면서 아물고, 주머니에 스며든 나쁜 기운도 함께 빨아 냅니다. 동쪽 마녀가 가르쳐 준 방법인데, 북쪽에서도 잘 듣습니다.",
+      "acquisition": "새벽 보상 · 장날",
+      "target_tags": [
+        "player"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "resin_torch",
+      "name": "송진 횃불",
+      "category": "숲 카드 · 지속 불길",
+      "kind": "spell",
+      "texture": "res://assets/cards/resin_torch.png",
+      "hand_texture": "res://assets/cards/hand/resin_torch.png",
+      "printed_rules": [
+        "밤에 땅이나 적에게 던집니다.",
+        "잠시 동안 불길이 적을 태웁니다."
+      ],
+      "description": "송진을 듬뿍 먹인 횃불입니다. 던지면 눈 위에서도 한동안 꺼지지 않고 타오르지요. 어둠 속의 것들은 불을 싫어합니다. 마녀도 옛날에는 그랬습니다.",
+      "acquisition": "새벽 보상 · 장날",
+      "target_tags": [
+        "enemy",
+        "walkable_ground"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "firefly_swarm",
+      "name": "반딧불이 떼",
+      "category": "숲 카드 · 시야",
+      "kind": "structure",
+      "texture": "res://assets/cards/firefly_swarm.png",
+      "hand_texture": "res://assets/cards/hand/firefly_swarm.png",
+      "printed_rules": [
+        "땅에 풀어 안개를 걷어 냅니다.",
+        "오늘 밤 전투가 끝나면 흩어집니다."
+      ],
+      "description": "유리병에 모아 둔 반딧불이 떼입니다. 마개를 열면 안개 속으로 퍼져 나가 숨어 있던 것들의 윤곽을 드러냅니다. 아침이 되면 각자 갈 길을 가니 병은 다시 비워 두세요.",
+      "acquisition": "새벽 보상 · 장날",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "vine_snare",
+      "name": "덩굴 덫",
+      "category": "숲 카드 · 속박",
+      "kind": "spell",
+      "texture": "res://assets/cards/vine_snare.png",
+      "hand_texture": "res://assets/cards/hand/vine_snare.png",
+      "printed_rules": [
+        "밤에 땅이나 적에게 놓습니다.",
+        "주변 적을 덩굴로 묶습니다."
+      ],
+      "description": "숲 바닥에서 잠자던 덩굴을 깨우는 주문입니다. 덩굴은 잠을 깨운 걸 꽤 불쾌해하고, 그 불쾌함을 가장 가까운 발목에 풉니다. 적의 발목이길 바라야지요.",
+      "acquisition": "새벽 보상 · 장날",
+      "target_tags": [
+        "enemy",
+        "walkable_ground"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "winter_firewood",
+      "name": "겨울 장작",
+      "category": "숲 카드 · 산장 보강",
+      "kind": "consumable",
+      "texture": "res://assets/cards/winter_firewood.png",
+      "hand_texture": "res://assets/cards/hand/winter_firewood.png",
+      "printed_rules": [
+        "산장에 놓아 벽을 보강합니다.",
+        "밤에도 쓸 수 있습니다."
+      ],
+      "description": "겨울을 나려고 가을 내내 쌓아 둔 단단한 장작입니다. 벽에 구멍이 나면 난로에 넣는 대신 구멍에 쑤셔 넣습니다. 산장의 벽은 그렇게 해마다 조금씩 두꺼워집니다.",
+      "acquisition": "새벽 보상 · 장날",
+      "target_tags": [
+        "damaged_lodge"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "shroud_cloth",
+      "name": "수의",
+      "category": "권능 · 수의의 의식",
+      "kind": "spell",
+      "texture": "res://assets/cards/shroud_cloth.png",
+      "hand_texture": "res://assets/cards/hand/shroud_cloth.png",
+      "printed_rules": [
+        "오늘 밤 마녀와 아군이",
+        "치명타를 한 번 버팁니다."
+      ],
+      "description": "달빛 돌 제단에서 양털을 바치고 받은 수의입니다. 이 천을 덮은 이는 그날 밤 죽음이 찾아와도 문을 열어 주지 않습니다. 딱 한 번만입니다. 죽음은 두 번 두드리지 않으니까요.",
+      "acquisition": "제단 · 수의의 의식(첫 완성)",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "thorn_bind",
+      "name": "가시 속박",
+      "category": "권능 · 가시의 봉헌",
+      "kind": "spell",
+      "texture": "res://assets/cards/thorn_bind.png",
+      "hand_texture": "res://assets/cards/hand/thorn_bind.png",
+      "printed_rules": [
+        "밤에 땅이나 적에게 놓습니다.",
+        "넓은 범위의 적을 가시로 묶습니다."
+      ],
+      "description": "제단에 가시를 바치고 얻은 권능입니다. 손을 땅에 대면 눈 아래 잠든 가시들이 한꺼번에 깨어나 닿는 모든 것을 붙듭니다. 봄에 눈이 녹으면 들판이 왜 이렇게 됐냐고 묻는 사람이 꼭 있습니다.",
+      "acquisition": "제단 · 가시의 봉헌(첫 완성)",
+      "target_tags": [
+        "enemy",
+        "walkable_ground"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "red_chalice",
+      "name": "붉은 잔",
+      "category": "권능 · 붉은 만찬",
+      "kind": "spell",
+      "texture": "res://assets/cards/red_chalice.png",
+      "hand_texture": "res://assets/cards/hand/red_chalice.png",
+      "printed_rules": [
+        "마녀에게 놓습니다.",
+        "오늘 밤 마법탄이 체력을 되돌립니다."
+      ],
+      "description": "붉은 만찬의 의식이 남긴 잔입니다. 비어 있는데도 늘 무겁지요. 이 잔을 든 밤에는 마녀가 적에게 준 상처가 거꾸로 마녀의 상처를 메웁니다. 어떤 대가가 따르는지는 아직 아무도 모릅니다.",
+      "acquisition": "제단 · 붉은 만찬(첫 완성)",
+      "target_tags": [
+        "player"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "hibernation_pelt",
+      "name": "겨울잠 털가죽",
+      "category": "전리품 · 빈 굴의 주인",
+      "kind": "spell",
+      "texture": "res://assets/cards/hibernation_pelt.png",
+      "hand_texture": "res://assets/cards/hand/hibernation_pelt.png",
+      "printed_rules": [
+        "산장에 덮습니다.",
+        "오늘 밤 산장이 받는 피해가 절반입니다."
+      ],
+      "description": "빈 굴의 주인이었던 거대한 짐승의 털가죽입니다. 겨울잠을 자던 것을 고대의 존재가 깨웠고, 마녀가 다시 재웠지요. 산장 지붕에 덮으면 밤바람도 적의 발톱도 절반은 털가죽이 받아 냅니다.",
+      "acquisition": "보스 · 빈 굴의 주인 처치",
+      "target_tags": [
+        "lodge"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "dragon_scale",
+      "name": "용비늘",
+      "category": "전리품 · 유물",
+      "kind": "spell",
+      "texture": "res://assets/cards/dragon_scale.png",
+      "hand_texture": "res://assets/cards/hand/dragon_scale.png",
+      "printed_rules": [
+        "산장에 놓습니다.",
+        "지붕에 용이 내려와 적에게 불덩이를 쏩니다."
+      ],
+      "description": "숲의 괴물 뱃속에서 가끔 나오는, 아직도 뜨끈한 붉은 비늘입니다. 산장 지붕에 올려 두면 주인이 제 비늘을 찾으러 내려오지요. 돌려 달라는 말은 하지 않습니다. 대신 마당의 괴물들을 몽땅 구워 버립니다.",
+      "acquisition": "전투 · 적 처치 시 0.1% (보스는 확정)",
+      "target_tags": [
+        "lodge"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "corrupt_prayer",
+      "name": "침식된 기도문",
+      "category": "침식 · 쓸 수 없음",
+      "kind": "corruption",
+      "texture": "res://assets/cards/corrupt_prayer.png",
+      "hand_texture": "res://assets/cards/hand/corrupt_prayer.png",
+      "printed_rules": [
+        "사용할 수 없습니다.",
+        "손패 한 칸을 차지합니다."
+      ],
+      "description": "침식된 자가 산장 벽에 손톱으로 새긴 기도문입니다. 읽을 수 없는데도 자꾸 읽히고, 버렸는데도 주머니에 돌아와 있습니다. 이끼 붕대로 닦아 내거나 장날 햇빛에 널어 두어야 사라집니다.",
+      "acquisition": "침식된 자가 산장을 공격",
+      "target_tags": [],
+      "stackable": false
+    },
+    {
+      "id": "poison_spore",
+      "name": "독 포자",
+      "category": "침식 · 쓸 수 없음",
+      "kind": "corruption",
+      "texture": "res://assets/cards/poison_spore.png",
+      "hand_texture": "res://assets/cards/hand/poison_spore.png",
+      "printed_rules": [
+        "사용할 수 없습니다.",
+        "손패에 있으면 새벽마다 체력을 잃습니다."
+      ],
+      "description": "맹독 곤충이 마녀의 옷자락에 남기고 간 포자입니다. 눈에 잘 보이지도 않는데 새벽마다 목이 칼칼하고 손끝이 저립니다. 죽을 정도는 아니라는 게 마녀의 진단이지만, 그렇다고 두고 볼 것도 아닙니다.",
+      "acquisition": "맹독 곤충이 마녀를 공격",
+      "target_tags": [],
+      "stackable": false
+    },
+    {
+      "id": "cursed_whisper",
+      "name": "저주의 속삭임",
+      "category": "침식 · 쓸 수 없음",
+      "kind": "corruption",
+      "texture": "res://assets/cards/cursed_whisper.png",
+      "hand_texture": "res://assets/cards/hand/cursed_whisper.png",
+      "printed_rules": [
+        "사용할 수 없습니다.",
+        "손패에 있으면 아침 드로우를 막습니다."
+      ],
+      "description": "보스가 울부짖던 소리가 귓가에 남은 것입니다. 아침이 와도 그 소리가 머릿속을 채워 주머니에 손을 넣을 생각조차 나지 않습니다. 정화하기 전까지 마녀는 조용히 차만 마십니다.",
+      "acquisition": "보스의 울부짖음",
+      "target_tags": [],
+      "stackable": false
+    },
+    {
+      "id": "wolf_blood",
+      "name": "늑대의 피",
+      "category": "늑대 수인의 선물 · 변화",
+      "kind": "event",
+      "texture": "res://assets/cards/wolf_blood.png",
+      "hand_texture": "res://assets/cards/hand/wolf_blood.png",
+      "printed_rules": [
+        "마녀에게 쓰면 잠시 고통스럽습니다.",
+        "달의 힘 세 가지가 주머니에 들어옵니다."
+      ],
+      "description": "늑대 수인 파르그가 검은 양 한 마리 값으로 두고 간 병입니다. 자기 피라고 했습니다. 마시면 한동안 몹시 괴롭고, 그 뒤로는 달이 차고 기우는 게 피부로 느껴집니다. 파르그는 '좋은 거래였다'고만 했습니다.",
+      "acquisition": "파르그의 대화 이벤트(검은 양 수락)",
+      "target_tags": [
+        "player"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "crescent_moon",
+      "name": "초승달",
+      "category": "늑대의 피 · 밤의 힘",
+      "kind": "spell",
+      "texture": "res://assets/cards/crescent_moon.png",
+      "hand_texture": "res://assets/cards/hand/crescent_moon.png",
+      "printed_rules": [
+        "밤에 마녀에게 씁니다.",
+        "오늘 밤 공격 속도가 오릅니다."
+      ],
+      "description": "늑대의 피가 마녀 안에 남긴 첫 번째 달입니다. 가늘게 뜬 초승달 아래서는 손이 눈보다 빨라집니다. 정작 마녀는 손이 왜 이렇게 바쁜지 모르겠다고 투덜댑니다.",
+      "acquisition": "늑대의 피",
+      "target_tags": [
+        "player"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "half_moon",
+      "name": "상현달",
+      "category": "늑대의 피 · 밤의 힘",
+      "kind": "spell",
+      "texture": "res://assets/cards/half_moon.png",
+      "hand_texture": "res://assets/cards/hand/half_moon.png",
+      "printed_rules": [
+        "밤에 마녀에게 씁니다.",
+        "오늘 밤 공격과 이동이 빨라집니다."
+      ],
+      "description": "늑대의 피가 남긴 두 번째 달입니다. 반쯤 찬 달 아래서는 다리가 먼저 뛰고 머리는 나중에 따라옵니다. 산장 둘레를 한 바퀴 도는 데 걸리는 시간이 눈에 띄게 줄어듭니다.",
+      "acquisition": "늑대의 피",
+      "target_tags": [
+        "player"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "full_moon",
+      "name": "보름달",
+      "category": "늑대의 피 · 밤의 힘",
+      "kind": "spell",
+      "texture": "res://assets/cards/full_moon.png",
+      "hand_texture": "res://assets/cards/hand/full_moon.png",
+      "printed_rules": [
+        "밤에 마녀에게 씁니다.",
+        "오늘 밤 늑대로 변신합니다."
+      ],
+      "description": "늑대의 피가 남긴 마지막 달입니다. 보름달이 뜨면 마녀는 로브를 벗어 던지고 네 발로 눈밭을 달립니다. 주머니는 발톱으로 열 수 없으니 그 밤은 이빨로 해결합니다. 새벽에 돌아온 마녀는 그 일을 입에 올리지 않습니다.",
+      "acquisition": "늑대의 피",
+      "target_tags": [
+        "player"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "rusty_longsword",
+      "name": "녹슨 장검",
+      "category": "장비 · 무기",
+      "kind": "equipment",
+      "texture": "res://assets/cards/rusty_longsword.png",
+      "hand_texture": "res://assets/cards/hand/rusty_longsword.png",
+      "printed_rules": [
+        "용병에게 쥐여 줍니다.",
+        "공격이 강해집니다."
+      ],
+      "description": "국경 수비대가 쓰던 장검입니다. 녹은 슬었어도 날은 아직 서 있고, 손잡이에는 누군가의 이름이 반쯤 지워져 있습니다. 용병의 손에 쥐여 주면 눈빛이 조금 달라집니다. 마녀는 검을 쥐지 않습니다. 그건 마녀의 방식이 아니니까요.",
+      "acquisition": "시험 지급(카드 컨셉 확정 전)",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "oak_staff",
+      "name": "참나무 지팡이",
+      "category": "장비 · 무기",
+      "kind": "equipment",
+      "texture": "res://assets/cards/oak_staff.png",
+      "hand_texture": "res://assets/cards/hand/oak_staff.png",
+      "printed_rules": [
+        "마녀가 손에 쥡니다.",
+        "마법탄이 강해집니다."
+      ],
+      "description": "벼락 맞은 참나무 가지를 깎은 지팡이입니다. 벼락은 나무 속에 조금 남아 있어서, 마녀가 이걸 쥐고 빛을 쏘면 끝이 조금 더 따끔합니다. 걸을 때 짚기에도 좋습니다. 산은 가파르니까요.",
+      "acquisition": "시험 지급(카드 컨셉 확정 전)",
+      "target_tags": [
+        "player"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "quilted_gambeson",
+      "name": "누빈 솜옷",
+      "category": "장비 · 방어구",
+      "kind": "equipment",
+      "texture": "res://assets/cards/quilted_gambeson.png",
+      "hand_texture": "res://assets/cards/hand/quilted_gambeson.png",
+      "printed_rules": [
+        "누구에게나 입힙니다.",
+        "체력이 늘고 덜 다칩니다."
+      ],
+      "description": "양털을 겹겹이 누빈 솜옷입니다. 칼날도 추위도 한 겹씩 느려지지요. 산장의 양들이 이 옷을 보면 어쩐지 서운한 눈치지만, 그래도 입는 쪽이 낫습니다.",
+      "acquisition": "시험 지급(카드 컨셉 확정 전)",
+      "target_tags": [
+        "player",
+        "merc"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "traveler_boots",
+      "name": "나그네 장화",
+      "category": "장비 · 장신구",
+      "kind": "equipment",
+      "texture": "res://assets/cards/traveler_boots.png",
+      "hand_texture": "res://assets/cards/hand/traveler_boots.png",
+      "printed_rules": [
+        "누구에게나 신깁니다.",
+        "더 빨리 걷습니다."
+      ],
+      "description": "먼 길을 걸어온 나그네가 산장에 두고 간 장화입니다. 바닥이 닳아 있는데 이상하게 신으면 걸음이 가볍습니다. 나그네는 맨발로 떠났을까요. 마녀는 묻지 않았습니다.",
+      "acquisition": "시험 지급(카드 컨셉 확정 전)",
+      "target_tags": [
+        "player",
+        "merc"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "rowan_charm",
+      "name": "마가목 부적",
+      "category": "장비 · 장신구",
+      "kind": "equipment",
+      "texture": "res://assets/cards/rowan_charm.png",
+      "hand_texture": "res://assets/cards/hand/rowan_charm.png",
+      "printed_rules": [
+        "누구에게나 걸어 줍니다.",
+        "상처가 천천히 아뭅니다."
+      ],
+      "description": "붉은 마가목 열매를 실에 꿴 부적입니다. 마을 할머니들이 아이 목에 걸어 주는 것과 똑같이 생겼지요. 걸고 있으면 상처가 눈치 못 채게 조금씩 아뭅니다. 마을 할머니들이 옳았던 겁니다.",
+      "acquisition": "시험 지급(카드 컨셉 확정 전)",
+      "target_tags": [
+        "player",
+        "merc"
+      ],
+      "stackable": false
+    },
+    {
+      "id": "goblin_gang",
+      "name": "사촌 패거리",
+      "category": "고블린 · 졸개 소환",
+      "kind": "summon",
+      "texture": "res://assets/cards/goblin_gang.png",
+      "hand_texture": "res://assets/cards/hand/goblin_gang.png",
+      "printed_rules": [
+        "밤에 땅에 놓으면 졸개가 몰려옵니다.",
+        "졸개는 새벽에 돌아갑니다."
+      ],
+      "description": "고블린 그라즈의 사촌과 그 사촌의 친구와 그 친구의 사촌들입니다. 밤에 휘파람을 불면 어디선가 우르르 몰려와 가장 가까운 적을 물어뜯고, 새벽이 되면 각자 집에 갑니다. 아침밥은 안 먹고 간다니 다행입니다.",
+      "acquisition": "고블린 용병 그라즈의 이야기",
+      "target_tags": [
+        "enemy",
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "goblin_firecracker",
+      "name": "고블린 폭죽",
+      "category": "고블린 · 도박 폭발",
+      "kind": "spell",
+      "texture": "res://assets/cards/goblin_firecracker.png",
+      "hand_texture": "res://assets/cards/hand/goblin_firecracker.png",
+      "printed_rules": [
+        "밤에 던지면 크게 터집니다.",
+        "가끔 아군도 그을립니다."
+      ],
+      "description": "고블린 타크의 주머니에서 나온 수상한 통입니다. 안에 뭐가 들었는지 타크도 정확히는 모른답니다. 던지면 크게 터지고 적들은 겁에 질려 달아나는데, 가끔은 아군도 눈썹이 그을립니다. 고블린식 '대체로 안전'입니다.",
+      "acquisition": "고블린 용병 타크의 이야기",
+      "target_tags": [
+        "enemy",
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "dud_bomb",
+      "name": "불발탄",
+      "category": "고블린 · 기절",
+      "kind": "spell",
+      "texture": "res://assets/cards/dud_bomb.png",
+      "hand_texture": "res://assets/cards/hand/dud_bomb.png",
+      "printed_rules": [
+        "밤에 던지면 좁게 터집니다.",
+        "맞은 적이 잠깐 기절합니다."
+      ],
+      "description": "고블린 폭죽 중에 제대로 안 터진 녀석입니다. 버리기는 아깝고 들고 있기는 불안하지요. 던지면 '퍽' 하고 작게 터져 맞은 적이 잠깐 멍해집니다. 고블린들은 이것도 성공이라고 부릅니다.",
+      "acquisition": "고블린 폭죽 사용(고블린 용병 4명 이상)",
+      "target_tags": [
+        "enemy",
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "goblin_rush",
+      "name": "떼거리 돌격",
+      "category": "고블린 · 졸개 돌진",
+      "kind": "spell",
+      "texture": "res://assets/cards/goblin_rush.png",
+      "hand_texture": "res://assets/cards/hand/goblin_rush.png",
+      "printed_rules": [
+        "졸개 전원이 한 곳으로 돌진합니다.",
+        "졸개가 많을수록 셉니다."
+      ],
+      "description": "고블린 피클이 숫자 세기를 포기하고 생각해 낸 작전입니다. '전부 저기로!' 이게 작전의 전부입니다. 졸개가 많을수록 효과는 좋고, 졸개가 없으면 피클 혼자 멋쩍어집니다.",
+      "acquisition": "고블린 용병 피클의 이야기",
+      "target_tags": [
+        "enemy",
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "shiny_lure",
+      "name": "반짝이 미끼",
+      "category": "고블린 · 어그로 끌기",
+      "kind": "spell",
+      "texture": "res://assets/cards/shiny_lure.png",
+      "hand_texture": "res://assets/cards/hand/shiny_lure.png",
+      "printed_rules": [
+        "밤에 던지면 적이 몰려듭니다.",
+        "끝나면 터져 눈부시게 합니다."
+      ],
+      "description": "유리구슬과 동전을 잔뜩 붙인 고블린의 미끼입니다. 어둠 속의 것들은 왜인지 반짝이는 걸 못 참지요. 고블린도 그렇습니다. 다 모여들었다 싶을 때 미끼가 눈부시게 터집니다.",
+      "acquisition": "고블린 용병 타크의 이야기",
+      "target_tags": [
+        "enemy",
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "junk_barricade",
+      "name": "고물 방책",
+      "category": "고블린 · 임시 시설",
+      "kind": "structure",
+      "texture": "res://assets/cards/junk_barricade.png",
+      "hand_texture": "res://assets/cards/hand/junk_barricade.png",
+      "printed_rules": [
+        "목재 1로 바로 세웁니다.",
+        "2일 뒤 새벽에 무너집니다."
+      ],
+      "description": "고블린 러스크가 고물을 쌓아 만든 방책입니다. 못과 끈과 '대충'으로 지탱되지요. 적이 산장보다 이걸 먼저 두드리는 건 아마 만만해 보여서일 겁니다. 이틀 뒤면 알아서 무너집니다.",
+      "acquisition": "고블린 용병 러스크의 이야기",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "pikl_traps",
+      "name": "피클의 덫 꾸러미",
+      "category": "고블린 · 덫 설치",
+      "kind": "structure",
+      "texture": "res://assets/cards/pikl_traps.png",
+      "hand_texture": "res://assets/cards/hand/pikl_traps.png",
+      "printed_rules": [
+        "땅에 작은 덫 셋을 깝니다.",
+        "밟은 적이 잠깐 멈춥니다."
+      ],
+      "description": "고블린 사냥꾼 피클이 아끼는 덫 세 개입니다. 밟으면 발목을 물고 잠깐 놓아주지 않지요. 고블린이 산장에 있으면 새벽마다 다시 깔아 주는데, 본인 발이 걸린 적도 두 번 있답니다.",
+      "acquisition": "고블린 용병 피클의 이야기",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "junk_sack",
+      "name": "잡동사니 자루",
+      "category": "고블린 · 자원 꾸러미",
+      "kind": "consumable",
+      "texture": "res://assets/cards/junk_sack.png",
+      "hand_texture": "res://assets/cards/hand/junk_sack.png",
+      "printed_rules": [
+        "낮에 열면 자원이 나옵니다.",
+        "가끔 쇠붙이도 섞입니다."
+      ],
+      "description": "고블린 타크가 주머니를 정리하다 넘겨준 자루입니다. 목재인지 가죽인지 고기인지, 흔들어 봐도 알 수 없습니다. 가끔 쇠붙이가 섞여 있는데 타크는 그걸 '보너스'라고 부릅니다.",
+      "acquisition": "고블린 용병 타크의 이야기",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "scrap",
+      "name": "쇠붙이",
+      "category": "고블린 · 판매용",
+      "kind": "resource",
+      "texture": "res://assets/cards/scrap.png",
+      "hand_texture": "res://assets/cards/hand/scrap.png",
+      "printed_rules": [
+        "산장에 놓으면 팝니다.",
+        "1개 4G."
+      ],
+      "description": "녹슨 못, 휜 숟가락, 정체 모를 쇠붙이입니다. 고블린에게는 보물이고 마녀에게는 상인에게 넘길 잡동사니입니다. 둘 다 틀린 말은 아닙니다.",
+      "acquisition": "잡동사니 자루",
+      "target_tags": [
+        "lodge"
+      ],
+      "stackable": true,
+      "race": "goblin"
+    },
+    {
+      "id": "graz_whistle",
+      "name": "그라즈의 호루라기",
+      "category": "장비 · 장신구 · 고블린",
+      "kind": "equipment",
+      "texture": "res://assets/cards/graz_whistle.png",
+      "hand_texture": "res://assets/cards/hand/graz_whistle.png",
+      "printed_rules": [
+        "용병에게 걸어 줍니다.",
+        "고블린이 불면 졸개가 옵니다."
+      ],
+      "description": "그라즈 할아버지가 손주에게 물려준 호루라기입니다. 고블린이 불면 사촌들이 하나둘 모여들고, 다른 종족이 불면 그냥 시끄럽습니다. 혈연이란 그런 겁니다.",
+      "acquisition": "고블린 용병 그라즈의 이야기",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "pot_helmet",
+      "name": "찌그러진 냄비 투구",
+      "category": "장비 · 방어구 · 고블린",
+      "kind": "equipment",
+      "texture": "res://assets/cards/pot_helmet.png",
+      "hand_texture": "res://assets/cards/hand/pot_helmet.png",
+      "printed_rules": [
+        "용병에게 씌웁니다.",
+        "맞을수록 닳고, 고블린은 고쳐 씁니다."
+      ],
+      "description": "냄비를 두드려 펴서 만든 고블린식 투구입니다. 맞을 때마다 찌그러져 점점 못 막게 되지요. 고블린은 아침마다 다시 두드려 폅니다. 다른 종족은 그 냄비가 아깝다고만 생각합니다.",
+      "acquisition": "고블린 용병 그라즈의 이야기",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "mala_coin_scale",
+      "name": "말라의 동전 저울",
+      "category": "장비 · 장신구 · 고블린",
+      "kind": "equipment",
+      "texture": "res://assets/cards/mala_coin_scale.png",
+      "hand_texture": "res://assets/cards/hand/mala_coin_scale.png",
+      "printed_rules": [
+        "용병에게 쥐여 줍니다.",
+        "처치할 때 골드를 더 얻습니다."
+      ],
+      "description": "골동품 수집가 말라가 쓰던 작은 저울입니다. 동전을 올리면 무게가 아니라 '얼마나 더 받아 낼 수 있는지'를 잰답니다. 이걸 가진 용병은 쓰러진 적의 주머니에서 꼭 한 닢을 더 찾아냅니다.",
+      "acquisition": "말라의 이야기 '값을 매기는 눈' — 금화를 센다",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "mala_monocle",
+      "name": "말라의 외알 안경",
+      "category": "장비 · 장신구 · 고블린",
+      "kind": "equipment",
+      "texture": "res://assets/cards/mala_monocle.png",
+      "hand_texture": "res://assets/cards/hand/mala_monocle.png",
+      "printed_rules": [
+        "용병에게 씌웁니다.",
+        "처치한 적의 재화를 더 잘 찾습니다."
+      ],
+      "description": "말라가 아끼던 외알 안경입니다. 이걸 끼면 모든 것에 값이 보인답니다. 쓰러진 적의 주머니, 바닥의 돌멩이, 가끔은 옆 사람까지. 용병에게 씌우면 전리품을 놓치는 일이 줄어듭니다.",
+      "acquisition": "말라의 이야기 '값을 매기는 눈' — 물건을 본다",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "fae_swap",
+      "name": "요정의 맞바꿈",
+      "category": "요정 · 덱 조작",
+      "kind": "spell",
+      "texture": "res://assets/cards/fae_swap.png",
+      "hand_texture": "res://assets/cards/hand/fae_swap.png",
+      "printed_rules": [
+        "손패 한 장을 다른 계열 카드로 바꿉니다.",
+        "가끔 침식 카드가 옵니다."
+      ],
+      "description": "요정들이 장난삼아 하는 바꿔치기입니다. 손에 쥔 걸 눈 깜짝할 새 전혀 다른 것으로 바꿔 놓지요. 대개는 쓸 만한 게 오지만, 요정이 기분이 나쁜 날에는 좋지 않은 게 옵니다. 요정의 기분은 알 수 없습니다.",
+      "acquisition": "요정 용병의 이야기",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "fairy"
+    },
+    {
+      "id": "dream_journal",
+      "name": "꿈 기록장",
+      "category": "장비 · 마녀 장신구 · 요정",
+      "kind": "equipment",
+      "texture": "res://assets/cards/dream_journal.png",
+      "hand_texture": "res://assets/cards/hand/dream_journal.png",
+      "printed_rules": [
+        "마녀가 지닙니다.",
+        "아침에 뽑을 카드를 골라 받습니다."
+      ],
+      "description": "요정이 잠결에 들은 숲의 꿈을 받아 적은 기록장입니다. 마녀가 베개 밑에 두고 자면 아침에 뽑을 카드가 꿈에 미리 나옵니다. 글씨는 엉망이지만 틀린 적은 없습니다.",
+      "acquisition": "요정 용병의 이야기",
+      "target_tags": [
+        "player"
+      ],
+      "stackable": false,
+      "race": "fairy"
+    },
+    {
+      "id": "thistle_oath",
+      "name": "엉겅퀴 맹세",
+      "category": "장비 · 장신구 · 요정",
+      "kind": "equipment",
+      "texture": "res://assets/cards/thistle_oath.png",
+      "hand_texture": "res://assets/cards/hand/thistle_oath.png",
+      "printed_rules": [
+        "용병에게 걸어 줍니다.",
+        "맞은 적이 잠시 느려집니다."
+      ],
+      "description": "엉겅퀴 가시를 엮어 맹세의 표로 삼은 요정의 장신구입니다. 이걸 찬 이가 휘두른 무기에 스친 적은 발이 가시에 걸린 듯 머뭇거립니다. 요정의 맹세는 가볍지만 가시는 가볍지 않습니다.",
+      "acquisition": "요정 용병의 이야기",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false,
+      "race": "fairy"
+    },
+    {
+      "id": "forest_promise",
+      "name": "숲의 약속",
+      "category": "사건 · 요정",
+      "kind": "event",
+      "texture": "res://assets/cards/forest_promise.png",
+      "hand_texture": "res://assets/cards/hand/forest_promise.png",
+      "printed_rules": [
+        "약속하면 숲의 선물을 받습니다.",
+        "대신 다음날은 나무를 베지 못합니다."
+      ],
+      "description": "요정 용병이 어느 저녁 조심스레 꺼낸 부탁입니다. 숲을 조금만 쉬게 해 달라고요. 하루 도끼를 내려놓으면 숲은 나름의 선물로 답합니다. 요정은 부탁을 잊지 않지만 거절도 잊지 않습니다.",
+      "acquisition": "요정 용병 이벤트",
+      "target_tags": [],
+      "stackable": false,
+      "race": "fairy"
+    },
+    {
+      "id": "rune_hammer",
+      "name": "룬 새긴 망치",
+      "category": "장비 · 무기 · 드워프",
+      "kind": "equipment",
+      "texture": "res://assets/cards/rune_hammer.png",
+      "hand_texture": "res://assets/cards/hand/rune_hammer.png",
+      "printed_rules": [
+        "용병에게 쥐여 줍니다.",
+        "새벽마다 목재로 시설을 고칩니다."
+      ],
+      "description": "자루에 조상의 룬을 새긴 드워프의 망치입니다. 밤새 부서진 벽을 새벽마다 알아서 두드려 고치지요. 드워프 손에 들리면 두 배로 부지런해집니다. 다른 종족은 망치 혼자 일하게 두는 편이 낫습니다.",
+      "acquisition": "드워프 용병의 이야기",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false,
+      "race": "dwarf"
+    },
+    {
+      "id": "dark_ale",
+      "name": "흑맥주 통",
+      "category": "드워프 · 버티는 술",
+      "kind": "consumable",
+      "texture": "res://assets/cards/dark_ale.png",
+      "hand_texture": "res://assets/cards/hand/dark_ale.png",
+      "printed_rules": [
+        "그날 밤 용병이 더 튼튼해집니다.",
+        "드워프 말고는 조금 느려집니다."
+      ],
+      "description": "드워프가 산을 넘으며 메고 다니는 흑맥주입니다. 한 잔이면 밤새 맞아도 끄떡없을 만큼 든든하지만, 드워프가 아닌 이는 다리가 조금 무거워집니다. 드워프는 '그게 술의 맛'이라고 합니다.",
+      "acquisition": "드워프 용병의 이야기",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "dwarf"
+    },
+    {
+      "id": "stone_wall",
+      "name": "돌 성벽 기초",
+      "category": "드워프 · 요새 시설",
+      "kind": "structure",
+      "texture": "res://assets/cards/stone_wall.png",
+      "hand_texture": "res://assets/cards/hand/stone_wall.png",
+      "printed_rules": [
+        "땅에 단단한 돌벽을 세웁니다.",
+        "드워프가 많으면 새벽에 고쳐집니다."
+      ],
+      "description": "드워프 석공이 놓는 성벽의 기초입니다. 기초만으로도 이미 산장 벽보다 단단하지요. 드워프가 여럿이면 밤에 깨진 돌을 아침마다 말없이 갈아 끼웁니다. 그들은 돌과 대화하는 법을 압니다.",
+      "acquisition": "드워프 용병의 이야기",
+      "target_tags": [
+        "walkable_ground",
+        "defense_point"
+      ],
+      "stackable": false,
+      "race": "dwarf"
+    },
+    {
+      "id": "ancestor_shield",
+      "name": "조상의 방패",
+      "category": "장비 · 방어구 · 드워프",
+      "kind": "equipment",
+      "texture": "res://assets/cards/ancestor_shield.png",
+      "hand_texture": "res://assets/cards/hand/ancestor_shield.png",
+      "printed_rules": [
+        "용병에게 들려 줍니다.",
+        "덜 다치고, 드워프는 곁도 지킵니다."
+      ],
+      "description": "대대로 물려 온 드워프의 둥근 방패입니다. 표면의 흠집 하나하나가 조상들의 전투지요. 드워프가 들면 방패는 곁에 선 동료까지 가려 줍니다. 조상들이 그렇게 가르쳤기 때문입니다.",
+      "acquisition": "드워프 용병의 이야기",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false,
+      "race": "dwarf"
+    },
+    {
+      "id": "mine_prop",
+      "name": "갱도 버팀목",
+      "category": "드워프 · 산장 보강",
+      "kind": "structure",
+      "texture": "res://assets/cards/mine_prop.png",
+      "hand_texture": "res://assets/cards/hand/mine_prop.png",
+      "printed_rules": [
+        "산장 가까이 세워 산장을 받칩니다.",
+        "무너질 때 주변 적을 덮칩니다."
+      ],
+      "description": "갱도를 받치던 굵은 버팀목입니다. 산장 옆에 세워 두면 지붕이 한결 든든하지요. 부서질 때는 조용히 넘어가지 않고 주변의 적을 함께 깔아 뭉갭니다. 드워프의 목재는 끝까지 일합니다.",
+      "acquisition": "드워프 용병의 이야기",
+      "target_tags": [
+        "walkable_ground",
+        "defense_point"
+      ],
+      "stackable": false,
+      "race": "dwarf"
+    },
+    {
+      "id": "stone_song",
+      "name": "돌 속의 노래",
+      "category": "드워프 · 시설 보호",
+      "kind": "spell",
+      "texture": "res://assets/cards/stone_song.png",
+      "hand_texture": "res://assets/cards/hand/stone_song.png",
+      "printed_rules": [
+        "밤에 부르면 모든 시설이 버팁니다.",
+        "드워프가 많으면 더 오래갑니다."
+      ],
+      "description": "드워프가 돌에게 불러 주는 낮은 노래입니다. 노래가 이어지는 동안 산장도 성벽도 방책도 꿈쩍하지 않지요. 드워프가 여럿이면 화음이 붙어 더 오래 갑니다. 가사는 아무도 못 알아듣습니다.",
+      "acquisition": "드워프 용병의 이야기",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "dwarf"
+    },
+    {
+      "id": "war_drum",
+      "name": "전쟁 북",
+      "category": "오크 · 전투 고양",
+      "kind": "spell",
+      "texture": "res://assets/cards/war_drum.png",
+      "hand_texture": "res://assets/cards/hand/war_drum.png",
+      "printed_rules": [
+        "그 밤 용병 전원이 세게 칩니다.",
+        "오크는 적을 밀쳐 냅니다."
+      ],
+      "description": "가죽을 팽팽히 메운 오크의 전쟁 북입니다. 북소리가 울리면 용병들의 팔에 힘이 붙고, 오크들은 아예 적을 밀쳐 내며 싸웁니다. 양들은 그날 밤 잠을 설칩니다.",
+      "acquisition": "오크 용병의 이야기",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "feast_table",
+      "name": "잔칫상",
+      "category": "오크 · 함께 먹기",
+      "kind": "consumable",
+      "texture": "res://assets/cards/feast_table.png",
+      "hand_texture": "res://assets/cards/hand/feast_table.png",
+      "printed_rules": [
+        "놓으면 고기 스튜가 차려집니다.",
+        "오크가 많으면 한 그릇 더 나옵니다."
+      ],
+      "description": "솥째 내놓고 다 같이 먹자는 오크의 잔칫상입니다. 차리기만 하면 어디선가 스튜가 그릇째 나오지요. 오크가 많으면 그릇도 늘어납니다. 설거지는 늘지 않습니다. 오크는 설거지를 안 하거든요.",
+      "acquisition": "오크 용병의 이야기",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "blood_oath",
+      "name": "피의 맹세",
+      "category": "오크 · 계약 변형",
+      "kind": "contract",
+      "texture": "res://assets/cards/blood_oath.png",
+      "hand_texture": "res://assets/cards/hand/blood_oath.png",
+      "printed_rules": [
+        "오크 용병에게 맹세를 받습니다.",
+        "영원히 강해지지만 되돌릴 수 없습니다."
+      ],
+      "description": "뼈에 피로 새기는 오크의 맹세입니다. 맹세한 오크는 평생 더 강하게 싸우지만, 그 뒤로는 떠나보낼 수도 제단에 바칠 수도 없습니다. 오크에게 맹세란 그런 것입니다. 마녀도 그 무게를 압니다.",
+      "acquisition": "오크 용병의 이야기",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "bone_throw",
+      "name": "뼈 던지기",
+      "category": "사건 · 오크",
+      "kind": "event",
+      "texture": "res://assets/cards/bone_throw.png",
+      "hand_texture": "res://assets/cards/hand/bone_throw.png",
+      "printed_rules": [
+        "오늘 밤 올 적을 미리 알려 줍니다.",
+        "대비하거나, 운명에 골드를 겁니다."
+      ],
+      "description": "오크 용병이 저녁에 뼈를 던져 밤을 점치는 일입니다. 뼈가 떨어진 모양으로 오늘 밤 무엇이 올지 알 수 있다지요. 알고 대비할지, 알고도 운명에 걸어 볼지는 마녀의 몫입니다.",
+      "acquisition": "오크 용병 이벤트",
+      "target_tags": [],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "victory_roar",
+      "name": "승리의 함성",
+      "category": "오크 · 처치 연쇄",
+      "kind": "spell",
+      "texture": "res://assets/cards/victory_roar.png",
+      "hand_texture": "res://assets/cards/hand/victory_roar.png",
+      "printed_rules": [
+        "밤에 외치면 처치할 때마다",
+        "오크의 공격이 빨라집니다."
+      ],
+      "description": "적이 쓰러질 때마다 오크의 목에서 터져 나오는 함성입니다. 한 번 외칠 때마다 다음 일격이 빨라지고, 그다음은 더 빨라지지요. 밤이 끝날 무렵이면 산 건너편까지 들립니다.",
+      "acquisition": "오크 용병의 이야기",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "ancestor_path",
+      "name": "조상의 길",
+      "category": "사건 · 오크",
+      "kind": "event",
+      "texture": "res://assets/cards/ancestor_path.png",
+      "hand_texture": "res://assets/cards/hand/ancestor_path.png",
+      "printed_rules": [
+        "보내 주면 오크가 잠시 떠납니다.",
+        "돌아오면 영원히 강해집니다."
+      ],
+      "description": "오크 용병이 조상의 발자국을 따라 하루만 걷고 오고 싶다고 청한 일입니다. 보내 주면 다음 새벽에 돌아오는데, 어딘가 눈빛이 달라져 있습니다. 어디까지 갔다 왔는지는 말하지 않습니다.",
+      "acquisition": "오크 용병 이벤트",
+      "target_tags": [],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "ash_sigil",
+      "name": "재로 그린 문양",
+      "category": "장비 · 장신구 · 오크",
+      "kind": "equipment",
+      "texture": "res://assets/cards/ash_sigil.png",
+      "hand_texture": "res://assets/cards/hand/ash_sigil.png",
+      "printed_rules": [
+        "용병에게 그려 줍니다.",
+        "쓰러질 때 적이 겁먹고 달아납니다."
+      ],
+      "description": "오크 주술사가 모닥불 재로 가슴에 그려 주는 문양입니다. 이 문양을 지닌 이가 쓰러지면 그 순간 둘레의 적들이 까닭 없는 공포에 질려 달아납니다. 주술사는 '조상이 화내는 것'이라고 설명합니다.",
+      "acquisition": "오크 용병의 이야기",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "spit_roast",
+      "name": "통구이",
+      "category": "오크 · 잔치 요리",
+      "kind": "consumable",
+      "texture": "res://assets/cards/spit_roast.png",
+      "hand_texture": "res://assets/cards/hand/spit_roast.png",
+      "printed_rules": [
+        "생고기로 통구이를 굽습니다.",
+        "용병 전원이 회복하고 세게 칩니다."
+      ],
+      "description": "꼬챙이에 통째로 꿰어 굽는 오크식 잔치 요리입니다. 고기가 꽤 많이 들어가지만 용병들은 밤새 흘린 피를 전부 되찾고, 배부른 김에 더 세게 휘두릅니다. 냄새가 숲까지 퍼지는 게 유일한 걱정입니다.",
+      "acquisition": "오크 용병의 이야기",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "pack_scent",
+      "name": "무리의 냄새",
+      "category": "장비 · 장신구 · 수인",
+      "kind": "equipment",
+      "texture": "res://assets/cards/pack_scent.png",
+      "hand_texture": "res://assets/cards/hand/pack_scent.png",
+      "printed_rules": [
+        "용병에게 걸어 줍니다.",
+        "수인끼리 모이면 빨라집니다."
+      ],
+      "description": "무리의 냄새가 밴 수인의 털 장신구입니다. 수인끼리 모여 있으면 서로의 냄새를 맡고 발이 빨라지지요. 다른 종족이 걸면 그냥 냄새 나는 털입니다.",
+      "acquisition": "수인 용병의 이야기",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false,
+      "race": "beastfolk"
+    },
+    {
+      "id": "porter_pack",
+      "name": "짐꾼의 등짐",
+      "category": "장비 · 방어구 · 수인",
+      "kind": "equipment",
+      "texture": "res://assets/cards/porter_pack.png",
+      "hand_texture": "res://assets/cards/hand/porter_pack.png",
+      "printed_rules": [
+        "용병에게 메어 줍니다.",
+        "채집가·사냥꾼이 더 많이 줍습니다."
+      ],
+      "description": "짐을 절대 내려놓지 않는 수인 짐꾼의 등짐입니다. 메고 있으면 손이 두 배로 커진 것처럼 많이 줍고, 짐이 무거울수록 오히려 빨리 걷습니다. 짐꾼들은 그걸 '본능'이라고 부릅니다.",
+      "acquisition": "수인 용병의 이야기",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false,
+      "race": "beastfolk"
+    },
+    {
+      "id": "hibernation",
+      "name": "겨울잠",
+      "category": "사건 · 수인",
+      "kind": "event",
+      "texture": "res://assets/cards/hibernation.png",
+      "hand_texture": "res://assets/cards/hand/hibernation.png",
+      "printed_rules": [
+        "재우면 수인이 다음 새벽까지 잡니다.",
+        "깨어나면 영원히 튼튼해집니다."
+      ],
+      "description": "수인 용병이 자꾸 하품을 하다 겨울잠이 쏟아진다고 털어놓은 일입니다. 재워 주면 다음 새벽까지 깨지 않지만, 일어난 뒤로는 어지간한 상처에도 끄떡하지 않습니다. 깨우면 그냥 피곤한 수인이 됩니다.",
+      "acquisition": "수인 용병 이벤트",
+      "target_tags": [],
+      "stackable": false,
+      "race": "beastfolk"
+    },
+    {
+      "id": "introduction_letter",
+      "name": "소개장",
+      "category": "사건 · 인간",
+      "kind": "event",
+      "texture": "res://assets/cards/introduction_letter.png",
+      "hand_texture": "res://assets/cards/hand/introduction_letter.png",
+      "printed_rules": [
+        "받으면 다음 손님의 종족을 고릅니다.",
+        "사양하면 골드를 조금 받습니다."
+      ],
+      "description": "인간 용병이 아는 이에게 써 주겠다는 소개장입니다. 이 편지를 들고 산을 오르는 다음 손님은 마녀가 바라던 종족일 겁니다. 사양하면 용병은 조금 서운해하면서 잉크값이라며 동전을 쥐여 줍니다.",
+      "acquisition": "인간 용병 이벤트",
+      "target_tags": [],
+      "stackable": false,
+      "race": "human"
+    },
+    {
+      "id": "guild_writ",
+      "name": "길드 증서",
+      "category": "인간 · 계약 변형",
+      "kind": "contract",
+      "texture": "res://assets/cards/guild_writ.png",
+      "hand_texture": "res://assets/cards/hand/guild_writ.png",
+      "printed_rules": [
+        "낮에 계약 한 장의 직업을 바꿉니다.",
+        "인물과 종족은 그대로입니다."
+      ],
+      "description": "도장이 찍힌 직업 길드의 증서입니다. 이걸 내밀면 나무꾼이 사냥꾼이 되고 사냥꾼이 검잡이가 됩니다. 사람은 그대로고 직업만 바뀌는데, 본인은 처음부터 그 일을 했던 것처럼 굽니다. 길드 도장의 힘입니다.",
+      "acquisition": "인간 용병의 이야기",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "human"
+    },
+    {
+      "id": "village_militia",
+      "name": "마을 민병",
+      "category": "인간 · 민병 소환",
+      "kind": "summon",
+      "texture": "res://assets/cards/village_militia.png",
+      "hand_texture": "res://assets/cards/hand/village_militia.png",
+      "printed_rules": [
+        "밤에 땅에 놓으면 민병이 옵니다.",
+        "곁의 종족 용병을 흉내 냅니다."
+      ],
+      "description": "산 아래 마을에서 횃불을 들고 달려온 민병들입니다. 마녀를 돕는 게 무서운지 적이 무서운지 본인들도 헷갈리지만, 곁에 선 종족의 싸움법을 눈치껏 따라 합니다. 새벽이면 마을로 돌아가 영웅담을 늘어놓습니다.",
+      "acquisition": "인간 용병의 이야기",
+      "target_tags": [
+        "walkable_ground",
+        "enemy"
+      ],
+      "stackable": false,
+      "race": "human"
+    },
+    {
+      "id": "old_records",
+      "name": "오래된 기록",
+      "category": "사건 · 인간",
+      "kind": "event",
+      "texture": "res://assets/cards/old_records.png",
+      "hand_texture": "res://assets/cards/hand/old_records.png",
+      "printed_rules": [
+        "읽으면 종족 카드 하나를 고릅니다.",
+        "덮으면 침식 카드를 지웁니다."
+      ],
+      "description": "인간 용병이 숲에서 주워 온 낡은 기록입니다. 마녀사냥 이전의 글씨체지요. 읽으면 잊혀진 종족의 지혜가 한 장 떠오르고, 덮어 두면 주머니의 나쁜 기운이 조용히 가라앉습니다. 어느 쪽이든 기록은 제 몫을 합니다.",
+      "acquisition": "인간 용병 이벤트",
+      "target_tags": [],
+      "stackable": false,
+      "race": "human"
+    },
+    {
+      "id": "pilgrim_blessing",
+      "name": "순례자의 축복",
+      "category": "인간 · 정화",
+      "kind": "spell",
+      "texture": "res://assets/cards/pilgrim_blessing.png",
+      "hand_texture": "res://assets/cards/hand/pilgrim_blessing.png",
+      "printed_rules": [
+        "손패의 침식 카드를 모두 없앱니다.",
+        "산장의 소문이 밝아집니다."
+      ],
+      "description": "길 위의 순례자가 산장 문턱에 남기고 간 축복입니다. 마녀를 전설이라 믿는 사람의 기도치고는 효험이 좋습니다. 주머니 속 나쁜 기운이 걷히고, 산 아래 소문도 조금 밝아집니다.",
+      "acquisition": "인간 용병의 이야기",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "human"
+    },
+    {
+      "id": "merchant_wagon",
+      "name": "상인 마차",
+      "category": "사건 · 인간",
+      "kind": "event",
+      "texture": "res://assets/cards/merchant_wagon.png",
+      "hand_texture": "res://assets/cards/hand/merchant_wagon.png",
+      "printed_rules": [
+        "마차를 열면 다른 종족 카드를",
+        "골드로 살 수 있습니다."
+      ],
+      "description": "인간 용병이 아는 상인의 마차가 산장 앞에 멈춰 선 일입니다. 포장 안에는 먼 땅의 물건이 가득하고, 상인은 당연히 값을 부릅니다. 산장 앞까지 올라온 수고비까지 쳐서요.",
+      "acquisition": "인간 용병 이벤트",
+      "target_tags": [],
+      "stackable": false,
+      "race": "human"
+    },
+    {
+      "id": "battle_ration",
+      "name": "전투 식량",
+      "category": "드워프 · 오크 · 전투 식량",
+      "kind": "consumable",
+      "texture": "res://assets/cards/battle_ration.png",
+      "hand_texture": "res://assets/cards/hand/battle_ration.png",
+      "printed_rules": [
+        "용병 전원이 튼튼해지고",
+        "체력을 크게 되찾습니다."
+      ],
+      "description": "드워프의 흑맥주와 오크의 고기를 한데 싼 전투 식량입니다. 두 종족이 같은 산장에 묵을 때만 만들어지는데, 먹은 용병은 밤새 든든하고 상처도 꽤 아뭅니다. 맛에 대해서는 의견이 갈립니다.",
+      "acquisition": "드워프·오크 용병이 함께 있을 때의 이야기",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "bridge"
+    },
+    {
+      "id": "sacrifice_dagger",
+      "name": "제물의 단검",
+      "category": "언데드 · 희생",
+      "kind": "spell",
+      "texture": "res://assets/cards/sacrifice_dagger.png",
+      "hand_texture": "res://assets/cards/hand/sacrifice_dagger.png",
+      "printed_rules": [
+        "용병 하나를 제물로 바칩니다.",
+        "시체와 언데드 카드를 얻습니다."
+      ],
+      "description": "묘지의 제단 아래서 나온 검은 단검입니다. 누군가를 바치면 산장은 조금 더 어두운 소문에 싸이고, 마녀의 주머니에는 무덤 너머의 카드가 들어옵니다. 피로 맹세한 오크에게는 통하지 않습니다. 맹세가 먼저니까요.",
+      "acquisition": "묘지 확장·제단 복구(처음 한 번)",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false,
+      "race": "undead"
+    },
+    {
+      "id": "corpse",
+      "name": "시체",
+      "category": "언데드 · 시체",
+      "kind": "consumable",
+      "texture": "res://assets/cards/corpse.png",
+      "hand_texture": "res://assets/cards/hand/corpse.png",
+      "printed_rules": [
+        "밤에 땅에 놓으면 해골이 일어납니다.",
+        "하루 뒤 새벽에 썩어 사라집니다."
+      ],
+      "description": "쓰러지거나 바쳐진 이가 남긴 몸입니다. 카드에는 그 사람의 이름이 적혀 있습니다. 밤에 땅에 눕히면 해골이 되어 다시 일어나 새벽까지 싸웁니다. 하루가 지나면 흙으로 돌아갑니다. 그 편이 나을지도 모릅니다.",
+      "acquisition": "제물의 단검 · 용병이 쓰러짐(언데드가 열린 뒤)",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "undead"
+    },
+    {
+      "id": "rise_up",
+      "name": "일어나라",
+      "category": "언데드 · 되살리기",
+      "kind": "spell",
+      "texture": "res://assets/cards/rise_up.png",
+      "hand_texture": "res://assets/cards/hand/rise_up.png",
+      "printed_rules": [
+        "그 밤 쓰러진 용병이",
+        "해골로 다시 일어납니다."
+      ],
+      "description": "무덤 흙을 움켜쥐고 외치는 짧은 명령입니다. 그 밤에 쓰러진 용병들은 눈을 감지 못하고 뼈만 남은 채 다시 일어납니다. 새벽이 오면 비로소 쉬지요. 마녀는 이 주문을 쓴 밤에는 잠을 잘 못 잡니다.",
+      "acquisition": "제물의 단검 · 새벽 보상(언데드)",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "undead"
+    },
+    {
+      "id": "bone_barricade",
+      "name": "뼈 방책",
+      "category": "언데드 · 뼈 시설",
+      "kind": "structure",
+      "texture": "res://assets/cards/bone_barricade.png",
+      "hand_texture": "res://assets/cards/hand/bone_barricade.png",
+      "printed_rules": [
+        "시체로 뼈 방책을 세웁니다.",
+        "곁에서 적이 죽으면 단단해집니다."
+      ],
+      "description": "뼈를 엮어 세운 음산한 방책입니다. 세우려면 시체가 필요하고, 곁에서 적이 죽을 때마다 그 뼈를 받아 더 단단해집니다. 손님들은 이 앞을 지날 때 말이 없어집니다.",
+      "acquisition": "제물의 단검 · 새벽 보상(언데드)",
+      "target_tags": [
+        "walkable_ground",
+        "defense_point"
+      ],
+      "stackable": false,
+      "race": "undead"
+    },
+    {
+      "id": "soul_jar",
+      "name": "영혼 병",
+      "category": "언데드 · 드로우",
+      "kind": "consumable",
+      "texture": "res://assets/cards/soul_jar.png",
+      "hand_texture": "res://assets/cards/hand/soul_jar.png",
+      "printed_rules": [
+        "시체 하나를 병에 담아",
+        "주머니에서 카드를 뽑습니다."
+      ],
+      "description": "희미한 빛이 갇힌 봉인된 병입니다. 시체 하나를 병 속에 거두면 그 혼이 주머니 깊은 곳에서 카드 몇 장을 끌어올려 줍니다. 병을 흔들면 안에서 작게 두드리는 소리가 납니다. 흔들지 마세요.",
+      "acquisition": "제물의 단검 · 새벽 보상(언데드)",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "undead"
+    },
+    {
+      "id": "ghoul_feast",
+      "name": "구울의 만찬",
+      "category": "언데드 · 시체 소비",
+      "kind": "spell",
+      "texture": "res://assets/cards/ghoul_feast.png",
+      "hand_texture": "res://assets/cards/hand/ghoul_feast.png",
+      "printed_rules": [
+        "손패의 시체를 모두 바쳐",
+        "언데드가 회복하고 세게 칩니다."
+      ],
+      "description": "언데드 아군에게 차려 주는 음산한 만찬입니다. 식탁에 오르는 건 시체이고, 먹은 해골들은 기운을 차려 더 세게 휘두릅니다. 마녀는 식탁에 앉지 않습니다. 식탁 쪽을 보지도 않습니다.",
+      "acquisition": "제물의 단검 · 새벽 보상(언데드)",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "undead"
+    },
+    {
+      "id": "death_march",
+      "name": "죽음의 행진",
+      "category": "언데드 · 해골 군세",
+      "kind": "spell",
+      "texture": "res://assets/cards/death_march.png",
+      "hand_texture": "res://assets/cards/hand/death_march.png",
+      "printed_rules": [
+        "밤에 시체를 모두 바쳐",
+        "해골 군세를 일으킵니다."
+      ],
+      "description": "묘지의 무덤이 한꺼번에 열리는 행진입니다. 산장의 소문이 '악명'까지 어두워진 뒤에야 가능한 일이지요. 쌓아 둔 시체가 모두 해골 군세가 되어 밤을 걷습니다. 마을 사람들은 그날 밤 창문을 꼭 닫습니다.",
+      "acquisition": "언데드 보상(소문 '악명'일 때)",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "undead"
+    },
+    {
+      "id": "bone_hounds",
+      "name": "뼈 사냥개",
+      "category": "언데드 · 사냥개 소환",
+      "kind": "summon",
+      "texture": "res://assets/cards/bone_hounds.png",
+      "hand_texture": "res://assets/cards/hand/bone_hounds.png",
+      "printed_rules": [
+        "밤에 시체로 뼈 사냥개를 부릅니다.",
+        "겁먹은 적을 먼저 쫓습니다."
+      ],
+      "description": "뼈만 남은 날랜 사냥개들입니다. 시체 하나를 던져 주면 둘이 일어나 겁먹은 적부터 쫓지요. 살아 있을 때 사냥개였는지는 모릅니다. 물건을 물어 오지는 않으니 공은 던지지 마세요.",
+      "acquisition": "제물의 단검 · 새벽 보상(언데드)",
+      "target_tags": [
+        "walkable_ground",
+        "enemy"
+      ],
+      "stackable": false,
+      "race": "undead"
+    },
+    {
+      "id": "black_rumor",
+      "name": "검은 소문",
+      "category": "침식 · 쓸 수 없음",
+      "kind": "corruption",
+      "texture": "res://assets/cards/black_rumor.png",
+      "hand_texture": "res://assets/cards/hand/black_rumor.png",
+      "printed_rules": [
+        "사용할 수 없습니다.",
+        "손패에 있으면 고용비가 오릅니다."
+      ],
+      "description": "산 아래 마을에서 산장을 두고 떠도는 흉흉한 소문입니다. 소문이 음산해지면 새벽마다 한 조각씩 마녀의 주머니로 흘러듭니다. 손님들은 소문을 들었으면서도 값을 더 부릅니다. 정화하면 소문도 조금 잦아듭니다.",
+      "acquisition": "소문이 '음산' 이하인 새벽",
+      "target_tags": [],
+      "stackable": false,
+      "race": "undead"
+    },
+    {
+      "id": "ledger_of_dead",
+      "name": "망자의 장부",
+      "category": "장비 · 마녀 장신구 · 언데드",
+      "kind": "equipment",
+      "texture": "res://assets/cards/ledger_of_dead.png",
+      "hand_texture": "res://assets/cards/hand/ledger_of_dead.png",
+      "printed_rules": [
+        "마녀가 지닙니다.",
+        "바친 용병이 쌓이면 카드를 줍니다."
+      ],
+      "description": "바친 이들의 이름을 적어 두는 검은 장부입니다. 마녀가 지니고 있으면 이름이 쌓일 때마다 무덤 너머에서 답례가 옵니다. 글씨는 마녀가 쓰지 않습니다. 저절로 적힙니다.",
+      "acquisition": "제물의 단검 · 새벽 보상(언데드)",
+      "target_tags": [
+        "player"
+      ],
+      "stackable": false,
+      "race": "undead"
+    },
+    {
+      "id": "crest_banner",
+      "name": "여러 문장이 박힌 깃발",
+      "category": "화합 · 유물",
+      "kind": "relic",
+      "texture": "res://assets/cards/crest_banner.png",
+      "hand_texture": "res://assets/cards/hand/crest_banner.png",
+      "printed_rules": [
+        "산장에 걸어 둡니다.",
+        "여러 종족이 모이면 세게 칩니다."
+      ],
+      "description": "산장을 거쳐 간 여러 종족의 문장을 한 천에 기운 깃발입니다. 바느질은 서툴지만 걸어 두면 서로 다른 종족의 용병들이 괜히 어깨를 펴고 더 세게 싸웁니다. 산장이 어떤 곳인지 깃발이 대신 말해 주니까요.",
+      "acquisition": "공용 용병 이벤트(서로 다른 종족 셋 이상)",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "harmony"
+    },
+    {
+      "id": "interpreter_pen",
+      "name": "통역사의 펜",
+      "category": "장비 · 마녀 장신구 · 화합",
+      "kind": "equipment",
+      "texture": "res://assets/cards/interpreter_pen.png",
+      "hand_texture": "res://assets/cards/hand/interpreter_pen.png",
+      "printed_rules": [
+        "마녀가 지닙니다.",
+        "다른 종족의 이야기가 잦아집니다."
+      ],
+      "description": "여러 종족의 말을 받아 적어 온 통역사의 깃펜입니다. 마녀가 지니면 용병들이 자기 종족 이야기 대신 서로의 이야기를 더 자주 꺼내지요. 펜이 한 일인지 술이 한 일인지는 확실치 않습니다.",
+      "acquisition": "공용 용병 이벤트(서로 다른 종족 셋 이상)",
+      "target_tags": [
+        "player"
+      ],
+      "stackable": false,
+      "race": "harmony"
+    },
+    {
+      "id": "lodge_festival",
+      "name": "산장의 축제",
+      "category": "사건 · 화합",
+      "kind": "event",
+      "texture": "res://assets/cards/lodge_festival.png",
+      "hand_texture": "res://assets/cards/hand/lodge_festival.png",
+      "printed_rules": [
+        "골드를 내고 축제를 엽니다.",
+        "용병 전원이 영원히 강해집니다."
+      ],
+      "description": "네 종족 넘게 한 지붕 아래 모인 밤에만 열리는 산장의 축제입니다. 술과 고기와 노래에 금화가 꽤 들지만, 그 밤을 함께 보낸 용병들은 이후로 어딘가 달라집니다. 눈 쌓인 산속에서 이런 밤은 흔치 않습니다.",
+      "acquisition": "공용 용병 이벤트(서로 다른 종족 넷 이상)",
+      "target_tags": [],
+      "stackable": false,
+      "race": "harmony"
+    },
+    {
+      "id": "stranger_gift",
+      "name": "낯선 손님의 선물",
+      "category": "중립 · 사건",
+      "kind": "event",
+      "texture": "res://assets/cards/stranger_gift.png",
+      "hand_texture": "res://assets/cards/hand/stranger_gift.png",
+      "printed_rules": [
+        "받으면 낯선 종족의 카드를 얻습니다.",
+        "사양하면 골드를 조금 받습니다."
+      ],
+      "description": "지나가던 낯선 손님이 문 앞에 두고 간 선물입니다. 포장을 풀면 아직 산장에 온 적 없는 종족의 물건이 나오지요. 사양하면 손님은 선물 대신 동전 몇 닢을 두고 갑니다. 끝내 이름은 말하지 않았습니다.",
+      "acquisition": "공용 용병 이벤트",
+      "target_tags": [],
+      "stackable": false,
+      "race": "neutral"
+    },
+    {
+      "id": "lodge_cleanup",
+      "name": "산장 대청소",
+      "category": "중립 · 사건",
+      "kind": "event",
+      "texture": "res://assets/cards/lodge_cleanup.png",
+      "hand_texture": "res://assets/cards/hand/lodge_cleanup.png",
+      "printed_rules": [
+        "주머니 카드 한 장을 골라",
+        "영원히 치웁니다."
+      ],
+      "description": "용병들이 팔을 걷어붙이고 산장을 한바탕 치우자고 나선 날입니다. 구석에서 뭐가 나올지 모르니 마녀도 내심 긴장합니다. 주머니에서 더는 쓸 일 없는 것 하나를 골라 영원히 치워 버릴 기회이기도 합니다.",
+      "acquisition": "공용 용병 이벤트",
+      "target_tags": [],
+      "stackable": false,
+      "race": "neutral"
+    },
+    {
+      "id": "drunken_erin",
+      "name": "술 주정뱅이 에린",
+      "category": "인물 · 주점 손님",
+      "kind": "spell",
+      "texture": "res://assets/cards/drunken_erin.png",
+      "hand_texture": "res://assets/cards/hand/drunken_erin.png",
+      "printed_rules": [
+        "술병 다섯 가지 가운데",
+        "세 병을 아무렇게나 꺼냅니다."
+      ],
+      "description": "술 냄새를 풍기며 산장에 굴러 들어온 떠돌이 술꾼 에린입니다. 어디서 났는지 모를 술병을 테이블에 와르르 쏟아 놓고는 '마음에 드는 거 가져'라고 합니다. 뭐가 나올지는 에린도 모릅니다. 주정은 꼭 하나 섞여 있습니다.",
+      "acquisition": "에린의 이야기(술 카드 3장 사용 후 찾아옴)",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "tavern",
+      "frame": "legendary",
+      "rarity": "legendary"
+    },
+    {
+      "id": "fire_ale",
+      "name": "불꽃 에일",
+      "category": "주점 · 싸움 술",
+      "kind": "consumable",
+      "texture": "res://assets/cards/fire_ale.png",
+      "hand_texture": "res://assets/cards/hand/fire_ale.png",
+      "printed_rules": [
+        "용병 한 명이 그 밤 더 세게 싸웁니다.",
+        "다음 날 숙취로 잠시 쉽니다."
+      ],
+      "description": "목으로 넘어가며 불이 붙는 독한 에일입니다. 마신 용병은 그 밤 미친 듯 싸우고 첫 몇 번의 일격에는 진짜 불이 붙습니다. 다음 날 아침에는 머리를 감싸 쥐고 한동안 꼼짝도 못 합니다. 에린은 그게 정상이라고 합니다.",
+      "acquisition": "술 주정뱅이 에린",
+      "target_tags": [
+        "merc"
+      ],
+      "stackable": false,
+      "race": "tavern"
+    },
+    {
+      "id": "golden_mead",
+      "name": "금빛 꿀술",
+      "category": "주점 · 대접하는 술",
+      "kind": "consumable",
+      "texture": "res://assets/cards/golden_mead.png",
+      "hand_texture": "res://assets/cards/hand/golden_mead.png",
+      "printed_rules": [
+        "묵는 손님에게 대접합니다.",
+        "내일 선물을 들고 다시 찾아옵니다."
+      ],
+      "description": "벌꿀로 빚은 금빛 꿀술입니다. 손님에게 한 잔 대접하면 그 손님은 기분 좋게 값을 더 치르고, 다음 날 자기 고향의 물건을 들고 다시 찾아옵니다. 에린의 술병 중에 가장 드물고, 가장 사연 없는 술입니다.",
+      "acquisition": "술 주정뱅이 에린",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "tavern"
+    },
+    {
+      "id": "wisp_spirit",
+      "name": "도깨비불 독주",
+      "category": "주점 · 도박하는 술",
+      "kind": "consumable",
+      "texture": "res://assets/cards/wisp_spirit.png",
+      "hand_texture": "res://assets/cards/hand/wisp_spirit.png",
+      "printed_rules": [
+        "손패에서 무작위로 뽑힌 셋 중 하나에 붓습니다.",
+        "반은 한 장 더, 반은 주머니로."
+      ],
+      "description": "푸른 도깨비불이 병 속을 떠다니는 독주입니다. 손패의 카드 하나에 부으면 둘이 되거나 주머니로 굴러가거나, 둘 중 하나입니다. 도깨비불은 어느 쪽인지 미리 알려 주지 않습니다. 도박꾼들이 좋아하는 이유입니다.",
+      "acquisition": "술 주정뱅이 에린",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "tavern"
+    },
+    {
+      "id": "dew_of_forgetting",
+      "name": "망각의 이슬주",
+      "category": "주점 · 잊게 하는 술",
+      "kind": "consumable",
+      "texture": "res://assets/cards/dew_of_forgetting.png",
+      "hand_texture": "res://assets/cards/hand/dew_of_forgetting.png",
+      "printed_rules": [
+        "주머니 카드 하나를 영원히 잊습니다.",
+        "다음 날 아침엔 머리가 멍합니다."
+      ],
+      "description": "새벽 이슬로 담근 맑은 술입니다. 한 모금에 주머니 속 카드 하나를 영원히 잊어버립니다. 그래서 다음 날 아침은 머리가 멍하고 손이 조금 느립니다. 잊고 싶은 게 있는 사람에게는 그만한 값입니다.",
+      "acquisition": "술 주정뱅이 에린",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "tavern"
+    },
+    {
+      "id": "drunk_rant",
+      "name": "술주정",
+      "category": "주점 · 사건",
+      "kind": "spell",
+      "texture": "res://assets/cards/drunk_rant.png",
+      "hand_texture": "res://assets/cards/hand/drunk_rant.png",
+      "printed_rules": [
+        "손패 두 장을 주머니에 섞어 넣고",
+        "한 장을 새로 뽑습니다."
+      ],
+      "description": "취한 에린이 늘어놓는 횡설수설입니다. 듣다 보면 손에 쥔 게 뭐였는지 헷갈려 주머니에 도로 넣고 다른 걸 꺼내게 됩니다. 술은 아니라서 에린을 부르는 데는 안 칩니다. 에린은 세 가지 버전으로 주정합니다.",
+      "acquisition": "술 주정뱅이 에린",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "race": "tavern",
+      "art_variants": [
+        "drunk_rant",
+        "drunk_rant_toast",
+        "drunk_rant_pout"
+      ]
+    },
+    {
+      "id": "ore",
+      "name": "광석",
+      "category": "자원 · 드워프 재료",
+      "kind": "resource",
+      "texture": "res://assets/cards/ore.png",
+      "hand_texture": "res://assets/cards/hand/ore.png",
+      "printed_rules": [
+        "드워프 시설과 장비를 단단하게 합니다.",
+        "산장에서는 비싼 값에 팔립니다."
+      ],
+      "description": "드워프가 산의 뼈라고 부르는 돌입니다. 쪼개면 푸른 쇠의 결이 드러나고, 돌벽에 박으면 벽이 되고 칼날에 두들기면 칼이 됩니다. 드워프는 광석을 보면 말이 많아지는데, 그건 드워프가 말이 많아지는 거의 유일한 순간입니다.",
+      "acquisition": "드워프 용병의 이야기 · 채집가 탐색 · 떠돌이 행상",
+      "target_tags": [
+        "lodge_trade",
+        "defense_point",
+        "player",
+        "merc"
+      ],
+      "stackable": true,
+      "race": "dwarf"
+    },
+    {
+      "id": "frost_crown",
+      "name": "서리 여왕의 왕관",
+      "category": "전설 · 마녀의 변신",
+      "kind": "spell",
+      "texture": "res://assets/cards/frost_crown.png",
+      "hand_texture": "res://assets/cards/hand/frost_crown.png",
+      "printed_rules": [
+        "마녀가 서리 여왕이 됩니다.",
+        "마법탄이 얼음창이 되고, 밤마다 서리 룬을 얻습니다."
+      ],
+      "description": "북쪽 끝 얼음 궁전에서 녹지 않고 내려온 왕관입니다. 쓰는 순간 머리카락 끝부터 서리가 피고, 손끝에서 나가는 것은 더 이상 빛이 아니라 창입니다. 왕관은 주인을 고르지 않습니다. 다만 한번 쓴 머리에서는 쉽게 내려오지 않습니다.",
+      "acquisition": "새벽 보상(가끔) · 서리 여왕의 눈물 · 떠돌이 행상",
+      "target_tags": [
+        "player"
+      ],
+      "stackable": false,
+      "frame": "legendary",
+      "rarity": "legendary"
+    },
+    {
+      "id": "lich_crown",
+      "name": "망자의 왕관",
+      "category": "전설 · 마녀의 변신",
+      "kind": "spell",
+      "texture": "res://assets/cards/lich_crown.png",
+      "hand_texture": "res://assets/cards/hand/lich_crown.png",
+      "printed_rules": [
+        "마녀가 망자의 군주가 됩니다.",
+        "새벽마다 언데드 카드 한 장을 얻습니다."
+      ],
+      "description": "무덤 아래 왕국을 다스리던 군주의 관입니다. 쓰면 귀가 밝아져 땅속 망자들의 수군거림이 들리고, 새벽마다 누군가 손에 무언가를 쥐여 줍니다. 마녀는 그들이 충성하는 건지 그냥 심심한 건지 아직 모릅니다.",
+      "acquisition": "새벽 보상(가끔, 언데드가 열리면 자주) · 떠돌이 행상",
+      "target_tags": [
+        "player"
+      ],
+      "stackable": false,
+      "frame": "legendary",
+      "rarity": "legendary"
+    },
+    {
+      "id": "wild_grimoire",
+      "name": "폭주하는 마법서",
+      "category": "전설 · 혼돈의 주문",
+      "kind": "spell",
+      "texture": "res://assets/cards/wild_grimoire.png",
+      "hand_texture": "res://assets/cards/hand/wild_grimoire.png",
+      "printed_rules": [
+        "이번 판에 쓴 주문 수만큼",
+        "무작위 주문이 마구 터져 나옵니다."
+      ],
+      "description": "그동안 마녀가 외운 주문을 몰래 다 받아 적어 둔 책입니다. 펼치는 순간 기억해 둔 주문을 한꺼번에 토해 냅니다. 불이 나갈지 얼음이 나갈지는 책 마음이지만, 다행히 책도 산장은 좋아합니다.",
+      "acquisition": "새벽 보상(가끔) · 떠돌이 행상",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "frame": "legendary",
+      "rarity": "legendary"
+    },
+    {
+      "id": "fire_brazier",
+      "name": "불의 정령 화로",
+      "category": "전설 · 정령 시설",
+      "kind": "structure",
+      "texture": "res://assets/cards/fire_brazier.png",
+      "hand_texture": "res://assets/cards/hand/fire_brazier.png",
+      "printed_rules": [
+        "움직이지도 싸우지도 않습니다.",
+        "밤마다 무작위 적에게 큰 불덩이를 떨굽니다."
+      ],
+      "description": "화로 안에 사는 늙은 불의 정령은 걷지도, 칼을 들지도 않습니다. 그저 밤이 오면 기지개를 켜고 숲을 향해 불덩이를 하나씩 던질 뿐입니다. 장작은 필요 없습니다. 칭찬은 조금 필요합니다.",
+      "acquisition": "새벽 보상(가끔) · 떠돌이 행상",
+      "target_tags": [
+        "walkable_ground",
+        "defense_point"
+      ],
+      "stackable": false,
+      "frame": "legendary",
+      "rarity": "legendary"
+    },
+    {
+      "id": "winter_bell",
+      "name": "겨울의 끝 종",
+      "category": "전설 · 최후의 종",
+      "kind": "spell",
+      "texture": "res://assets/cards/winter_bell.png",
+      "hand_texture": "res://assets/cards/hand/winter_bell.png",
+      "printed_rules": [
+        "모든 적과 우리 시설이 무너집니다.",
+        "손패를 전부 버립니다."
+      ],
+      "description": "겨울이 끝날 때 한 번만 울린다는 낡은 청동 종입니다. 종소리가 닿는 곳의 모든 것이 눈사태처럼 무너지고, 그 뒤에는 이상하게 조용한 아침이 옵니다. 마녀의 할머니는 이 종을 두 번 울렸다는데, 두 번째 이야기는 해 주지 않았습니다.",
+      "acquisition": "새벽 보상(가끔) · 떠돌이 행상",
+      "target_tags": [
+        "any"
+      ],
+      "stackable": false,
+      "frame": "legendary",
+      "rarity": "legendary"
+    },
+    {
+      "id": "merc_war_horn",
+      "name": "진격 나팔",
+      "category": "브람의 고유 카드 · 마력 2",
+      "badge": "인간",
+      "kind": "spell",
+      "texture": "res://assets/cards/war_drum.png",
+      "hand_texture": "res://assets/cards/hand/war_drum.png",
+      "printed_rules": [
+        "무리 전체가 지점으로 돌격,",
+        "도착하면 주변 적 피해 15"
+      ],
+      "description": "브람이 젊을 때부터 허리에 차고 다닌 낡은 소뿔 나팔입니다. 한 번 불면 다들 무엇을 해야 하는지 압니다. 앞에 서는 사람은 늘 브람입니다.",
+      "acquisition": "브람 고용(고유 카드 2장)",
+      "target_tags": [
+        "walkable_ground",
+        "enemy"
+      ],
+      "stackable": false,
+      "race": "human"
+    },
+    {
+      "id": "merc_hunt_mark",
+      "name": "사냥 표식",
+      "category": "올라프의 고유 카드 · 마력 0",
+      "badge": "인간",
+      "kind": "spell",
+      "texture": "res://assets/cards/hunter.png",
+      "hand_texture": "res://assets/cards/hand/hunter.png",
+      "printed_rules": [
+        "모든 아군이 이 적을 집중 공격,",
+        "이 적은 더 아프게 맞음"
+      ],
+      "description": "올라프가 화살 끝에 붉은 천을 묶어 쏩니다. 숲지기가 고른 사냥감은 오래 버티지 못합니다. 그 사냥감이 쓰러지면 붉은 천은 다시 올라프의 손으로 돌아옵니다.",
+      "acquisition": "올라프 고용",
+      "target_tags": [
+        "enemy"
+      ],
+      "stackable": false,
+      "race": "human"
+    },
+    {
+      "id": "merc_rolling_log",
+      "name": "굴러가는 통나무",
+      "category": "토르빈의 고유 카드 · 마력 2",
+      "badge": "인간",
+      "kind": "spell",
+      "texture": "res://assets/cards/timber.png",
+      "hand_texture": "res://assets/cards/hand/timber.png",
+      "printed_rules": [
+        "통나무를 굴려",
+        "닿는 적을 밀치고 피해 15"
+      ],
+      "description": "토르빈이 말없이 통나무 하나를 어깨에서 내려 굴립니다. 산장 앞 비탈에서는 통나무가 생각보다 빠릅니다.",
+      "acquisition": "토르빈 고용",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "human"
+    },
+    {
+      "id": "merc_big_cauldron",
+      "name": "큰 약솥",
+      "category": "미라의 고유 카드 · 마력 2",
+      "badge": "인간",
+      "kind": "spell",
+      "texture": "res://assets/cards/meat_stew.png",
+      "hand_texture": "res://assets/cards/hand/meat_stew.png",
+      "printed_rules": [
+        "모든 아군",
+        "체력 20 회복"
+      ],
+      "description": "미라가 산장 부엌의 큰 솥에 약초를 한가득 넣고 끓입니다. 김이 마당까지 퍼지면 다친 사람들이 하나둘 고개를 듭니다.",
+      "acquisition": "미라 고용",
+      "target_tags": [
+        "anywhere"
+      ],
+      "stackable": false,
+      "race": "human"
+    },
+    {
+      "id": "gen_rally",
+      "name": "호령",
+      "category": "생성 카드 · 브람 · 이번 전투만",
+      "badge": "인간",
+      "kind": "spell",
+      "texture": "res://assets/cards/victory_roar.png",
+      "hand_texture": "res://assets/cards/hand/victory_roar.png",
+      "printed_rules": [
+        "고른 아군이 바로",
+        "고유 스킬을 씀"
+      ],
+      "description": "브람이 이름을 크게 부릅니다. 불린 사람은 생각할 겨를도 없이 가장 잘하는 일을 합니다.",
+      "acquisition": "브람 패시브: 전투가 시작되면",
+      "target_tags": [
+        "ally"
+      ],
+      "stackable": false,
+      "race": "human"
+    },
+    {
+      "id": "gen_log_wall",
+      "name": "통나무 벽",
+      "category": "생성 카드 · 토르빈 · 이번 전투만",
+      "badge": "인간",
+      "kind": "structure",
+      "texture": "res://assets/cards/junk_barricade.png",
+      "hand_texture": "res://assets/cards/hand/junk_barricade.png",
+      "printed_rules": [
+        "너비 3m 통나무 벽",
+        "(체력 60)"
+      ],
+      "description": "토르빈이 미리 깎아 둔 통나무를 눕혀 쌓습니다. 오래가지는 않아도, 숨 돌릴 틈은 줍니다.",
+      "acquisition": "토르빈 패시브·고유 스킬",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "human"
+    },
+    {
+      "id": "gen_herb_water",
+      "name": "약초 물",
+      "category": "생성 카드 · 미라 · 이번 전투만",
+      "badge": "인간",
+      "kind": "consumable",
+      "texture": "res://assets/cards/moss_bandage.png",
+      "hand_texture": "res://assets/cards/hand/moss_bandage.png",
+      "printed_rules": [
+        "아군 하나",
+        "체력 30 회복"
+      ],
+      "description": "미라의 바구니에서 나온 쓴 약초 물입니다. 맛은 없지만 효과는 확실합니다.",
+      "acquisition": "미라 패시브: 전투가 시작되면",
+      "target_tags": [
+        "ally"
+      ],
+      "stackable": false,
+      "race": "human"
+    },
+    {
+      "id": "merc_hold_line",
+      "name": "하랄의 버팀목",
+      "category": "하랄의 고유 카드 · 마력 2",
+      "badge": "드워프",
+      "kind": "spell",
+      "texture": "res://assets/cards/mine_prop.png",
+      "hand_texture": "res://assets/cards/hand/mine_prop.png",
+      "printed_rules": [
+        "하랄이 지점을 막고 서서",
+        "4초간 적이 지나가지 못함"
+      ],
+      "description": "하랄은 광산 갱도에서 무너지는 천장을 어깨로 받쳐 본 사람입니다. 숲길 하나쯤은 혼자서도 막습니다.",
+      "acquisition": "하랄 고용",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "dwarf"
+    },
+    {
+      "id": "merc_all_in",
+      "name": "전부 걸어!",
+      "category": "브륀힐드의 고유 카드 · 마력 전부(3 이상)",
+      "badge": "드워프",
+      "kind": "spell",
+      "texture": "res://assets/cards/rune_hammer.png",
+      "hand_texture": "res://assets/cards/hand/rune_hammer.png",
+      "printed_rules": [
+        "가진 마력을 모두 쓰고",
+        "쓴 마력 × 10 피해 볼트"
+      ],
+      "description": "브륀힐드가 웃으며 석궁에 가장 굵은 대못을 겁니다. 이번 판에 다 걸었으니, 빗나가면 안 됩니다.",
+      "acquisition": "브륀힐드 고용",
+      "target_tags": [
+        "walkable_ground",
+        "enemy"
+      ],
+      "stackable": false,
+      "race": "dwarf"
+    },
+    {
+      "id": "merc_timber_wall",
+      "name": "갱목 방벽",
+      "category": "토르그림의 고유 카드 · 마력 2",
+      "badge": "드워프",
+      "kind": "structure",
+      "texture": "res://assets/cards/stone_wall.png",
+      "hand_texture": "res://assets/cards/hand/stone_wall.png",
+      "printed_rules": [
+        "너비 5m 방벽",
+        "(체력 200)"
+      ],
+      "description": "토르그림이 갱도 버팀목을 엮어 세운 두꺼운 나무 벽입니다. 나뭇결을 읽고 세웠으니 쉽게 쪼개지지 않습니다.",
+      "acquisition": "토르그림 고용",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "dwarf"
+    },
+    {
+      "id": "merc_bitter",
+      "name": "쓴 약",
+      "category": "두르가의 고유 카드 · 마력 0",
+      "badge": "드워프",
+      "kind": "spell",
+      "texture": "res://assets/cards/poison_mushroom.png",
+      "hand_texture": "res://assets/cards/hand/poison_mushroom.png",
+      "printed_rules": [
+        "체력 15를 잃고",
+        "바로 고유 스킬 사용"
+      ],
+      "description": "두르가의 약은 지독하게 씁니다. 마신 사람은 인상을 쓰며 벌떡 일어나 할 일을 합니다.",
+      "acquisition": "두르가 고용",
+      "target_tags": [
+        "ally"
+      ],
+      "stackable": false,
+      "race": "dwarf"
+    },
+    {
+      "id": "merc_thistle_hedge",
+      "name": "엉겅퀴 울타리",
+      "category": "티슬의 고유 카드 · 마력 2",
+      "badge": "요정",
+      "kind": "spell",
+      "texture": "res://assets/cards/thistle_oath.png",
+      "hand_texture": "res://assets/cards/hand/thistle_oath.png",
+      "printed_rules": [
+        "6초간 가시덤불:",
+        "지나는 적 느려지고 피해"
+      ],
+      "description": "티슬이 엉겅퀴 씨앗을 흩뿌리면 순식간에 가시덤불이 솟습니다. 작은 수호자의 정중한 경고입니다.",
+      "acquisition": "티슬 고용",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "fairy"
+    },
+    {
+      "id": "merc_moth_dust",
+      "name": "나방 가루",
+      "category": "틸리아의 고유 카드 · 마력 1",
+      "badge": "요정",
+      "kind": "spell",
+      "texture": "res://assets/cards/firefly_swarm.png",
+      "hand_texture": "res://assets/cards/hand/firefly_swarm.png",
+      "printed_rules": [
+        "앞쪽 적",
+        "4초간 크게 느려짐"
+      ],
+      "description": "틸리아가 날개를 털면 반짝이는 가루가 퍼집니다. 맞은 괴물들은 꿈속을 걷듯 느려집니다.",
+      "acquisition": "틸리아 고용",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "fairy"
+    },
+    {
+      "id": "merc_pruning",
+      "name": "가지치기",
+      "category": "라르크의 고유 카드 · 마력 1",
+      "badge": "요정",
+      "kind": "spell",
+      "texture": "res://assets/cards/forest_promise.png",
+      "hand_texture": "res://assets/cards/hand/forest_promise.png",
+      "printed_rules": [
+        "큰 가위로 싹둑:",
+        "피해 40"
+      ],
+      "description": "라르크는 쓸데없이 자란 것을 참지 못합니다. 그것이 괴물이라도 마찬가지입니다.",
+      "acquisition": "라르크 고용",
+      "target_tags": [
+        "enemy"
+      ],
+      "stackable": false,
+      "race": "fairy"
+    },
+    {
+      "id": "merc_pollen",
+      "name": "꽃가루 잠",
+      "category": "페른의 고유 카드 · 마력 1",
+      "badge": "요정",
+      "kind": "spell",
+      "texture": "res://assets/cards/sleeping_thorn_seed.png",
+      "hand_texture": "res://assets/cards/hand/sleeping_thorn_seed.png",
+      "printed_rules": [
+        "꽃가루가 터져",
+        "적 3초 잠듦(맞으면 깸)"
+      ],
+      "description": "페른이 수줍게 내민 꽃봉오리가 터지면 달콤한 냄새가 퍼집니다. 괴물들은 그 자리에서 꾸벅 잠듭니다.",
+      "acquisition": "페른 고용",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "fairy"
+    },
+    {
+      "id": "merc_junk_bomb",
+      "name": "고물 폭탄",
+      "category": "그라즈의 고유 카드 · 마력 1",
+      "badge": "고블린",
+      "kind": "spell",
+      "texture": "res://assets/cards/goblin_firecracker.png",
+      "hand_texture": "res://assets/cards/hand/goblin_firecracker.png",
+      "printed_rules": [
+        "펑! 터진 자리 주변 적",
+        "피해 25"
+      ],
+      "description": "그라즈가 고물 더미에서 주워 만든 폭탄입니다. 모양은 엉망이지만 소리는 확실합니다.",
+      "acquisition": "그라즈 고용",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "merc_snare",
+      "name": "올가미 덫",
+      "category": "피클의 고유 카드 · 마력 0",
+      "badge": "고블린",
+      "kind": "structure",
+      "texture": "res://assets/cards/pikl_traps.png",
+      "hand_texture": "res://assets/cards/hand/pikl_traps.png",
+      "printed_rules": [
+        "덫을 놓으면",
+        "밟은 적 3초 묶임"
+      ],
+      "description": "피클은 덫을 놓을 때마다 매듭을 하나씩 셉니다. 몇 개를 놓았는지 절대 잊지 않습니다.",
+      "acquisition": "피클 고용",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "merc_saw_wheel",
+      "name": "톱날 바퀴",
+      "category": "러스크의 고유 카드 · 마력 2",
+      "badge": "고블린",
+      "kind": "spell",
+      "texture": "res://assets/cards/scrap.png",
+      "hand_texture": "res://assets/cards/hand/scrap.png",
+      "printed_rules": [
+        "톱날 바퀴가 굴러가며",
+        "닿는 적 초당 18(3초)"
+      ],
+      "description": "러스크가 가장 아끼는 톱날을 바퀴처럼 굴려 보냅니다. 돌아오지 않아도 아까워하지 않습니다. 거의.",
+      "acquisition": "러스크 고용",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "merc_lure",
+      "name": "반짝이 미끼",
+      "category": "타크의 고유 카드 · 마력 1",
+      "badge": "고블린",
+      "kind": "spell",
+      "texture": "res://assets/cards/shiny_lure.png",
+      "hand_texture": "res://assets/cards/hand/shiny_lure.png",
+      "printed_rules": [
+        "반짝이는 미끼로",
+        "주변 적 4초간 끌어모음"
+      ],
+      "description": "타크의 주머니에서 나온 반짝이는 무언가입니다. 괴물도 반짝이는 것에는 약합니다.",
+      "acquisition": "타크 고용",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "merc_blood_scent",
+      "name": "피냄새",
+      "category": "파르그의 고유 카드 · 마력 1",
+      "badge": "수인",
+      "kind": "spell",
+      "texture": "res://assets/cards/pack_scent.png",
+      "hand_texture": "res://assets/cards/hand/pack_scent.png",
+      "printed_rules": [
+        "주변 아군",
+        "6초간 공격 속도 +50%"
+      ],
+      "description": "파르그가 고개를 들어 냄새를 맡으면 무리 전체가 사나워집니다.",
+      "acquisition": "파르그 고용",
+      "target_tags": [
+        "anywhere"
+      ],
+      "stackable": false,
+      "race": "beastfolk"
+    },
+    {
+      "id": "merc_ambush",
+      "name": "매복",
+      "category": "사야의 고유 카드 · 마력 1",
+      "badge": "수인",
+      "kind": "spell",
+      "texture": "res://assets/cards/crescent_moon.png",
+      "hand_texture": "res://assets/cards/hand/crescent_moon.png",
+      "printed_rules": [
+        "5초간 숨고",
+        "다음 공격 피해 3배"
+      ],
+      "description": "사야는 그림자 속에서 숨을 죽입니다. 다음 화살은 어디서 날아올지 아무도 모릅니다.",
+      "acquisition": "사야 고용",
+      "target_tags": [
+        "anywhere"
+      ],
+      "stackable": false,
+      "race": "beastfolk"
+    },
+    {
+      "id": "merc_bear_hug",
+      "name": "곰의 포옹",
+      "category": "우르소의 고유 카드 · 마력 2",
+      "badge": "수인",
+      "kind": "spell",
+      "texture": "res://assets/cards/hibernation.png",
+      "hand_texture": "res://assets/cards/hand/hibernation.png",
+      "printed_rules": [
+        "우르소가 달려가",
+        "큰 적을 3초간 붙잡음"
+      ],
+      "description": "평소엔 느긋한 우르소도 큰 놈 앞에서는 달려갑니다. 한번 끌어안으면 놓아주지 않습니다.",
+      "acquisition": "우르소 고용",
+      "target_tags": [
+        "enemy"
+      ],
+      "stackable": false,
+      "race": "beastfolk"
+    },
+    {
+      "id": "merc_run",
+      "name": "도망쳐!",
+      "category": "모미의 고유 카드 · 마력 1",
+      "badge": "수인",
+      "kind": "spell",
+      "texture": "res://assets/cards/traveler_boots.png",
+      "hand_texture": "res://assets/cards/hand/traveler_boots.png",
+      "printed_rules": [
+        "모든 아군 4초간 빨라지고,",
+        "다친 아군은 뒤로 물러남"
+      ],
+      "description": "모미의 비명은 생각보다 큽니다. 다들 일단 뛰고 봅니다.",
+      "acquisition": "모미 고용",
+      "target_tags": [
+        "anywhere"
+      ],
+      "stackable": false,
+      "race": "beastfolk"
+    },
+    {
+      "id": "merc_oath_shield",
+      "name": "맹세의 방패",
+      "category": "가로크의 고유 카드 · 마력 1",
+      "badge": "오크",
+      "kind": "spell",
+      "texture": "res://assets/cards/ancestor_shield.png",
+      "hand_texture": "res://assets/cards/hand/ancestor_shield.png",
+      "printed_rules": [
+        "8초간 이 동료 대신",
+        "가로크가 맞음"
+      ],
+      "description": "가로크는 한번 한 약속을 지킵니다. 방패를 든 그 앞에 서 있으면 아무것도 닿지 않습니다.",
+      "acquisition": "가로크 고용",
+      "target_tags": [
+        "ally"
+      ],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "merc_bone_spear",
+      "name": "뼈 투창",
+      "category": "크라냐의 고유 카드 · 마력 2",
+      "badge": "오크",
+      "kind": "spell",
+      "texture": "res://assets/cards/bone_throw.png",
+      "hand_texture": "res://assets/cards/hand/bone_throw.png",
+      "printed_rules": [
+        "적 하나에",
+        "피해 45"
+      ],
+      "description": "크라냐가 지난 사냥감의 뼈로 깎은 투창입니다. 던질 때마다 그 사냥 이야기를 다시 합니다.",
+      "acquisition": "크라냐 고용",
+      "target_tags": [
+        "enemy"
+      ],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "merc_axe_whirl",
+      "name": "양날 도끼 회오리",
+      "category": "모가의 고유 카드 · 마력 2",
+      "badge": "오크",
+      "kind": "spell",
+      "texture": "res://assets/cards/blood_oath.png",
+      "hand_texture": "res://assets/cards/hand/blood_oath.png",
+      "printed_rules": [
+        "모가가 뛰어가 빙글빙글,",
+        "주변 적 피해 25"
+      ],
+      "description": "평소엔 나무에게 사과하는 거구지만, 도끼를 휘두르기 시작하면 아무도 다가가지 못합니다.",
+      "acquisition": "모가 고용",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "merc_ash_blessing",
+      "name": "재의 축복",
+      "category": "샤가의 고유 카드 · 마력 1",
+      "badge": "오크",
+      "kind": "spell",
+      "texture": "res://assets/cards/ash_sigil.png",
+      "hand_texture": "res://assets/cards/hand/ash_sigil.png",
+      "printed_rules": [
+        "이번 전투에서",
+        "한 번 쓰러지지 않음"
+      ],
+      "description": "샤가가 이마에 재로 문양을 그려 줍니다. 쓰러질 순간, 재가 흩날리며 한 번 더 일어섭니다.",
+      "acquisition": "샤가 고용",
+      "target_tags": [
+        "ally"
+      ],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "gen_bolt",
+      "name": "대못",
+      "category": "생성 카드 · 브륀힐드 · 이번 전투만",
+      "badge": "드워프",
+      "kind": "spell",
+      "texture": "res://assets/cards/resin_torch.png",
+      "hand_texture": "res://assets/cards/hand/resin_torch.png",
+      "printed_rules": [
+        "고른 방향으로 관통 볼트,",
+        "맞은 적 모두 피해 20"
+      ],
+      "description": "줄 선 적을 꿰뚫고 나면 브륀힐드가 한 발을 더 장전합니다.",
+      "acquisition": "브륀힐드 패시브: 적 3마리를 한 번에 꿰뚫으면",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "dwarf"
+    },
+    {
+      "id": "gen_salve",
+      "name": "고약",
+      "category": "생성 카드 · 두르가 · 이번 전투만",
+      "badge": "드워프",
+      "kind": "consumable",
+      "texture": "res://assets/cards/red_chalice.png",
+      "hand_texture": "res://assets/cards/hand/red_chalice.png",
+      "printed_rules": [
+        "아군 하나",
+        "체력 20 회복"
+      ],
+      "description": "투덜거리며 발라 주는 광석 가루 고약입니다. 따갑지만 잘 듣습니다.",
+      "acquisition": "두르가 패시브: 아군이 절반 아래로 다치면",
+      "target_tags": [
+        "ally"
+      ],
+      "stackable": false,
+      "race": "dwarf"
+    },
+    {
+      "id": "gen_root",
+      "name": "얽힌 뿌리",
+      "category": "생성 카드 · 라르크 · 이번 전투만",
+      "badge": "요정",
+      "kind": "spell",
+      "texture": "res://assets/cards/vine_snare.png",
+      "hand_texture": "res://assets/cards/hand/vine_snare.png",
+      "printed_rules": [
+        "지점 주변 적",
+        "2초 묶음"
+      ],
+      "description": "라르크가 길러 둔 뿌리가 땅을 뚫고 올라와 발목을 감습니다.",
+      "acquisition": "라르크 패시브·고유 스킬",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "fairy"
+    },
+    {
+      "id": "gen_junk_wall",
+      "name": "급조 방책",
+      "category": "생성 카드 · 러스크 · 이번 전투만",
+      "badge": "고블린",
+      "kind": "structure",
+      "texture": "res://assets/cards/junk_barricade.png",
+      "hand_texture": "res://assets/cards/hand/junk_barricade.png",
+      "printed_rules": [
+        "작은 방책(체력 40),",
+        "톱날이 두 배로 깎음"
+      ],
+      "description": "러스크가 톱날을 박아 대충 세운 방책입니다. 튼튼하진 않아도 닿으면 아픕니다.",
+      "acquisition": "러스크 고유 스킬",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "gen_marble",
+      "name": "반짝이 구슬",
+      "category": "생성 카드 · 타크 · 이번 전투만",
+      "badge": "고블린",
+      "kind": "spell",
+      "texture": "res://assets/cards/junk_sack.png",
+      "hand_texture": "res://assets/cards/hand/junk_sack.png",
+      "printed_rules": [
+        "지점 주변 적이",
+        "2초간 넘어짐"
+      ],
+      "description": "타크의 주머니에서 쏟아진 유리구슬입니다. 밟으면 누구든 미끄러집니다.",
+      "acquisition": "타크 고유 스킬",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "goblin"
+    },
+    {
+      "id": "gen_shadow_arrow",
+      "name": "그림자 화살",
+      "category": "생성 카드 · 사야 · 이번 전투만",
+      "badge": "수인",
+      "kind": "spell",
+      "texture": "res://assets/cards/half_moon.png",
+      "hand_texture": "res://assets/cards/hand/half_moon.png",
+      "printed_rules": [
+        "적 하나에",
+        "피해 25"
+      ],
+      "description": "멀리 있는 적을 하나 지울 때마다 사야의 화살통에 그림자가 하나 더 깃듭니다.",
+      "acquisition": "사야 패시브: 가장 먼 적을 쓰러뜨리면",
+      "target_tags": [
+        "enemy"
+      ],
+      "stackable": false,
+      "race": "beastfolk"
+    },
+    {
+      "id": "gen_honey",
+      "name": "꿀단지",
+      "category": "생성 카드 · 우르소 · 이번 전투만",
+      "badge": "수인",
+      "kind": "spell",
+      "texture": "res://assets/cards/golden_mead.png",
+      "hand_texture": "res://assets/cards/hand/golden_mead.png",
+      "printed_rules": [
+        "지점 주변 적",
+        "5초간 크게 느려짐"
+      ],
+      "description": "우르소가 아껴 둔 꿀단지입니다. 끈적한 꿀을 밟은 괴물은 한참 허우적댑니다.",
+      "acquisition": "우르소 패시브: 전투가 시작되면",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "beastfolk"
+    },
+    {
+      "id": "gen_herb_handful",
+      "name": "약초 한 줌",
+      "category": "생성 카드 · 모미 · 이번 전투만",
+      "badge": "수인",
+      "kind": "consumable",
+      "texture": "res://assets/cards/pilgrim_blessing.png",
+      "hand_texture": "res://assets/cards/hand/pilgrim_blessing.png",
+      "printed_rules": [
+        "아군 하나",
+        "체력 15 회복"
+      ],
+      "description": "놀라서 도망치면서도 모미는 약초를 한 줌 쥐어 줍니다.",
+      "acquisition": "모미 패시브·고유 스킬",
+      "target_tags": [
+        "ally"
+      ],
+      "stackable": false,
+      "race": "beastfolk"
+    },
+    {
+      "id": "gen_trophy",
+      "name": "전리품 자랑",
+      "category": "생성 카드 · 크라냐 · 이번 전투만",
+      "badge": "오크",
+      "kind": "spell",
+      "texture": "res://assets/cards/crest_banner.png",
+      "hand_texture": "res://assets/cards/hand/crest_banner.png",
+      "printed_rules": [
+        "크게 자랑하고",
+        "마력 +3"
+      ],
+      "description": "큰 놈을 잡은 크라냐가 소리 높여 자랑합니다. 듣는 사람까지 힘이 납니다.",
+      "acquisition": "크라냐 패시브: 큰 적이 쓰러지면",
+      "target_tags": [
+        "anywhere"
+      ],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "gen_forgive",
+      "name": "나무의 용서",
+      "category": "생성 카드 · 모가 · 이번 전투만",
+      "badge": "오크",
+      "kind": "spell",
+      "texture": "res://assets/cards/old_tree_heart.png",
+      "hand_texture": "res://assets/cards/hand/old_tree_heart.png",
+      "printed_rules": [
+        "지점 주변 적",
+        "2초 묶음"
+      ],
+      "description": "부서진 나무에 모가가 사과하면, 숲이 덩굴로 답합니다.",
+      "acquisition": "모가 패시브: 아군 벽이 부서지면",
+      "target_tags": [
+        "walkable_ground"
+      ],
+      "stackable": false,
+      "race": "orc"
+    },
+    {
+      "id": "gen_ash_charm",
+      "name": "재의 부적",
+      "category": "생성 카드 · 샤가 · 이번 전투만",
+      "badge": "오크",
+      "kind": "spell",
+      "texture": "res://assets/cards/soul_jar.png",
+      "hand_texture": "res://assets/cards/hand/soul_jar.png",
+      "printed_rules": [
+        "적 하나에 피해 20,",
+        "2초 기절"
+      ],
+      "description": "샤가가 전투 전에 미리 그려 둔 재의 부적입니다.",
+      "acquisition": "샤가 패시브: 전투가 시작되면",
+      "target_tags": [
+        "enemy"
+      ],
+      "stackable": false,
+      "race": "orc"
+    }
+  ]
+}

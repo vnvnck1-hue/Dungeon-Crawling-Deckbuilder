@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/nature/fern_clump.glb" id="1"]
+[ext_resource type="Material" path="res://assets/nature/materials/nature_wind_undergrowth.tres" id="2"]
+
+[node name="FernClump" type="Node3D"]
+metadata/nature_id = "fern_clump"
+metadata/label = "펼쳐진 고사리"
+
+[node name="Model" parent="." instance=ExtResource("1")]
+
+[node name="fern_clump" parent="Model" index="0"]
+material_override = ExtResource("2")
+
+[editable path="Model"]
