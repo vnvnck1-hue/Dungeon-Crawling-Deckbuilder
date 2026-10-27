@@ -27,6 +27,8 @@ var drag_pos := Vector2.ZERO
 var over_board := false
 var order: Array = []            # 화면 왼쪽부터 카드 id
 var playable: Dictionary = {}    # card_id → bool(행동력·대상 충족)
+var combo: Dictionary = {}       # card_id → bool(연계 조건이 맞음 — 금빛·붉은빛으로 맥동)
+var costs: Dictionary = {}       # card_id → 지금 비용(명상 등으로 줄면 보석 숫자가 바뀐다)
 var discard_count := 0
 var draw_count := 0
 var fx: Control                  # card_fx.gd(입자 폭발)
@@ -95,10 +97,12 @@ func _update_pile() -> void:
 # ───────────────────────── 앞면 굽기 ─────────────────────────
 
 ## 카드 앞면 텍스처(글자 구운 AtlasTexture). 마녀산장 card_catalog._face 와 같은 방식: 처음엔 빈 그림, 구워지면 그림이 바뀐다.
+## 원화: 전용 원화(assets/cards/synergy/<카드 id>.png, Codex 요청서 docs/art-requests/synergy-cards.md)가 있으면 그것, 없으면 임시 원화.
 func face(card_key: String) -> Texture2D:
 	var card := D.card(card_key)
 	var card_id := D.base_id(card_key)
-	return _face_for(card_id, "res://assets/cards/%s.png" % card.art,
+	var own := "res://assets/cards/synergy/%s.png" % D.root_id(card_key)
+	return _face_for(card_id, own if ResourceLoader.exists(own) else "res://assets/cards/%s.png" % card.art,
 		{"id": card_id, "name": card.name, "category": card.category, "printed_rules": card.rules}, String(D.HEROES[card.hero].name))
 
 
@@ -177,37 +181,96 @@ func _make_view(id: String) -> Control:
 	return v
 
 
-## 비용 보석(왼쪽 위): 행동력 숫자. card_view 가 카드가 돌아설 때 badge 의 부모를 감춘다.
+## 비용 보석(왼쪽 위): 숲 보석 메달(assets/ui/cost_badge, 256 캔버스에 나무 본체 반경 112) 위에 행동력 숫자.
+## 본체 지름이 GEM_BODY 가 되게 텍스처를 키우고, 본체 오른쪽 끝이 제목 글자 시작(카드 폭의 20%)보다 왼쪽에 오게 둔다.
+## 보석 링만 cost_gem 셰이더가 영웅색으로 물들여 천천히 반짝인다. card_view 가 카드가 돌아설 때 badge 의 부모를 감춘다.
+const GEM_BODY := 34.0
+const GEM_CENTER := Vector2(8, 8)
+const GEM_DIR := "res://assets/ui/cost_badge/"
+const GEM_SHADER := preload("res://dungeon/shaders/cost_gem.gdshader")
+
 func _add_gem(v: Control, id: String) -> void:
 	var gem := Control.new()
 	gem.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	gem.position = Vector2(-8, -8)
-	gem.size = Vector2(34, 34)
-	var disc := Panel.new()
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.32, 0.18, 0.62)
-	sb.border_color = Color(D.HEROES[D.card(id).hero].color).lightened(0.25)
-	sb.set_border_width_all(4)
-	sb.set_corner_radius_all(17)
-	sb.shadow_color = Color(0, 0, 0, 0.45)
-	sb.shadow_size = 3
-	disc.add_theme_stylebox_override("panel", sb)
-	disc.size = gem.size
-	disc.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	gem.add_child(disc)
+	gem.size = Vector2.ONE * round(GEM_BODY * 256.0 / 224.0)
+	gem.position = GEM_CENTER - gem.size * 0.5
+	var mat := ShaderMaterial.new()
+	mat.shader = GEM_SHADER
+	mat.set_shader_parameter("hero", Color(D.HEROES[D.card(id).hero].color))
+	mat.set_shader_parameter("seed", float(views.size()) * 1.37 + randf())
+	for layer in ["badge_face", "badge_gem", "badge_frame"]:
+		var t := TextureRect.new()
+		t.texture = load(GEM_DIR + layer + ".png")
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_SCALE
+		t.size = gem.size
+		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if layer == "badge_gem":
+			t.material = mat
+		gem.add_child(t)
 	var l := Label.new()
 	l.text = str(D.card(id).cost)
 	l.add_theme_font_override("font", CardFace.font())
-	l.add_theme_font_size_override("font_size", 22)
+	l.add_theme_font_size_override("font_size", 20)
+	l.add_theme_color_override("font_color", Color(1.0, 0.95, 0.82))
 	l.add_theme_color_override("font_outline_color", Color(0.1, 0.04, 0.16))
-	l.add_theme_constant_override("outline_size", 5)
+	l.add_theme_constant_override("outline_size", 4)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	l.size = gem.size
 	gem.add_child(l)
 	v.add_child(gem)
 	v.badge = l
-	v.set_meta("gem", sb)
+	v.set_meta("gem", mat)
+
+
+## 레벨업으로 고른 카드가 덱에 들어가는 연출: 고른 자리에서 빛나며 떠올랐다가 핑그르 돌며 덱 더미로 날아가 꽂힌다.
+## 도착하면 더미가 튕기고 반짝이며 label(예: "+ 강타")이 떠오른다. 연출이 끝날 때까지 기다린다.
+func fly_to_pile(tex: Texture2D, from: Vector2, s0: float, label: String, col: Color) -> void:
+	if tex == null:
+		return
+	var to := pile_center()
+	fx.z_index = 200   # 어두운 레벨업 화면(같은 CanvasLayer 의 뒤 형제)보다 위에서 날아가게
+	# 1) 고른 카드가 제자리에서 빛나며 살짝 커진다
+	var pop := TextureRect.new()
+	pop.texture = tex
+	pop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pop.stretch_mode = TextureRect.STRETCH_SCALE
+	pop.size = CARD_SIZE * s0
+	pop.pivot_offset = pop.size * 0.5
+	pop.position = from - pop.size * 0.5
+	pop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fx.add_child(pop)
+	fx.card_glow(from, CARD_SIZE * s0, 0.0, CardFx.CREAM, col.lightened(0.3), col, 1.2, 0.7)
+	var tw := pop.create_tween()
+	tw.tween_property(pop, "scale", Vector2(1.12, 1.12), 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(pop, "scale", Vector2(1.0, 1.0), 0.14)
+	await tw.finished
+	pop.queue_free()
+	# 2) 핑그르 돌며 덱 더미로 휘어 날아간다
+	Sfx.play(self, "card_draw")
+	var landed := [false]
+	fx.fly(tex, from, to, CARD_SIZE, s0, 0.5, 0.75, func() -> void: landed[0] = true)
+	while not landed[0]:
+		await get_tree().process_frame
+	# 3) 더미에 꽂힌다: 반짝임 + 더미가 튕기고 카드 이름이 더미 왼쪽에 떠오른다
+	fx.burst(to, 1.0, 36, [CardFx.CREAM, col.lightened(0.3), CardFx.GOLD])
+	fx.float_text(to + Vector2(-CARD_SIZE.x * 1.3, -CARD_SIZE.y * 0.1), label, col.lightened(0.35), 1.1)
+	Sfx.play_or(self, "card_shuffle", "card_draw")
+	_pile.pivot_offset = CARD_SIZE * 0.25
+	var bt := _pile.create_tween()
+	bt.tween_property(_pile, "scale", Vector2(1.25, 1.25), 0.08).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	bt.tween_property(_pile, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	await get_tree().create_timer(0.25).timeout
+	fx.z_index = 0
+
+
+## 손패를 battle.hand 와 맞춘다: 없어진 카드(버림·휘발·강화로 바뀐 키)는 흩어지고, 새 카드(뽑기·생성)는 더미에서 날아든다.
+func sync(card_keys: Array) -> void:
+	for key in views.keys():
+		if not key in card_keys:
+			drop(key)
+	deal(card_keys)
 
 
 ## 카드를 냈다: 오른쪽 위로 핑그르 날아가 앞면을 보여 준 뒤 보랏빛으로 타올라 버림패로 간다.
@@ -354,10 +417,20 @@ func _layout() -> void:
 			else:
 				v.mode = CardView.Mode.HAND
 				v.t_fade = 1.0
-			# 낼 수 없는 카드는 어둡게, 비용 보석은 붉게. 겨누는 동안 다른 캐릭터 카드는 더 어둡게 가라앉는다.
+			# 낼 수 없는 카드는 어둡게, 비용 보석은 빛이 꺼진 회색으로. 겨누는 동안 다른 캐릭터 카드는 더 어둡게 가라앉는다.
 			# (카드 셰이더는 노드 modulate 를 곱한다 — card_view 가 alpha 만 쓰므로 RGB 를 여기서 정한다)
 			var ok: bool = playable.get(id, false)
 			var tone := Color.WHITE if ok else Color(0.55, 0.53, 0.62)
+			# 연계 조건이 맞는 카드: 금빛·붉은빛으로 맥동하며 살짝 떠오른다
+			if ok and combo.get(id, false) and id != selected and id != dragging and id != hovered:
+				var beat := 0.5 + 0.5 * sin(Time.get_ticks_msec() * 0.008)
+				v.t_glow = 0.55 + 0.45 * beat
+				v.glow_color = Color(1.0, 0.55 + 0.25 * beat, 0.2)
+				p.y -= 14.0
+			if v.badge != null:
+				var cst := int(costs.get(id, D.card(id).cost))
+				v.badge.text = str(cst)
+				v.badge.add_theme_color_override("font_color", Color(0.55, 1.0, 0.6) if cst < int(D.card(id).cost) else Color(1.0, 0.95, 0.82))
 			if focus != "" and D.card(id).hero != focus and id != dragging:
 				tone = Color(0.3, 0.28, 0.38)
 				p.y += 28.0
@@ -365,8 +438,8 @@ func _layout() -> void:
 			v.t_pos = p
 			v.t_rot = r
 			v.t_scl = s
-			var sb: StyleBoxFlat = v.get_meta("gem")
-			sb.bg_color = Color(0.32, 0.18, 0.62) if ok else Color(0.42, 0.14, 0.18)
+			var mat: ShaderMaterial = v.get_meta("gem")
+			mat.set_shader_parameter("active", 1.0 if ok else 0.0)
 
 
 func _process(delta: float) -> void:

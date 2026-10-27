@@ -9,8 +9,8 @@ const Fx := preload("res://scripts/visual/fx.gd")
 const CharacterModels := preload("res://scripts/visual/character_models.gd")
 const Readability := preload("res://scripts/visual/character_readability.gd")
 const EnemyOutline := preload("res://scripts/visual/enemy_outline.gd")
-const FrostVfx := preload("res://scripts/visual/vfx/frost_rune_vfx.gd")
 const D := preload("res://dungeon/data/defs.gd")
+const StatusFx := preload("res://dungeon/view/status_fx.gd")
 
 signal arrived
 
@@ -35,9 +35,8 @@ var _speed := 3.4
 var _walking := false
 var _ring: MeshInstance3D
 var _ring_mat: StandardMaterial3D
-var _mark_ring: MeshInstance3D
 var _taunt_ring: MeshInstance3D
-var _freeze_mark: MeshInstance3D
+var status_fx: Node3D            # 쌓이는 상태(표식·냉기·화상·빙결·투지) 3D 표시. view/status_fx.gd
 var _cast_t := -1.0
 var _dead := false
 var _hover := false
@@ -86,6 +85,10 @@ func setup(kind_: String, team_: String, id: int, face_dir: Vector3) -> void:
 	_ring.scale = Vector3(1.0, 0.15, 1.0)
 	add_to_group("readable_characters")
 	Readability.apply(self, "rim_shadow")
+	status_fx = StatusFx.new()
+	status_fx.name = "StatusFx"
+	add_child(status_fx)
+	status_fx.setup(self)
 	face(facing, true)
 
 
@@ -280,8 +283,6 @@ func _process(delta: float) -> void:
 	if _cast_t >= 0.0:
 		_cast_t += delta
 		rig.amount = clampf(_cast_t / 0.32, 0.0, 1.0)
-	if _mark_ring != null and _mark_ring.visible:
-		_mark_ring.rotation.y += delta * 1.6
 	if _taunt_ring != null and _taunt_ring.visible:
 		var k := 1.0 + 0.08 * sin(Time.get_ticks_msec() * 0.008)
 		_taunt_ring.scale = Vector3(k, 0.15, k)
@@ -333,9 +334,8 @@ func die() -> void:
 		return
 	_dead = true
 	_ring.visible = false
-	set_status("mark", false)
 	set_status("taunt", false)
-	set_status("freeze", false)
+	status_fx.clear()
 	Fx.flash(visual, 1.4)
 	var tw := create_tween()
 	tw.tween_property(visual, "rotation:x", -PI * 0.5, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
@@ -365,40 +365,26 @@ func is_dead() -> bool:
 	return _dead
 
 
-## 상태 표시: mark(붉은 조준 고리) · taunt(주황 고리) · freeze(서리 결정 표식)
+## 상태 표시. mark · chill · burn · fury 는 쌓인 수, freeze · taunt 는 1/0. delta > 0 이면 막 걸린 순간의 연출을 같이 낸다.
+## 쌓이는 상태는 status_fx(몸 껍질·발밑·주변 입자), 도발은 발밑 주황 고리.
+func set_stack(status: String, value: int, delta := 0) -> void:
+	if status == "taunt":
+		set_status("taunt", value > 0)
+	else:
+		status_fx.set_value(status, value, delta)
+
+
+## 켜고 끄기(예전 호출 호환): taunt 는 고리, 나머지는 set_stack.
 func set_status(status: String, on: bool) -> void:
-	match status:
-		"mark":
-			if _mark_ring == null:
-				if not on:
-					return
-				_mark_ring = _reticle(Color(1.0, 0.32, 0.25, 0.9))
-			_mark_ring.visible = on
-		"taunt":
-			if _taunt_ring == null:
-				if not on:
-					return
-				_taunt_ring = B.torus(self, 0.62, 0.74, Vector3(0, 0.07, 0), Mats.unshaded(Color(1.0, 0.6, 0.2, 0.8), true, true))
-				_taunt_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-			_taunt_ring.visible = on
-		"freeze":
-			if _freeze_mark == null:
-				if not on:
-					return
-				_freeze_mark = FrostVfx.slow_mark(self)
-			FrostVfx.set_slow_mark(_freeze_mark, on)
-
-
-func _reticle(col: Color) -> MeshInstance3D:
-	var m := Mats.unshaded(col, true, true)
-	var r := B.torus(self, 0.66, 0.72, Vector3(0, 0.08, 0), m)
-	r.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	r.scale = Vector3(1, 0.12, 1)
-	for k in 4:
-		var a := k * PI * 0.5
-		var tick := B.box(r, Vector3(0.08, 0.1, 0.3), Vector3(cos(a), 0, sin(a)) * 0.82, m, Vector3(0, -rad_to_deg(a), 0))
-		tick.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	return r
+	if status != "taunt":
+		set_stack(status, 1 if on else 0)
+		return
+	if _taunt_ring == null:
+		if not on:
+			return
+		_taunt_ring = B.torus(self, 0.62, 0.74, Vector3(0, 0.07, 0), Mats.unshaded(Color(1.0, 0.6, 0.2, 0.8), true, true))
+		_taunt_ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_taunt_ring.visible = on
 
 
 ## 마우스 강조(적: 마녀산장 롤식 붉은 외곽선, 아군: 금빛 고리 밝게).

@@ -11,6 +11,7 @@ const Hud := preload("res://dungeon/view/hud.gd")
 const CardVfx := preload("res://dungeon/view/card_vfx.gd")
 const SoundBank := preload("res://scripts/audio/sound_bank.gd")
 const Fx := preload("res://scripts/visual/fx.gd")
+const Pool := preload("res://scripts/visual/vfx/vfx_pool.gd")
 const Sfx := preload("res://scripts/audio/sfx.gd")
 const WindowMode := preload("res://scripts/visual/window_mode.gd")   # 마녀산장 화면 모드: 처음엔 테두리 없는 전체 화면, F11 전환
 
@@ -135,7 +136,8 @@ func _spawn_view(u) -> Node3D:
 
 
 func _snapshot(u) -> Dictionary:
-	return {"id": u.id, "hp": u.hp, "max_hp": u.max_hp, "block": u.block, "mark": u.mark, "frozen": u.frozen, "taunt": u.taunt}
+	return {"id": u.id, "hp": u.hp, "max_hp": u.max_hp, "block": u.block, "mark": u.mark, "frozen": u.frozen, "taunt": u.taunt,
+		"chill": u.chill, "burn": u.burn, "fury": u.fury}
 
 
 func _spawn_enemies() -> void:
@@ -197,7 +199,7 @@ func _begin_room() -> void:
 
 
 func _player_turn() -> void:
-	battle.begin_player_turn()
+	var ev := battle.begin_player_turn()
 	for u in battle.allies():
 		disp[u.id] = _snapshot(u)
 	hud.set_battle_ui(true)
@@ -206,6 +208,15 @@ func _player_turn() -> void:
 	hand.deal(battle.hand)
 	_refresh()
 	hud.hint("카드를 위로 끌어 적에게 놓거나, 눌러 고른 뒤 적을 누르세요")
+	# 턴 시작 지속 효과(한기 등): 연출한 뒤, 그걸로 방이 끝났으면 흐름을 넘긴다
+	if ev.size() > 1:
+		busy = true
+		await _play_events(ev)
+		busy = false
+		if battle.phase != "player":
+			_after_events()
+		else:
+			_refresh()
 
 
 func _on_end_turn() -> void:
@@ -226,6 +237,7 @@ func _after_events() -> void:
 		var u = battle.unit(id)
 		if u != null:
 			disp[id] = _snapshot(u)
+	hand.sync(battle.hand)
 	_refresh()
 	# 레벨업한 캐릭터가 있으면 순서대로 새 카드를 고른다(고르는 동안 전투는 멈춘다). 전멸했으면 건너뛴다
 	while not battle.pending_levelups.is_empty():
@@ -257,11 +269,19 @@ func _offer_level_up(u) -> void:
 		return
 	if views.has(u.id):
 		Fx.celebrate(views[u.id].global_position, D.HEROES[u.kind].color, 1.4)
-	hud.show_level_up(u.kind, u.level, options, hand.face)
+	hud.show_level_up(u.kind, u.level, options, hand.face, battle.upgrade_option(u))
 	var chosen: String = await hud.card_chosen
-	battle.add_card(u, chosen)
-	Sfx.play_or(self, "card_shuffle", "card_draw")
-	hud.show_banner("%s 덱에 [%s] 추가" % [u.name(), String(D.card(chosen).name)], D.HEROES[u.kind].color.lightened(0.3), 0.8)
+	var col: Color = D.HEROES[u.kind].color
+	if chosen.begins_with("up:"):
+		var cid := chosen.trim_prefix("up:")
+		battle.upgrade_card(u, cid)
+		hud.show_banner("%s의 [%s] 강화!" % [u.name(), String(D.card(cid).name)], Color(1.0, 0.85, 0.4), 0.8)
+		await hand.fly_to_pile(hud.picked_texture, hud.picked_center, hud.picked_scale, "강화 " + String(D.card(cid + "+").name), Color(1.0, 0.82, 0.4))
+		hand.sync(battle.hand)
+	else:
+		battle.add_card(u, chosen)
+		hud.show_banner("%s 덱에 [%s] 추가" % [u.name(), String(D.card(chosen).name)], col.lightened(0.3), 0.8)
+		await hand.fly_to_pile(hud.picked_texture, hud.picked_center, hud.picked_scale, "+ " + String(D.card(chosen).name), col)
 	await get_tree().create_timer(0.3).timeout
 	busy = false
 	_refresh()
@@ -319,15 +339,19 @@ func _play_events(ev: Array) -> void:
 		var e: Dictionary = ev[i]
 		i += 1
 		match String(e.type):
-			"cast", "enemy":
+			"cast", "enemy", "aura":
 				var group: Array = []
-				while i < ev.size() and not String(ev[i].type) in ["cast", "enemy", "turn", "room_clear", "defeat"]:
+				while i < ev.size() and not String(ev[i].type) in ["cast", "enemy", "aura", "turn", "room_clear", "defeat"]:
 					group.append(ev[i])
 					i += 1
 				if e.type == "cast":
 					await _play_cast(e, group)
+				elif e.type == "aura":
+					await _play_aura(e, group)
 				else:
 					await _play_enemy(e, group)
+			"exhaust":
+				hand.sync(battle.hand)
 			"turn":
 				if e.side == "enemy":
 					hud.show_banner("적 턴", Color(1.0, 0.55, 0.5), 0.5)
@@ -400,6 +424,13 @@ func _play_enemy(e: Dictionary, group: Array) -> void:
 					allies.append(views[u.id])
 			var hit := func(uid: int) -> void: _apply_unit(uid, per.get(uid, []))
 			await vfx.play_enemy(String(battle.unit(e.unit).kind), v, target, String(e.action), hit, allies)
+			# 가시 갑옷 반사 등 적 자신에게 돌아온 사건
+			if per.has(e.unit) and views.has(e.unit):
+				_apply_unit(e.unit, per[e.unit])
+		"burn":
+			await vfx.play_enemy("", v, null, "burn", func(_u): pass, [])
+			_apply_unit(e.unit, per.get(e.unit, []))
+			await get_tree().create_timer(0.25).timeout
 		"frozen":
 			await vfx.play_enemy("", v, null, "frozen", func(_u): pass, [])
 			v.set_status("freeze", false)
@@ -415,14 +446,15 @@ func _apply_unit(uid: int, list: Array) -> void:
 	if v == null or not is_instance_valid(v):
 		return
 	var d: Dictionary = disp.get(uid, {})
+	# 반응(증기 폭발·파쇄)이 같이 터지면 직전 상태 글은 띄우지 않는다(반응 이름만 크게)
+	var reacted := list.any(func(x): return x.type == "reaction" and String(x.kind) in ["steam", "shatter"])
 	for x in list:
 		match String(x.type):
 			"damage":
 				d["hp"] = x.hp
 				d["block"] = maxi(0, int(d.get("block", 0)) - int(x.blocked))
 				if x.amount > 0:
-					Fx.damage_number(world, v.chest() + Vector3(0, 0.6, 0), x.amount,
-						Color(1.0, 0.95, 0.55) if v.team == "enemy" else Color(1.0, 0.5, 0.45))
+					Fx.damage_number(world, v.chest() + Vector3(0, 0.6, 0), x.amount, _damage_color(v, String(x.get("kind", "attack"))))
 					# 타격감: 피해가 클수록(최대 체력 대비) 세게 — 움찔·넉백·번쩍(unit_view) + 히트스탑·화면 흔들림(여기)
 					var ratio: float = float(x.amount) / maxf(float(d.get("max_hp", 20)), 1.0)
 					var strength: float = clampf(0.6 + ratio * 2.2 + (0.4 if x.hp <= 0 else 0.0), 0.6, 1.6)
@@ -452,8 +484,26 @@ func _apply_unit(uid: int, list: Array) -> void:
 				Fx.float_text(world, v.chest() + Vector3(0, 1.0, 0), "방어 +%d" % x.amount, Color(0.55, 0.82, 1.0))
 				Fx.hit(v.chest(), Color(0.45, 0.78, 1.0))
 			"status":
-				d[{"mark": "mark", "freeze": "frozen", "taunt": "taunt"}[x.status]] = 2 if x.status == "mark" else true
-				v.set_status(x.status, true)
+				var st := String(x.status)
+				var val := int(x.value)
+				if st in ["freeze", "taunt"]:
+					d["frozen" if st == "freeze" else "taunt"] = val > 0
+				else:
+					d[st] = val
+				v.set_stack(st, val, int(x.get("delta", 0)))
+				if not (reacted and st in ["chill", "burn", "freeze"]):
+					_status_text(v, st, val, int(x.get("delta", 0)))
+			"reaction":
+				_play_reaction(v, x)
+			"power":
+				var pw: Dictionary = D.POWERS[x.power]
+				Fx.celebrate(v.global_position, D.HEROES[v.kind].color, 1.1)
+				Fx.float_text(world, v.chest() + Vector3(0, 1.5, 0), "지속: " + String(pw.name), D.HEROES[v.kind].color.lightened(0.35))
+				hud.powers = battle.powers
+			"ap":
+				Fx.float_text(world, v.chest() + Vector3(0, 1.7, 0), "행동력 +%d" % x.amount, Color(1.0, 0.85, 0.35))
+				Fx.celebrate(v.global_position, Color(1.0, 0.85, 0.35), 0.7)
+				Sfx.play_or(self, "relic_get", "card_draw")
 			"push":
 				if x.bumped:
 					var tw := v.create_tween()
@@ -475,6 +525,82 @@ func _apply_unit(uid: int, list: Array) -> void:
 					hand.drop_hero(v.kind)
 	if disp.has(uid):
 		disp[uid] = d
+
+
+func _damage_color(v: Node3D, kind: String) -> Color:
+	if v.team != "enemy":
+		return Color(1.0, 0.5, 0.45)
+	match kind:
+		"burn": return Color(1.0, 0.55, 0.15)
+		"reaction": return Color(0.75, 0.95, 1.0)
+		"collide": return Color(1.0, 0.8, 0.6)
+	return Color(1.0, 0.95, 0.55)
+
+
+## 상태가 걸리거나 쌓일 때 머리 위에 뜨는 글(쌓인 수 포함). 줄어들 때는 띄우지 않는다.
+func _status_text(v: Node3D, st: String, val: int, delta: int) -> void:
+	if delta <= 0 and not (st == "freeze" and val > 0):
+		return
+	var at: Vector3 = v.global_position + Vector3(randf_range(-0.3, 0.3), float(v.hp_offset) + 1.25, 0)   # 머리 위 칩보다 위에서
+	match st:
+		"mark": Fx.float_text(world, at, "표식 +%d → %d" % [delta, val], Color(1.0, 0.4, 0.35))
+		"burn": Fx.float_text(world, at, "화상 %d" % val, Color(1.0, 0.62, 0.2))
+		"chill": Fx.float_text(world, at, "냉기 %d/%d" % [val, D.CHILL_FREEZE], Color(0.6, 0.88, 1.0))
+		"freeze":
+			Fx.float_text(world, at + Vector3(0, 0.3, 0), "빙결!", Color(0.8, 0.97, 1.0))
+			Sfx.play_or(self, "frost_burst", "slow_apply")
+		"fury": Fx.float_text(world, at, "투지 %d" % val, Color(1.0, 0.35, 0.25))
+		"taunt": pass
+
+
+## 교차 반응 연출: 파쇄(얼음 파편) · 증기 폭발(흰 증기 구름) · 충돌(충격) · 전도(번개 불꽃). 큰 글로 이름을 띄운다.
+func _play_reaction(v: Node3D, x: Dictionary) -> void:
+	var P = Fx._p()
+	match String(x.kind):
+		"shatter":
+			Fx.burst(world, v.chest(), Color(0.7, 0.92, 1.0), 30, 6.0, 0.22, 0.8, true, -9.0)
+			Fx.hit(v.chest(), Color(0.8, 0.95, 1.0), true)
+			Fx.float_text(world, v.global_position + Vector3(0, float(v.hp_offset) + 1.4, 0), "파쇄!", Color(0.75, 0.95, 1.0))
+			Sfx.play_or(self, "frost_burst", "lodge_hit")
+			world.shake(0.25, 0.3)
+			_hitstop(0.1)
+		"steam":
+			if P != null:
+				for k in 14:
+					var dir := Vector3(randf_range(-1, 1), randf_range(0.3, 1.2), randf_range(-1, 1)).normalized()
+					P.emit(Pool.CLOUD, v.chest(), dir * randf_range(1.5, 3.5), randf_range(0.8, 1.3), randf_range(0.7, 1.2),
+						Color(0.95, 0.97, 1.0, 0.85), {"grow": 2.4, "drag": 2.2, "pop": true})
+				P.emit(Pool.RING, v.global_position + Vector3(0, 0.1, 0), Vector3.ZERO, 0.5, 0.8, Color(1, 1, 1, 0.9), {"ground": true, "additive": true, "grow": 5.0})
+			Fx.explosion(world, v.chest(), 1.2)
+			Fx.float_text(world, v.global_position + Vector3(0, float(v.hp_offset) + 1.4, 0), "증기 폭발!", Color(1.0, 1.0, 1.0))
+			Sfx.play_or(self, "fireball_boom", "lodge_hit")
+			world.shake(0.3, 0.35)
+			_hitstop(0.12)
+		"collide":
+			Fx.hit(v.chest(), Color(1.0, 0.85, 0.6), true)
+			Fx.snow_kick(v.global_position, -world.lane, 4, 1.2)
+			Fx.float_text(world, v.chest() + Vector3(0, 1.4, 0), "충돌!", Color(1.0, 0.82, 0.55))
+			Sfx.play_or(self, "lodge_hit", "mon_hit")
+			world.shake(0.18, 0.25)
+		"conduct":
+			Fx.hit(v.chest(), Color(0.55, 0.9, 1.0))
+			Fx.float_text(world, v.chest() + Vector3(0, 1.4, 0), "전도", Color(0.6, 0.9, 1.0))
+
+
+## 턴 시작 지속 효과(한기): 시전자에게서 냉기가 퍼져 적마다 걸린다.
+func _play_aura(e: Dictionary, group: Array) -> void:
+	var per := _by_unit(group)
+	var src: Node3D = views.get(int(e.get("unit", 0)))
+	if src != null and is_instance_valid(src):
+		src.attack("cast", src.global_position + src.facing)
+		Fx.cast(src.tip_pos(), src.global_position, Color(0.62, 0.86, 1.0))
+		Fx.float_text(world, src.chest() + Vector3(0, 1.4, 0), String(D.POWERS[e.power].name), Color(0.7, 0.9, 1.0))
+	await get_tree().create_timer(0.35).timeout
+	for uid in per:
+		_apply_unit(uid, per[uid])
+		await get_tree().create_timer(0.06).timeout
+	await get_tree().create_timer(0.3).timeout
+	_refresh()
 
 
 ## 히트스탑: 맞는 순간 모든 움직임이 잠깐 멈춘다(실제 시간 sec). 겹치면 더 긴 쪽까지.
@@ -501,6 +627,14 @@ func _refresh() -> void:
 	for c in battle.hand:
 		pl[c] = battle.playable(c)
 	hand.playable = pl
+	var combo := {}
+	var costs := {}
+	for c in battle.hand:
+		combo[c] = battle.phase == "player" and battle.combo_active(c)
+		costs[c] = battle.cost_of(c)
+	hand.combo = combo
+	hand.costs = costs
+	hud.powers = battle.powers
 	hand.set_piles(battle.draw_pile.size(), battle.discard.size())
 	for u in battle.allies(true):
 		if views.has(u.id):
@@ -664,7 +798,8 @@ func _on_motion(p: Vector2) -> void:
 	var u = battle.at(hover_cell)
 	if u != null and u.team == "enemy" and target_card == "":
 		var it := battle.intent(u)
-		hud.hint("%s · 체력 %d/%d · 다음 행동: %s" % [u.name(), u.hp, u.max_hp, hud._intent_text(it)])
+		var st: String = hud.status_text(u)
+		hud.hint("%s · 체력 %d/%d · 다음 행동: %s%s" % [u.name(), u.hp, u.max_hp, hud._intent_text(it), ("  ·  " + st) if st != "" else ""])
 		_hover_enemy = u.id
 	elif _hover_enemy != 0 and target_card == "":
 		_hover_enemy = 0

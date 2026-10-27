@@ -23,7 +23,12 @@ uniform vec2 room_axis = vec2(.866,-.5);
 // 횃불 자리: 방마다 따뜻한 빛 웅덩이(xy 위치, z 반경, w 세기)
 uniform vec4 warm_spots[16];
 uniform int warm_count = 0;
+// 지형 단·절벽(view/terrain.gd): 가파른 면은 바위, 낮은 땅은 푸르게 가라앉고 물가는 젖는다
+uniform float water_y = -3.4;
+uniform vec4 cliff_dark : source_color = vec4(.09,.08,.19,1.0);
+uniform vec4 cliff_light : source_color = vec4(.31,.29,.5,1.0);
 varying vec3 world_pos;
+varying vec3 world_nrm;
 
 vec2 patch_hash(vec2 p) {
 	return fract(sin(vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3))))*43758.5453);
@@ -68,7 +73,10 @@ float room_distance(vec2 p) {
 	}
 	return d;
 }
-void vertex() { world_pos = (MODEL_MATRIX*vec4(VERTEX,1.0)).xyz; }
+void vertex() {
+	world_pos = (MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;
+	world_nrm = normalize((MODEL_MATRIX*vec4(NORMAL,0.0)).xyz);
+}
 void fragment() {
 	vec2 paint_uv = world_pos.xz / texture_world_size;
 	vec3 snow_paint = ground_paint(painted_snow,paint_uv);
@@ -95,6 +103,27 @@ void fragment() {
 	float pocket = .5+.5*sin(world_pos.x*.22-world_pos.z*.19);
 	vec3 forest_tint = mix(vec3(.25,.16,.40),vec3(.11,.32,.36),pocket);
 	c = mix(c,c*.72+forest_tint*.18,outer*.55);
+	// 절벽 면: 붓터치를 세로로 펴 바르고 지층 띠를 넣는다. 위 가장자리는 눈 언저리로 밝게 남는다
+	vec3 n = normalize(world_nrm);
+	float cliff = 1.0-smoothstep(.5,.8,n.y);
+	vec2 hd = normalize(n.xz+vec2(.0001));
+	vec2 cuv = vec2(dot(world_pos.xz,vec2(-hd.y,hd.x)),world_pos.y*1.6)/texture_world_size;
+	vec3 rock_paint = ground_paint(painted_trail,cuv*1.3+vec2(9.1,3.7));
+	float rl = dot(rock_paint,vec3(.333));
+	float strata = .78+.22*smoothstep(-.3,.6,sin(world_pos.y*3.1+rl*6.0+world_pos.x*.13));
+	vec3 rock = mix(cliff_dark.rgb,cliff_light.rgb,clamp(rl*1.15-.1,0.0,1.0))*strata;
+	// 절벽이 화면을 향하면(카메라 쪽) 조금 더 밝게 — 단의 앞면이 읽히도록
+	rock *= .9+.45*clamp(n.z,0.0,1.0);
+	c = mix(c,rock,cliff);
+	// 낮은 땅은 푸르게 가라앉고, 높은 단은 달빛에 조금 더 밝다
+	float low = smoothstep(-.4,water_y,world_pos.y);
+	c = mix(c,c*vec3(.58,.66,.95),low*.65);
+	c *= 1.0+smoothstep(1.0,9.0,world_pos.y)*.12;
+	// 물가: 젖은 짙은 띠 + 물에 닿는 하얀 결
+	float wet = 1.0-smoothstep(.0,.7,world_pos.y-water_y);
+	c = mix(c,c*vec3(.45,.5,.7),wet);
+	float foam = (1.0-smoothstep(.0,.14,abs(world_pos.y-water_y-.06)))*(.6+.4*sin(world_pos.x*3.0+world_pos.z*2.1));
+	c = mix(c,vec3(.7,.78,1.0),foam*.45);
 	float warm = 0.0;
 	for (int i=0;i<warm_count;i++) {
 		vec2 dl = (world_pos.xz-warm_spots[i].xy)/max(warm_spots[i].z,.01);
@@ -103,7 +132,8 @@ void fragment() {
 	c = mix(c,vec3(1.0,.53,.23),warm*.6*warm_enabled);
 	c = mix(c,vec3(dot(c,vec3(.2126,.7152,.0722))),ground_neutral)*ground_tint.rgb;
 	ALBEDO = c*ground_albedo;
-	EMISSION = c*ground_emission;
+	// 달빛을 등진 절벽 앞면도 형태가 읽히게 스스로 조금 더 빛난다
+	EMISSION = c*ground_emission*(1.0+cliff*.7);
 	ROUGHNESS=1.0; SPECULAR=0.0;
 	FOG = colored_air(world_pos,VERTEX,INV_VIEW_MATRIX[3].xyz);
 }

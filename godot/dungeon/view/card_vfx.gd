@@ -30,7 +30,7 @@ class Projectile extends Node3D:
 	var to := Vector3.ZERO
 	var flight := 0.4
 	var arc := 0.6
-	var look := "arrow"      # arrow · fire_arrow · bolt · bone · rain
+	var look := "arrow"      # arrow · fire_arrow · bolt · bone · rain · shield · ember
 	var spin := 0.0
 	var _t := 0.0
 	var _shaft: Node3D
@@ -55,6 +55,17 @@ class Projectile extends Node3D:
 				core.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 				B.omni(self, Vector3.ZERO, Color(0.8, 0.55, 1.0), 1.4, 2.8)
 				Ribbon.follow(get_parent(), self, Color(0.62, 0.3, 1.0), Color(1.0, 0.9, 1.0), 0.3, 0.3, 1.7)
+			"shield":
+				# 던진 방패: 납작한 원판이 빙글빙글
+				_shaft = B.node(self, Vector3.ZERO, Vector3.ZERO, "Shield")
+				B.cyl(_shaft, 0.24, 0.24, 0.04, Vector3.ZERO, Mats.solid(Color("7b4a2e")), 12, Vector3(90, 0, 0))
+				B.sphere(_shaft, 0.06, Vector3(0, 0, 0.03), Mats.solid(Color("aeb4c4")), Vector3(1, 1, 0.5), 8, 4)
+				Ribbon.follow(get_parent(), self, Color(0.85, 0.9, 1.0), Color(1, 1, 1), 0.16, 0.22, 1.2)
+			"ember":
+				var core := B.sphere(self, 0.11, Vector3.ZERO, Mats.glow(Color(1.0, 0.55, 0.15), 6.0), Vector3.ONE, 8, 4)
+				core.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				B.omni(self, Vector3.ZERO, Color(1.0, 0.5, 0.15), 1.4, 2.6)
+				Ribbon.follow(get_parent(), self, Color(1.0, 0.4, 0.1), Color(1.0, 0.9, 0.5), 0.24, 0.3, 1.6)
 			"bone":
 				_shaft = B.node(self, Vector3.ZERO, Vector3.ZERO, "Bone")
 				B.cyl(_shaft, 0.03, 0.03, 0.34, Vector3.ZERO, Mats.solid(Color("e6dcc4")), 6, Vector3(0, 0, 90))
@@ -71,10 +82,14 @@ class Projectile extends Node3D:
 		var vel := global_position - prev
 		if look == "bone":
 			_shaft.rotation.z += delta * 18.0
+		elif look == "shield":
+			_shaft.rotation.y += delta * 22.0
 		elif vel.length() > 0.0005:
 			look_at(global_position + vel, Vector3.UP if absf(vel.normalized().y) < 0.98 else Vector3.RIGHT)
 		if look == "bolt" and delta > 0.0:
 			Fx.comet_head(global_position, vel / delta, Fx.C_MAGIC, 0.9)
+		elif look == "ember" and delta > 0.0:
+			Fx.comet_head(global_position, vel / delta, C_FIRE, 0.8)
 		if u >= 1.0:
 			landed.emit()
 			queue_free()
@@ -274,7 +289,7 @@ func play_card(card_id: String, caster, center: Vector3, targets: Array, cells: 
 			await _wait(0.4)
 		"magic_bolt":
 			var t = targets[0]
-			var frost: bool = card.get("freeze", false)
+			var frost: bool = card.has("chill") or card.get("shatter", false)
 			var imp: float = caster.attack("cast", t.global_position)
 			await _wait(imp)
 			Fx.cast(caster.tip_pos(), caster.global_position, C_FROST if frost else Fx.C_MAGIC)
@@ -316,6 +331,84 @@ func play_card(card_id: String, caster, center: Vector3, targets: Array, cells: 
 				await _wait(0.12)
 				from = to
 			await _wait(0.4)
+		"shield_throw":
+			# 방패를 던져 맞히고, 방패는 돌아온다
+			var t = targets[0]
+			var imp: float = caster.attack("slash", t.global_position)
+			await _wait(imp)
+			Sfx.play(caster, "ally_attack")
+			var p := _shoot(caster.chest(), t.chest(), "shield", 20.0, 0.5)
+			await p.landed
+			Fx.hit(t.chest(), C_STEEL, true)
+			world.shake(0.18, 0.25)
+			hit.call(t.unit_id)
+			Sfx.play(caster, "lodge_hit")
+			_shoot(t.chest(), caster.chest(), "shield", 22.0, 0.4)
+			await _wait(0.3)
+		"pull":
+			# 빛 사슬로 휘감아 끌어당긴다
+			var t = targets[0]
+			var imp: float = caster.attack("slash", t.global_position)
+			await _wait(imp)
+			Sfx.play(caster, "ally_attack")
+			var P = Fx._p()
+			if P != null:
+				var from: Vector3 = caster.chest()
+				var to: Vector3 = t.chest()
+				for k in 10:
+					P.emit(Pool.GLOW, from.lerp(to, k / 9.0), Vector3.ZERO, 0.3, 0.2, Color(1.0, 0.75, 0.4), {"additive": true})
+			Fx.hit(t.chest(), Color(1.0, 0.75, 0.4))
+			hit.call(t.unit_id)
+			await _wait(0.4)
+		"ember":
+			# 작은 불씨 하나가 날아가 화르르 붙는다(확산·폭연도)
+			var t = targets[0]
+			var imp: float = caster.attack("cast", t.global_position)
+			await _wait(imp)
+			Fx.cast(caster.tip_pos(), caster.global_position, C_FIRE)
+			Sfx.play(caster, "magic_bolt")
+			var p := _shoot(caster.tip_pos(), t.chest(), "ember", 14.0, 0.8)
+			await p.landed
+			Fx.burst(self, t.chest(), C_FIRE, 16, 3.0, 0.2, 0.6, true, 2.0)
+			Fx.hit(t.chest(), C_FIRE)
+			hit.call(t.unit_id)
+			Sfx.play_or(caster, "fireball_boom", "bolt_hit")
+			await _wait(0.3)
+		"arrow_storm":
+			# 하늘로 쏘아 올린 화살이 무작위 적에게 하나씩 쏟아진다
+			var imp: float = caster.attack("draw", caster.global_position + caster.facing * 4.0)
+			await _wait(imp)
+			Sfx.play_or(caster, "bow_shot", "ally_attack")
+			_shoot(caster.tip_pos(), caster.tip_pos() + Vector3(0, 9, 0), "arrow", 30.0, 0.0)
+			await _wait(0.35)
+			for t in targets:
+				if not is_instance_valid(t):
+					continue
+				var land: Vector3 = t.chest()
+				var p := _shoot(land + Vector3(randf_range(-1.0, 1.0), 7.0, randf_range(-1.0, 1.0)), land, "arrow", 30.0, 0.0)
+				await p.landed
+				Fx.hit(land, C_ARROW)
+				hit.call(t.unit_id)
+				Sfx.play_or(caster, "arrow_hit", "bolt_hit")
+			await _wait(0.3)
+		"power", "create":
+			# 지속 카드·생성 카드: 시전자 둘레에 영웅색 고리가 솟고 빛 입자가 오른다
+			var col: Color = D.HEROES[caster.kind].color if D.HEROES.has(caster.kind) else C_BLOCK
+			var imp: float = caster.attack("cast" if caster.kind == "mage" else ("draw" if caster.kind == "archer" else "stab"), caster.global_position + caster.facing)
+			await _wait(imp * 0.7)
+			Sfx.play_or(caster, "relic_get", "purify")
+			var P = Fx._p()
+			if P != null:
+				for k in 3:
+					P.emit(Pool.RING, caster.global_position + Vector3(0, 0.08, 0), Vector3.ZERO, 0.6 + k * 0.12, 0.6, Color(col, 0.9),
+						{"ground": true, "additive": true, "grow": 3.5 + k * 1.2})
+				for k in 12:
+					P.emit(Pool.SPARKLE, caster.global_position + Vector3(randf_range(-0.4, 0.4), 0.2, randf_range(-0.4, 0.4)),
+						Vector3(0, randf_range(2.0, 3.5), 0), 0.8, 0.16, col.lightened(0.4), {"additive": true, "drag": 0.8})
+			Fx.summon(caster.global_position, col)
+			block_fx.call()
+			hit.call(caster.unit_id)
+			await _wait(0.5)
 		_:
 			for t in targets:
 				hit.call(t.unit_id)
@@ -371,5 +464,16 @@ func play_enemy(kind: String, e, target, action: String, hit: Callable, allies: 
 			Fx.hit(e.chest(), C_FROST)
 			Sfx.play(e, "slow_apply")
 			await _wait(0.45)
+		"burn":
+			# 화상: 몸에서 불길이 확 치솟는다
+			Fx.burst(self, e.chest(), C_FIRE, 18, 3.2, 0.24, 0.6, true, 2.5)
+			Fx.hit(e.chest(), C_FIRE, true)
+			var P = Fx._p()
+			if P != null:
+				for k in 8:
+					P.emit(Pool.GLOW, e.global_position + Vector3(randf_range(-0.3, 0.3), 0.2, randf_range(-0.3, 0.3)),
+						Vector3(0, randf_range(2.5, 4.0), 0), 0.5, 0.5, Color(1.0, 0.5, 0.12), {"additive": true, "grow": 0.3})
+			Sfx.play_or(e, "fireball_boom", "bolt_hit")
+			await _wait(0.3)
 		_:
 			await _wait(0.1)

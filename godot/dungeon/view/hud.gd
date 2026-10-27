@@ -5,6 +5,9 @@ extends Control
 const CardFace := preload("res://scripts/ui/card_face.gd")
 const D := preload("res://dungeon/data/defs.gd")
 const Sfx := preload("res://scripts/audio/sfx.gd")
+const StatusChip := preload("res://dungeon/view/status_chip.gd")
+
+const CHIP_ORDER := ["freeze", "mark", "burn", "chill", "fury", "taunt"]
 
 signal end_turn_pressed
 signal start_pressed(heroes: Array)
@@ -19,8 +22,9 @@ const ENEMY_HP := Color(0.95, 0.3, 0.32)
 const BLOCK := Color(0.45, 0.78, 1.0)
 const XP := Color(0.75, 0.55, 1.0)
 
-var bars: Dictionary = {}          # unit id → {root, fill, back, hp, block, status, intent}
-var panels: Dictionary = {}        # hero kind → {root, name, hp, pips, move, xp_fill, xp_text, style}
+var bars: Dictionary = {}          # unit id → {root, fill, back, hp, block, chips, chip_row, intent}
+var panels: Dictionary = {}        # hero kind → {root, name, hp, pips, move, xp_fill, xp_text, style, powers}
+var powers: Dictionary = {}        # battle.powers(지속 효과) — 캐릭터 패널 위에 이름을 띄운다
 var top_label: Label
 var turn_label: Label
 var hint_label: Label
@@ -30,6 +34,9 @@ var _select_root: Control
 var _result_root: Control
 var _level_root: Control
 var _level_buttons: Array = []     # 레벨업 선택지 버튼(검증 도구가 pick_option 으로 누른다)
+var picked_texture: Texture2D      # 레벨업에서 고른 카드 그림·화면 가운데·배율(손패 카드 128px 기준) — 덱으로 날아가는 연출용
+var picked_center := Vector2.ZERO
+var picked_scale := 1.0
 var _picked: Array = []
 
 
@@ -118,15 +125,16 @@ func add_bar(id: int, team: String) -> void:
 	hp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var block := _label(15, BLOCK, root)
 	block.position = Vector2(38, -6)
-	var status := _label(14, Color(1.0, 0.55, 0.4), root)
-	status.position = Vector2(-36, 25)
-	status.size = Vector2(72, 18)
-	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	# 상태 칩 줄(의도 글 위 — 몸을 가리지 않게): 걸린 상태만 가운데 정렬로 늘어선다
+	var chip_row := Control.new()
+	chip_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chip_row.position = Vector2(0, -66)
+	root.add_child(chip_row)
 	var intent := _label(18, Color(1.0, 0.86, 0.6), root)
 	intent.position = Vector2(-60, -28)
 	intent.size = Vector2(120, 24)
 	intent.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	bars[id] = {"root": root, "fill": fill, "hp": hp, "block": block, "status": status, "intent": intent}
+	bars[id] = {"root": root, "fill": fill, "hp": hp, "block": block, "chips": {}, "chip_row": chip_row, "intent": intent}
 
 
 ## 딤드 강조 중: 이 유닛들의 막대만 밝게, 나머지는 흐리게. 빈 배열이면 원래대로.
@@ -163,16 +171,49 @@ func update_bar(u, intent := {}) -> void:
 	b.fill.size.x = 68.0 * clampf(float(u.hp) / float(u.max_hp), 0.0, 1.0)
 	b.hp.text = "%d/%d" % [u.hp, u.max_hp]
 	b.block.text = ("방어 %d" % u.block) if u.block > 0 else ""
-	var st: Array = []
-	if u.mark > 0:
-		st.append("표식")
-	if u.frozen:
-		st.append("빙결")
-	if u.taunt:
-		st.append("도발")
-	b.status.text = " · ".join(st)
+	_update_chips(b, u)
 	b.intent.text = _intent_text(intent)
 	b.intent.add_theme_color_override("font_color", Color(1.0, 0.55, 0.45) if intent.get("action", "") in ["attack", "roar"] else Color(0.8, 0.85, 1.0))
+
+
+## 걸린 상태만 칩으로(값이 오르면 칩이 튕긴다). u: 화면 값(main.disp) — mark·chill·burn·fury 는 쌓인 수.
+func _update_chips(b: Dictionary, u) -> void:
+	var vals := {"freeze": 1 if u.get("frozen", false) else 0, "mark": int(u.get("mark", 0)), "burn": int(u.get("burn", 0)),
+		"chill": int(u.get("chill", 0)), "fury": int(u.get("fury", 0)), "taunt": 1 if u.get("taunt", false) else 0}
+	var shown: Array = []
+	for st in CHIP_ORDER:
+		var v: int = vals[st]
+		var chip: Control = b.chips.get(st)
+		if v <= 0:
+			if chip != null:
+				chip.queue_free()
+				b.chips.erase(st)
+			continue
+		if chip == null:
+			chip = StatusChip.new()
+			chip.setup(st)
+			b.chip_row.add_child(chip)
+			b.chips[st] = chip
+		if chip.value != v:
+			chip.set_value(v)
+		shown.append(chip)
+	var w := StatusChip.SIZE + 4.0
+	for i in shown.size():
+		shown[i].position = Vector2((i - (shown.size() - 1) * 0.5) * w - StatusChip.SIZE * 0.5, 0)
+
+
+## 적 상태를 글로(마우스로 가리킨 적 설명). 없으면 "".
+func status_text(u) -> String:
+	var st: Array = []
+	if u.frozen:
+		st.append("빙결")
+	if u.mark > 0:
+		st.append("표식 %d(받는 피해 +%d)" % [u.mark, u.mark])
+	if u.burn > 0:
+		st.append("화상 %d" % u.burn)
+	if u.chill > 0:
+		st.append("냉기 %d/%d" % [u.chill, D.CHILL_FREEZE])
+	return " · ".join(st)
 
 
 func _intent_text(it: Dictionary) -> String:
@@ -241,7 +282,12 @@ func build_panels(heroes: Array) -> void:
 			pips.append(ps)
 		var move := _label(13, Color(0.75, 0.9, 1.0), root)
 		move.position = Vector2(20, 28)
-		panels[h] = {"root": root, "name": name_l, "hp": hp, "pips": pips, "move": move, "xp_fill": xp_fill, "xp_text": xp_text, "style": sb}
+		# 지속 효과(이번 방): 패널 위에 이름을 띄운다
+		var pw := _label(13, D.HEROES[h].color.lightened(0.4), root)
+		pw.position = Vector2(-98, -20)
+		pw.size = Vector2(196, 18)
+		pw.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		panels[h] = {"root": root, "name": name_l, "hp": hp, "pips": pips, "move": move, "xp_fill": xp_fill, "xp_text": xp_text, "style": sb, "powers": pw}
 
 
 ## centers: hand.group_centers(). u: Unit 또는 null(쓰러짐)
@@ -256,7 +302,12 @@ func update_panel(h: String, u, center_x: float, ap_cap: int) -> void:
 		return
 	p.root.modulate = Color(0.55, 0.5, 0.6) if u.dead else Color.WHITE
 	p.name.text = "%s  Lv%d" % [String(D.HEROES[h].name), u.level]
-	p.hp.text = "체력 %d/%d" % [u.hp, u.max_hp] + (("  방어 %d" % u.block) if u.block > 0 else "")
+	p.hp.text = "체력 %d/%d" % [u.hp, u.max_hp] + (("  방어 %d" % u.block) if u.block > 0 else "") + (("  투지 %d" % u.fury) if u.fury > 0 else "")
+	var pw: Array = []
+	for id in powers:
+		if String(D.POWERS[id].hero) == h:
+			pw.append("◆ " + String(D.POWERS[id].text) % int(powers[id]) if "%d" in String(D.POWERS[id].text) else "◆ " + String(D.POWERS[id].text))
+	p.powers.text = "   ".join(pw)
 	p.xp_fill.size.x = 178.0 * clampf(float(u.xp) / float(u.xp_next()), 0.0, 1.0)
 	p.xp_text.text = "경험치 %d/%d" % [u.xp, u.xp_next()]
 	for i in p.pips.size():
@@ -408,8 +459,9 @@ func selecting() -> bool:
 
 # ───────────────────────── 레벨업 카드 고르기 ─────────────────────────
 
-## 레벨업: 그 캐릭터의 새 카드 셋 중 하나를 고른다. 고르면 card_chosen(card_id). face_of: hand.face(카드 id)
-func show_level_up(h: String, level: int, options: Array, face_of: Callable) -> void:
+## 레벨업: 그 캐릭터의 새 카드 셋 중 하나, 또는(upgrade 가 있으면) 덱의 그 카드 강화를 고른다.
+## 고르면 card_chosen(카드 id) — 강화는 "up:카드id". face_of: hand.face(카드 id). 카드 위에 빌드 축 이름을 띄운다.
+func show_level_up(h: String, level: int, options: Array, face_of: Callable, upgrade := "") -> void:
 	_level_root = Control.new()
 	_level_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	# 손패(형제 노드)보다 위에 그려지도록 같은 CanvasLayer 의 맨 뒤에 붙인다
@@ -428,17 +480,22 @@ func show_level_up(h: String, level: int, options: Array, face_of: Callable) -> 
 	title.size = Vector2(vs.x, 60)
 	title.position = Vector2(0, vs.y * 0.07)
 	var sub := _label(20, GOLD, _level_root)
-	sub.text = "덱에 섞어 넣을 카드를 하나 고르세요"
+	sub.text = "덱에 섞어 넣을 카드를 하나 고르세요" + ("  ·  또는 오른쪽 카드를 강화" if upgrade != "" else "")
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	sub.size = Vector2(vs.x, 30)
 	sub.position = Vector2(0, vs.y * 0.07 + 58)
 	var w := 200.0
 	var gap := 48.0
-	var n := options.size()
+	var choices: Array = options.duplicate()
+	if upgrade != "":
+		choices.append("up:" + upgrade)
+	var n := choices.size()
 	var x0 := vs.x * 0.5 - (w * n + gap * (n - 1)) * 0.5
 	_level_buttons.clear()
 	for i in n:
-		var cid: String = options[i]
+		var cid: String = choices[i]
+		var is_up := cid.begins_with("up:")
+		var face_id := (cid.trim_prefix("up:") + "+") if is_up else cid
 		var card := Button.new()
 		card.focus_mode = Control.FOCUS_NONE
 		card.size = Vector2(w, w * 1.5 + 24)
@@ -458,13 +515,24 @@ func show_level_up(h: String, level: int, options: Array, face_of: Callable) -> 
 		_level_root.add_child(card)
 		_level_buttons.append(card)
 		var art := TextureRect.new()
-		art.texture = face_of.call(cid)
+		art.texture = face_of.call(face_id)
 		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		art.size = Vector2(w - 24, (w - 24) * 1.5)
 		art.position = Vector2(12, 12)
 		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(art)
+		# 카드 위 꼬리표: 빌드 축(전사 버티는 자 등) · 등급 · 강화
+		var cd := D.card(face_id)
+		var tag := String(cd.get("tag", "core"))
+		var tag_text: String = "강화 +" if is_up else (String(D.HEROES[h].tags.get(tag, "공용")) + {"common": "", "uncommon": " · 고급", "rare": " · 희귀"}[String(cd.get("rarity", "common"))])
+		var tl := _label(17, GOLD if is_up or cd.get("rarity", "") == "rare" else col.lightened(0.35), card)
+		tl.text = tag_text
+		tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		tl.size = Vector2(w, 22)
+		tl.position = Vector2(0, -26)
+		if is_up:
+			sb.border_color = GOLD
 		# 등장: 아래에서 떠오르며 커진다
 		card.modulate.a = 0.0
 		card.scale = Vector2(0.8, 0.8)
@@ -483,6 +551,11 @@ func show_level_up(h: String, level: int, options: Array, face_of: Callable) -> 
 			Sfx.play(self, "card_pickup")
 			var root := _level_root
 			_level_root = null
+			# 고른 카드의 그림·자리를 남긴다: main 이 hand.fly_to_pile 로 덱 더미까지 날린다(이 버튼은 바로 감춘다)
+			picked_texture = art.texture
+			picked_center = art.get_global_rect().get_center()
+			picked_scale = art.size.x / 128.0
+			card.visible = false
 			var out := create_tween()
 			out.tween_property(root, "modulate:a", 0.0, 0.22)
 			out.tween_callback(root.queue_free)

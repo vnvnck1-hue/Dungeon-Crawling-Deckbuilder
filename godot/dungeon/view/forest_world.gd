@@ -18,6 +18,8 @@ const AerialPerspective := preload("res://scripts/visual/aerial_perspective.gd")
 const HAZE_SHADER := preload("res://shaders/ground_haze.gdshader")
 const GROUND_SHADER := preload("res://dungeon/shaders/dungeon_ground.gdshader")
 const TILE_SHADER := preload("res://dungeon/shaders/board_tiles.gdshader")
+const WATER_SHADER := preload("res://dungeon/shaders/dungeon_water.gdshader")
+const Terrain := preload("res://dungeon/view/terrain.gd")
 const POST_SHADER := preload("res://shaders/post_grade.gdshader")
 const OUTLINE_SHADER := preload("res://shaders/toon_outline.gdshader")
 const GROUND_SNOW := preload("res://assets/ground/painted_snow_v1.png")
@@ -29,7 +31,7 @@ const TILE := 2.0
 ## 전장을 칼바람 나락처럼 사선으로: 진행 방향(열이 늘어나는 쪽)이 화면 오른쪽 위로 기운다
 const LANE_DEG := 28.0
 const BOARD_HALF := Vector2(D.COLS * TILE * 0.5, D.ROWS * TILE * 0.5)
-const CLEAR_HALF := Vector2(10.6, 6.4)    # 공터(나무가 서지 않는 곳) 반 크기
+const CLEAR_HALF := Vector2(10.2, 5.6)    # 공터(나무가 서지 않는 곳) 반 크기
 const ROOM_STEP := 30.0                   # 방과 방 사이 진행 거리
 const JOGS := [7.0, -8.0, 6.0, -7.0, 5.0]
 const PATH_WIDTH := 1.7                   # 좁은 숲길 폭(나무는 그 바깥부터)
@@ -80,6 +82,7 @@ var perp := Vector3.ZERO      # 행 방향
 var rooms: Array = []         # {center, exit, entry, tiles(MeshInstance3D), tile_mat, state(Image), state_tex}
 var paths: Array = []         # 방 i → i+1 길(점 목록). paths[0] 앞의 entry_path 는 첫 방으로 들어오는 길
 var entry_path: Array = []
+var terrain                   # view/terrain.gd: 공터·길 바깥의 단·절벽 높이
 
 var focus := Vector3.ZERO
 var _focus_target := Vector3.ZERO
@@ -352,10 +355,9 @@ func _build_ground() -> void:
 	for p in _all_route_points():
 		lo = Vector3(minf(lo.x, p.x), 0, minf(lo.z, p.z))
 		hi = Vector3(maxf(hi.x, p.x), 0, maxf(hi.z, p.z))
-	var pad := 50.0
-	var plane := PlaneMesh.new()
-	plane.size = Vector2(hi.x - lo.x + pad * 2.0, hi.z - lo.z + pad * 2.0)
-	plane.subdivide_width = 0
+	var pad := 42.0
+	terrain = Terrain.new()
+	terrain.build(self, Vector2(lo.x - pad, lo.z - pad), Vector2(hi.x + pad, hi.z + pad))
 	ground_mat = ShaderMaterial.new()
 	ground_mat.shader = GROUND_SHADER
 	ground_mat.set_shader_parameter("painted_snow", GROUND_SNOW)
@@ -376,13 +378,23 @@ func _build_ground() -> void:
 	rv.resize(8)
 	ground_mat.set_shader_parameter("rooms", rv)
 	ground_mat.set_shader_parameter("room_axis", Vector2(lane.x, lane.z))
-	var mi := MeshInstance3D.new()
-	mi.name = "Ground"
-	mi.mesh = plane
-	mi.material_override = ground_mat
-	mi.position = (lo + hi) * 0.5
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(mi)
+	ground_mat.set_shader_parameter("water_y", Terrain.WATER_Y)
+	var holder := Node3D.new()
+	holder.name = "Ground"
+	add_child(holder)
+	terrain.make_meshes(holder, ground_mat)
+	# 꺼진 땅을 채우는 밤 물웅덩이(지형보다 아래에서는 지형에 가려진다)
+	var water := PlaneMesh.new()
+	water.size = Vector2(hi.x - lo.x + pad * 2.0, hi.z - lo.z + pad * 2.0)
+	var wm := ShaderMaterial.new()
+	wm.shader = WATER_SHADER
+	var wi := MeshInstance3D.new()
+	wi.name = "Water"
+	wi.mesh = water
+	wi.material_override = wm
+	wi.position = (lo + hi) * 0.5 + Vector3(0, Terrain.WATER_Y, 0)
+	wi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(wi)
 
 
 func _build_post() -> void:
@@ -703,7 +715,11 @@ func open_distance(p: Vector3) -> float:
 
 ## 키 큰 나무가 서면 카메라 쪽에서 공터(격자)를 가리는가(카메라는 +Z 쪽 위에서 내려다본다).
 ## 길은 가려도 된다 — 지나가는 원정대를 가리는 나무는 비친다(_update_occlusion).
-func _blocks_room(p: Vector3, reach: float) -> bool:
+## top 은 그 물체 꼭대기 높이(y). 꺼진 땅의 나무는 꼭대기가 낮아 공터 가까이에도 설 수 있다.
+func _blocks_room(p: Vector3, top: float) -> bool:
+	if top <= 0.3:
+		return false
+	var reach := top / tan(deg_to_rad(CAM_PITCH)) + 1.0
 	var k := 1.0
 	while k <= reach:
 		if room_distance(p - Vector3(0, 0, k)) < 0.5:
@@ -723,7 +739,7 @@ func _tree(holder: Node3D, id: String, p: Vector3, height: float, base_h: float)
 	node.rotation.y = _rng.randf_range(-PI, PI)
 	holder.add_child(node)
 	var r := height * 0.33
-	occluders.append({"bounds": AABB(Vector3(p.x - r, 1.2, p.z - r), Vector3(r * 2.0, height - 1.2, r * 2.0)),
+	occluders.append({"bounds": AABB(Vector3(p.x - r, p.y + 1.2, p.z - r), Vector3(r * 2.0, height - 1.2, r * 2.0)),
 		"meshes": node.find_children("*", "MeshInstance3D", true, false), "fade": 0.0, "pos": p})
 
 
@@ -744,13 +760,20 @@ func _build_forest() -> void:
 	for p in _all_route_points():
 		lo = Vector2(minf(lo.x, p.x), minf(lo.y, p.z))
 		hi = Vector2(maxf(hi.x, p.x), maxf(hi.y, p.z))
-	lo -= Vector2(24, 24)
-	hi += Vector2(24, 30)
-	var step := 2.6
+	lo -= Vector2(30, 30)
+	hi += Vector2(30, 34)
 	var tall := ["pine_swept_snow", "pine_broad_snow", "pine_sparse_snow"]
 	var tall_h := [5.45, 4.24, 5.25]
 	var small := ["berry_shrub", "fern_clump", "mushroom_cluster", "user_rock_low", "user_rock_pile", "hollow_stump", "pine_sapling_snow", "fallen_log"]
 	var edge := ["berry_shrub", "fern_clump", "mushroom_cluster", "user_rock_low", "user_rock_pile", "fern_clump"]
+	var lush := ["fern_clump", "berry_shrub", "fern_clump", "mushroom_cluster"]
+	var big_rocks := ["rock_ledge_snow", "rock_spire_snow", "rock_boulder_snow", "rock_ledge", "rock_spire", "rock_boulder"]
+	var big_rock_h := [1.96, 3.4, 1.71, 1.96, 3.4, 1.71]
+	# 나무는 덩어리(숲)와 빈터(풀밭 단)가 번갈아 — 단의 윗면과 절벽이 보이도록
+	var clump := FastNoiseLite.new()
+	clump.seed = 5
+	clump.frequency = 0.07
+	var step := 2.4
 	var y := lo.y
 	while y < hi.y:
 		var x := lo.x
@@ -758,25 +781,95 @@ func _build_forest() -> void:
 			var p := Vector3(x + _rng.randf_range(-1.0, 1.0), 0, y + _rng.randf_range(-1.0, 1.0))
 			x += step
 			var d := open_distance(p)
-			if d < 1.1 or d > 26.0:
+			if d < 1.1 or d > 34.0:
 				continue
-			# 길·공터 가장자리일수록 촘촘하게(벽처럼), 멀수록 듬성하게
-			if _rng.randf() > lerpf(0.97, 0.6, clampf(d / 26.0, 0.0, 1.0)):
+			p.y = terrain.height_at(p)
+			if p.y < Terrain.WATER_Y + 0.3:
+				# 물웅덩이: 가끔 물 위로 머리를 내민 바위
+				if _rng.randf() < 0.05:
+					_small(holder, ["rock_boulder_snow", "rock_boulder", "rock_shards"], Vector3(p.x, Terrain.WATER_Y - 0.35, p.z), 0.5, 1.0)
 				continue
-			if _blocks_room(p, 7.5):
-				if _rng.randf() < 0.4:
+			if terrain.gradient_at(p).length() > 0.7 or terrain.relief_at(p, 0.9) > 1.0:
+				continue   # 절벽 면·가장자리는 아래 절벽 장식이 맡는다
+			if terrain.relief_at(p, 1.8) > 1.0:
+				# 단 가장자리(윗선·발치)엔 키 큰 나무 대신 덤불 — 절벽 면이 가려지지 않게
+				if _rng.randf() < 0.3 and not _blocks_room(p, p.y + 1.0):
+					_small(holder, lush, p, 0.7, 1.2)
+				continue
+			var c := clump.get_noise_2d(p.x, p.z) * 0.5 + 0.5
+			var keep := lerpf(0.2, 1.0, smoothstep(0.28, 0.62, c))
+			if p.y < -0.5:
+				keep *= 0.55   # 꺼진 땅은 듬성하게(물가 풀밭)
+			if d < 3.0:
+				keep = maxf(keep, 0.75)   # 길·공터 바로 옆은 벽처럼 촘촘히
+			if _rng.randf() > keep:
+				if _rng.randf() < 0.22:
+					_small(holder, lush, p, 0.7, 1.2)
+				continue
+			var ht := _rng.randf_range(4.6, 7.6)
+			if _blocks_room(p, p.y + ht):
+				if _rng.randf() < 0.4 and not _blocks_room(p, p.y + 1.0):
 					_small(holder, small, p)
 				continue
 			var roll := _rng.randf()
-			if roll < 0.84:
+			if roll < 0.86:
 				var k := _rng.randi_range(0, tall.size() - 1)
-				_tree(holder, tall[k], p, _rng.randf_range(4.6, 7.4), float(tall_h[k]))
-			elif roll < 0.91:
+				_tree(holder, tall[k], p, ht, float(tall_h[k]))
+			elif roll < 0.93:
 				_tree(holder, "dead_snag", p, _rng.randf_range(3.5, 5.0), 4.2)
 			else:
 				_small(holder, ["user_rock_spire", "user_rock_ledge", "rock_boulder_snow", "user_rock_slab"], p, 0.8, 1.4)
 		y += step
-	# 좁은 길 양옆: 덤불·고사리·바위가 줄지어 길 가장자리를 그린다
+	# 절벽: 면을 따라 큰 바위를 박아 곧은 단 가장자리를 깨고, 윗 가장자리엔 덤불·뿌리, 발치엔 빛나는 꽃
+	var cy := lo.y
+	while cy < hi.y:
+		var cx := lo.x
+		while cx < hi.x:
+			var p := Vector3(cx + _rng.randf_range(-0.6, 0.6), 0, cy + _rng.randf_range(-0.6, 0.6))
+			cx += 1.6
+			var d := open_distance(p)
+			if d < 1.0 or d > 34.0:
+				continue
+			var relief: float = terrain.relief_at(p, 1.1)
+			if relief < 1.2:
+				continue
+			var g: Vector2 = terrain.gradient_at(p)
+			var up := Vector3(g.x, 0, g.y).normalized()   # 오르막 쪽
+			var top: float = terrain.height_at(p + up * 1.4)
+			var foot := p - up * 1.0
+			foot.y = terrain.height_at(foot)
+			var roll := _rng.randf()
+			if roll < 0.42:
+				if _blocks_room(foot, top + 0.5):
+					continue
+				var k := _rng.randi_range(0, big_rocks.size() - 1)
+				var node := Nature.asset(big_rocks[k])
+				var s := clampf(relief * _rng.randf_range(0.55, 1.05) / float(big_rock_h[k]), 0.45, 1.7)
+				node.scale = Vector3.ONE * s
+				node.position = p.lerp(foot, 0.4) + Vector3(0, terrain.height_at(p.lerp(foot, 0.4)) - 0.35, 0)
+				node.rotation.y = atan2(up.x, up.z) + _rng.randf_range(-0.5, 0.5)
+				holder.add_child(node)
+			elif roll < 0.62:
+				# 윗 가장자리 덤불·고사리(단이 끝나는 선이 부드럽게)
+				var lip := p + up * _rng.randf_range(0.9, 1.6)
+				lip.y = terrain.height_at(lip)
+				if not _blocks_room(lip, lip.y + 1.0):
+					_small(holder, ["berry_shrub", "fern_clump", "fern_clump", "pine_sapling_snow"], lip, 0.7, 1.25)
+			elif roll < 0.70:
+				# 단 위에서 절벽 아래로 늘어진 뿌리·덩굴
+				var lip := p + up * 0.5
+				lip.y = terrain.height_at(p + up * 1.2) - 0.1
+				if not _blocks_room(lip, lip.y):
+					var vine := Nature.asset("user_tangled_roots" if _rng.randf() < 0.6 else "user_vine_coils")
+					vine.scale = Vector3.ONE * _rng.randf_range(2.2, 3.2)
+					vine.position = lip
+					vine.rotation = Vector3(0, atan2(-up.x, -up.z), 0)
+					vine.rotate_object_local(Vector3.RIGHT, deg_to_rad(_rng.randf_range(55.0, 75.0)))
+					holder.add_child(vine)
+			elif roll < 0.80 and foot.y > Terrain.WATER_Y + 0.3:
+				_glow_flower(holder, foot - up * _rng.randf_range(0.2, 0.9), _rng.randf_range(1.1, 2.1))
+		cy += 1.6
+	# 좁은 길 양옆: 덤불·고사리·바위가 줄지어 길 가장자리를 그린다(가끔 빛나는 꽃)
 	for path in [entry_path] + paths:
 		for i in path.size() - 1:
 			var a: Vector3 = path[i]
@@ -789,15 +882,91 @@ func _build_forest() -> void:
 					if _rng.randf() < 0.55:
 						var q: Vector3 = at + side * sgn * _rng.randf_range(PATH_WIDTH + 0.5, PATH_WIDTH + 1.3)
 						if room_distance(q) > 1.0 and path_distance(q) > PATH_WIDTH + 0.3:
-							_small(holder, edge, q, 0.6, 1.0)
-	# 공터 가장자리 장식(덤불·버섯·바위)
+							q.y = terrain.height_at(q)
+							if _rng.randf() < 0.12:
+								_glow_flower(holder, q, _rng.randf_range(0.6, 1.0))
+							else:
+								_small(holder, edge, q, 0.6, 1.0)
+	# 공터 가장자리 장식(덤불·버섯·바위·빛나는 꽃)
 	for r in rooms:
-		for k in 16:
+		for k in 18:
 			var ang := _rng.randf_range(0, TAU)
 			var p: Vector3 = r.center + lane * cos(ang) * (CLEAR_HALF.x + 0.4) + perp * sin(ang) * (CLEAR_HALF.y + 0.4)
 			if room_distance(p) < -0.2 or path_distance(p) < PATH_WIDTH + 1.0:
 				continue
-			_small(holder, small.slice(0, 6), p)
+			p.y = terrain.height_at(p)
+			if k % 6 == 0:
+				_glow_flower(holder, p, _rng.randf_range(0.7, 1.1))
+			else:
+				_small(holder, small.slice(0, 6), p)
+
+
+# ───────────────────────── 빛나는 꽃 ─────────────────────────
+
+var _bloom_mesh: ArrayMesh
+var _leaf_mesh: ArrayMesh
+var _flower_n := 0
+
+
+## 달빛 꽃(레퍼런스의 푸른 발광 꽃): 납작한 잎 위로 꽃대 몇 개, 꽃잎은 HDR 발광이라 글로우가 번진다.
+func _glow_flower(holder: Node3D, p: Vector3, s: float) -> void:
+	if _bloom_mesh == null:
+		_make_flower_meshes()
+	var node := B.node(holder, p, Vector3(0, _rng.randf_range(-PI, PI), 0), "GlowFlower")
+	var leaves := MeshInstance3D.new()
+	leaves.mesh = _leaf_mesh
+	leaves.scale = Vector3.ONE * s
+	leaves.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	node.add_child(leaves)
+	var stem_mat := Mats.solid(Color(0.12, 0.2, 0.3))
+	for k in _rng.randi_range(1, 3):
+		var off := Vector3(_rng.randf_range(-0.45, 0.45), 0, _rng.randf_range(-0.45, 0.45)) * s
+		var h := _rng.randf_range(0.35, 0.95) * s
+		B.cyl(node, 0.025 * s, 0.04 * s, h, off + Vector3(0, h * 0.5, 0), stem_mat, 5)
+		var bloom := MeshInstance3D.new()
+		bloom.mesh = _bloom_mesh
+		bloom.position = off + Vector3(0, h, 0)
+		bloom.scale = Vector3.ONE * s * _rng.randf_range(0.8, 1.3)
+		# 꽃은 카메라 쪽으로 살짝 고개를 든다
+		bloom.rotation = Vector3(_rng.randf_range(0.2, 0.55), _rng.randf_range(-PI, PI), _rng.randf_range(-0.2, 0.2))
+		bloom.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		node.add_child(bloom)
+	if _flower_n % 3 == 0:
+		B.omni(node, Vector3(0, 0.9 * s, 0), Color(0.45, 0.55, 1.0), 0.9, 3.2 * s + 1.0)
+	_flower_n += 1
+
+
+func _make_flower_meshes() -> void:
+	var sph := SphereMesh.new()
+	sph.radius = 0.5
+	sph.height = 1.0
+	sph.radial_segments = 10
+	sph.rings = 5
+	_bloom_mesh = ArrayMesh.new()
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for ring in [[6, 0.0, -0.45, 0.24, Vector3(0.2, 0.05, 0.46)], [5, 0.6, -0.95, 0.12, Vector3(0.15, 0.045, 0.32)]]:
+		for k in int(ring[0]):
+			var yaw: float = k * TAU / float(ring[0]) + float(ring[1])
+			var turn := Basis(Vector3.UP, yaw)
+			var b := turn * Basis(Vector3.RIGHT, float(ring[2])) * Basis.from_scale(ring[4])
+			st.append_from(sph, 0, Transform3D(b, turn * Vector3(0, 0.06, float(ring[3]))))
+	st.set_material(Mats.glow(Color(0.4, 0.5, 1.0), 1.6))
+	st.commit(_bloom_mesh)
+	st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.append_from(sph, 0, Transform3D(Basis.from_scale(Vector3(0.16, 0.12, 0.16)), Vector3(0, 0.1, 0)))
+	st.set_material(Mats.glow(Color(0.86, 0.9, 1.0), 3.2))
+	st.commit(_bloom_mesh)
+	_leaf_mesh = ArrayMesh.new()
+	st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for k in 6:
+		var yaw := k * TAU / 6.0 + 0.3
+		var turn := Basis(Vector3.UP, yaw)
+		st.append_from(sph, 0, Transform3D(turn * Basis(Vector3.RIGHT, 0.12) * Basis.from_scale(Vector3(0.34, 0.05, 0.85)), turn * Vector3(0, 0.05, 0.36)))
+	st.set_material(Mats.solid(Color(0.13, 0.25, 0.37)))
+	st.commit(_leaf_mesh)
 
 
 ## 카메라와 지켜볼 점(유닛) 사이를 가리는 나무는 비친다(마녀산장 player_camera._update_occlusion 과 같은 값).

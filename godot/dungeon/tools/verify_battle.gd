@@ -36,12 +36,200 @@ func force_hand(b, ids: Array) -> void:
 		n += 1
 
 
+## 시너지 검증용 전투: room 방에 들어가 첫 아군 턴까지.
+func fresh(room := 0):
+	var b := Battle.new()
+	b.setup_party(D.HERO_ORDER)
+	b.enter_room(room)
+	b.begin_player_turn()
+	return b
+
+
+## 적 하나를 그 칸에 두고 체력을 넉넉히(다른 적은 치운다).
+func lone(b, cell: Vector2i, hp := 60):
+	var e = b.enemies()[0]
+	for o in b.enemies():
+		if o != e:
+			o.dead = true
+	e.cell = cell
+	e.hp = hp
+	e.max_hp = hp
+	return e
+
+
+func synergy() -> void:
+	# 표식 중첩: 사냥꾼의 표식 두 번 → 표식 4, 다음 피해 +4
+	var b = fresh()
+	var e = lone(b, Vector2i(5, 1))
+	force_hand(b, ["hunters_mark", "hunters_mark", "magic_bolt"])
+	b.play_card(b.hand[0], e.cell)
+	check("표식 +2 쌓임", e.mark == 2 and e.hp == 60 - 3)
+	b.play_card(b.hand[0], e.cell)
+	check("표식 중첩 4 (두 번째는 피해 3+2)", e.mark == 4 and e.hp == 60 - 3 - 5)
+	var hp0: int = e.hp
+	b.play_card(key_of(b, "magic_bolt"), e.cell)
+	check("표식 4 → 마력탄 5+4", e.hp == hp0 - 9)
+	b.end_player_turn()
+	check("아군 턴 끝 표식 −1", e.mark == 3)
+
+	# 냉기 → 빙결, 증기 폭발, 화상 틱
+	b = fresh()
+	e = lone(b, Vector2i(6, 1))
+	force_hand(b, ["ice_shard", "ice_shard"])
+	b.play_card(b.hand[0], e.cell)
+	check("냉기 2", e.chill == 2 and not e.frozen)
+	b.play_card(b.hand[0], e.cell)
+	check("냉기 3 이상 → 빙결, 냉기 0", e.frozen and e.chill == 0)
+	b = fresh()
+	e = lone(b, Vector2i(6, 1))
+	force_hand(b, ["ember", "ice_shard"])
+	b.play_card(b.hand[0], e.cell)
+	check("불씨: 화상 3", e.burn == 3 and e.hp == 60)
+	var sev: Array = b.play_card(b.hand[0], e.cell)
+	var steam = sev.filter(func(x): return x.type == "reaction" and x.kind == "steam")
+	check("증기 폭발: 마법사 (2+3)×3=15", steam.size() == 1 and int(steam[0].amount) == 15 and e.chill == 0 and e.burn == 0 and e.hp == 60 - 4 - 15)
+	b = fresh()
+	e = lone(b, Vector2i(6, 1))
+	force_hand(b, ["ember"])
+	b.play_card(b.hand[0], e.cell)
+	var tev: Array = b.end_player_turn()
+	check("화상 틱: 피해 3(kind burn), 화상 2", tev.any(func(x): return x.type == "damage" and x.unit == e.id and x.kind == "burn" and x.amount == 3) and e.burn == 2)
+
+	# 충돌·파쇄
+	b = fresh()
+	e = lone(b, Vector2i(6, 1))
+	e.frozen = true
+	force_hand(b, ["shoulder_charge"])
+	var cev: Array = b.play_card(b.hand[0], e.cell)
+	check("어깨 돌진: 1칸 밀린 뒤 벽에 충돌", e.cell == Vector2i(7, 1) and cev.any(func(x): return x.type == "reaction" and x.kind == "collide"))
+	check("빙결 + 충돌 = 파쇄(빙결 해제)", not e.frozen and cev.any(func(x): return x.type == "reaction" and x.kind == "shatter"))
+	check("어깨 돌진 피해 4 + 충돌 7 + 파쇄 8", e.hp == 60 - 4 - 7 - 8)
+	b = fresh()
+	var a = b.enemies()[0]
+	var c = b.enemies()[1]
+	a.cell = Vector2i(5, 1)
+	c.cell = Vector2i(6, 1)
+	a.hp = 40
+	c.hp = 40
+	force_hand(b, ["shield_bash"])
+	b.play_card(b.hand[0], a.cell)
+	check("방패 강타: 뒤 적과 충돌 — 둘 다 피해 4", a.hp == 40 - 6 - 4 and c.hp == 40 - 4)
+
+	# 연계
+	b = fresh()
+	force_hand(b, ["magic_bolt", "iron_wall", "iron_wall"])
+	b.play_card(b.hand[1])
+	check("연계 없음: 철벽 방어 8", b.hero("warrior").block == 8)
+	b.play_card(key_of(b, "magic_bolt"), b.enemies()[0].cell)
+	check("마법사 카드 뒤 철벽 연계 조건 켜짐", b.combo_active(key_of(b, "iron_wall")))
+	b.play_card(key_of(b, "iron_wall"))
+	check("연계(마법사): 철벽 방어 8+4", b.hero("warrior").block == 8 + 12)
+
+	# 투지·가시 갑옷
+	b = fresh()
+	e = lone(b, Vector2i(5, 1))
+	force_hand(b, ["thorn_armor", "war_cry"])
+	b.play_card(key_of(b, "thorn_armor"))
+	b.hero("warrior").ap = 3
+	b.play_card(key_of(b, "war_cry"))
+	var w = b.hero("warrior")
+	check("포효: 투지 +2", w.fury == 2)
+	var hp1: int = e.hp
+	b.end_player_turn()
+	check("전사가 맞으면 투지 +1", w.fury == 3)
+	check("가시 갑옷 반사 3(+포효 오라 이후)", e.hp == hp1 - 3)
+	b.begin_player_turn()
+	force_hand(b, ["slash"])
+	var hp2: int = e.hp
+	b.play_card(b.hand[0], e.cell)
+	check("베기 6 + 투지 3", e.hp == hp2 - 9)
+
+	# 궁수: 표식 적 처치 → 행동력 +1
+	b = fresh()
+	e = lone(b, Vector2i(5, 1), 5)
+	e.mark = 1
+	force_hand(b, ["aimed_shot"])
+	b.play_card(b.hand[0], e.cell)
+	check("표식 적을 궁수가 처치 → 행동력 +1", e.dead and b.hero("archer").ap == D.AP_MAX - 1 + 1)
+
+	# 생성·휘발
+	b = fresh()
+	e = lone(b, Vector2i(5, 1))
+	force_hand(b, ["arrow_bundle", "quick_shot"])
+	b.play_card(b.hand[0])
+	var arrows: Array = b.hand.filter(func(k): return D.base_id(k) == "arrow")
+	check("화살 뭉치: 「화살」 2장 생성", arrows.size() == 2)
+	var hp3: int = e.hp
+	b.play_card(key_of(b, "quick_shot"), e.cell)
+	check("속사 연계(궁수): 피해 3+3", e.hp == hp3 - 6)
+	b.play_card(arrows[0], e.cell)
+	check("화살은 쓰면 소멸", arrows[0] in b.exhausted and not arrows[0] in b.discard)
+	b.end_player_turn()
+	check("휘발: 남은 화살은 턴 끝에 사라짐", not arrows[1] in b.hand and arrows[1] in b.exhausted)
+
+	# 연쇄 번개 전도
+	b = fresh(6)
+	var first = b.enemies()[0]
+	first.mark = 2
+	first.hp = 80
+	force_hand(b, ["chain_lightning"])
+	var lev: Array = b.play_card(b.hand[0], first.cell)
+	check("전도: 다음 적에 표식이 옮겨 붙음", lev.any(func(x): return x.type == "reaction" and x.kind == "conduct") and b.enemies().any(func(x): return x != first and x.mark > 0))
+
+	# 명상 비용 감소 · 재정비 버리고 뽑기
+	b = fresh()
+	force_hand(b, ["meditate", "frost_rune"])
+	b.play_card(b.hand[0])
+	check("명상: 다음 마법사 카드 비용 −1", b.cost_of(key_of(b, "frost_rune")) == 1)
+	b = fresh()
+	b.hero("mage").ap = 0
+	force_hand(b, ["regroup", "frost_rune", "slash"])
+	b.draw_pile = ["magic_bolt#900"]
+	b.play_card(b.hand[0])
+	check("재정비: 낼 수 없는 카드부터 버리고 1장 뽑기", not key_of(b, "frost_rune") in b.hand and "magic_bolt#900" in b.hand)
+
+	# 지속: 굳건함·한기
+	b = fresh()
+	force_hand(b, ["bulwark", "iron_wall"])
+	b.play_card(key_of(b, "bulwark"))
+	b.hero("warrior").ap = 3
+	b.play_card(key_of(b, "iron_wall"))
+	b.hero("warrior").block = 40
+	b.end_player_turn()
+	var kept: int = b.hero("warrior").block
+	b.begin_player_turn()
+	check("굳건함: 턴이 바뀌어도 전사 방어 유지", b.hero("warrior").block == kept and kept > 0)
+	b = fresh()
+	e = lone(b, Vector2i(5, 1))
+	force_hand(b, ["chill_aura"])
+	b.play_card(b.hand[0])
+	b.end_player_turn()
+	var aev: Array = b.begin_player_turn()
+	check("한기: 턴 시작마다 냉기 +1", e.chill == 1 and aev.any(func(x): return x.type == "aura"))
+
+	# 강화
+	check("강화(비용 1): 베기+ 피해 8, 글도 바뀜", D.card("slash+").damage == 8 and "피해 8." in D.card("slash+").rules)
+	check("강화(비용 2 이상): 비용 −1", int(D.card("frost_rune+").cost) == 1 and D.card("frost_rune+").name == "서리 룬+")
+	b = fresh()
+	var wu = b.hero("warrior")
+	b.upgrade_card(wu, "slash")
+	check("덱의 카드 강화 → id+", "slash+" in wu.deck and not "slash" in wu.deck)
+	# 첫 레벨업 선택지: 두 축 + 공용
+	var opts: Array = b.level_options(b.hero("archer"))
+	var tags := {}
+	for o in opts:
+		tags[String(D.card(o).get("tag", "core"))] = true
+	check("첫 레벨업: A축·B축·공용 하나씩", opts.size() == 3 and tags.has("A") and tags.has("B") and tags.has("core"))
+	var lv1: Array = opts.filter(func(x): return String(D.card(x).get("rarity", "common")) == "rare")
+	check("레벨 4 전에는 희귀 카드 없음", lv1.is_empty())
+
+
 func _init() -> void:
 	var b := Battle.new()
 	b.setup_party(D.HERO_ORDER)
 	b.enter_room(0)
 	check("방 입장: 아군 3 · 적 2", b.allies().size() == 3 and b.enemies().size() == 2)
-	check("방 입장: 손패 5장, 뽑을 패 4장(덱 9장)", b.hand.size() == D.HAND_SIZE and b.draw_pile.size() == 9 - D.HAND_SIZE)
+	check("방 입장: 손패 5장, 뽑을 패 7장(덱 12장)", b.hand.size() == D.HAND_SIZE and b.draw_pile.size() == 12 - D.HAND_SIZE)
 	b.begin_player_turn()
 	check("1턴 행동력 3(모두)", b.allies().all(func(u): return u.ap == D.AP_MAX))
 	check("손패 키는 카드id#번호", b.hand.all(func(k): return "#" in k and not D.card(k).is_empty()))
@@ -149,7 +337,7 @@ func _init() -> void:
 	b7.play_card(key_of(b7, "arcane_shield"))
 	check("마력 보호막: 전원 방어 5", b7.allies().all(func(u): return u.block >= 5))
 	b7.play_card(key_of(b7, "trap_line"), orc.cell)
-	check("덫 줄: 줄의 적 빙결", orc.dead or orc.frozen)
+	check("덫 줄: 줄의 적 냉기 2", orc.dead or orc.chill == 2)
 	check("화염구(3×3): 대상 칸이 적 지역 전부", b7.target_cells(key_of(b7, "fireball")).size() == 16)
 	# 레벨업 → 카드 고르기 → 덱에 추가
 	var m7 = b7.hero("mage")
@@ -177,7 +365,7 @@ func _init() -> void:
 	var keys := {}
 	for k in b8.hand + b8.draw_pile:
 		keys[k] = true
-	check("덱의 같은 카드도 키가 서로 다름", keys.size() == 10)
+	check("덱의 같은 카드도 키가 서로 다름", keys.size() == 13)
 	# 버림패가 비고 뽑을 패도 비면 손패는 덱 크기만큼만
 	b8.begin_player_turn()
 	for k in b8.hand.duplicate():
@@ -192,6 +380,8 @@ func _init() -> void:
 	b8.discard.clear()
 	b8.draw_to_hand()
 	check("쓰러진 동료의 카드는 손패에 오지 않음", b8.hand.all(func(k): return D.card(k).hero != "mage"))
+
+	synergy()
 
 	# 방 정리 → room_clear
 	var b5 := Battle.new()
